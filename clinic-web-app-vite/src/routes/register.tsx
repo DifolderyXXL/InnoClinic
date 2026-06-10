@@ -1,17 +1,17 @@
 import { createRoute } from '@tanstack/react-router'
 import { Route as rootRouteImport } from './__root'
-import { LoginForm } from '#/components/LoginForm'
+import { RegisterForm } from '#/components/RegisterForm'
 
 export const Route = createRoute({
   getParentRoute: () => rootRouteImport,
-  path: '/login',
-  component: Login,
+  path: '/register',
+  component: Register,
 })
 
-function Login() {
+function Register() {
   return (
     <div>
-      <LoginForm></LoginForm>
+      <RegisterForm></RegisterForm>
     </div>
   )
 }

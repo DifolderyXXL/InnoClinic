@@ -3,6 +3,10 @@ import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import React, { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import {
+  fieldSpecificErrors,
+  throwResponseErrors,
+} from '#/helpers/FormComponents'
 
 const loginSchema = z.object({
   email: z.email('Invalid email address'),
@@ -40,22 +44,7 @@ export function LoginForm() {
           rememberMe,
         )
 
-        if (!response.ok) {
-          const responseTargetErrors = response.error?.response?.data?.errors
-
-          if (responseTargetErrors) {
-            const targetErrors = Object.values(responseTargetErrors)
-              .filter((x): x is string[] => Array.isArray(x) && x.length > 0)
-              .flatMap((x) => x[0])
-
-            if (targetErrors.length > 0) {
-              throw new Error(targetErrors.join(';\n'))
-            }
-          }
-
-          const errorData = await response.error.json().catch(() => ({}))
-          throw new Error(errorData.message || 'Something went wrong')
-        }
+        await throwResponseErrors(response)
 
         navigate({ to: '/' })
       } catch (error: any) {
@@ -85,6 +74,8 @@ export function LoginForm() {
               onBlur={field.handleBlur}
               onChange={(e) => field.handleChange(e.target.value)}
             />
+
+            {fieldSpecificErrors(field.state.meta)}
           </div>
         )}
       />
@@ -102,6 +93,8 @@ export function LoginForm() {
               onBlur={field.handleBlur}
               onChange={(e) => field.handleChange(e.target.value)}
             />
+
+            {fieldSpecificErrors(field.state.meta)}
           </div>
         )}
       />
@@ -142,7 +135,7 @@ export function LoginForm() {
 
               {submitError && (
                 <>
-                  <em>{submitError}</em>
+                  <em className="block error-text">{submitError}</em>
                 </>
               )}
             </div>

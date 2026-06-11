@@ -18,3 +18,19 @@ body {
 input{
   background-color: aliceblue;
 }
+
+a[aria-current="page"] {
+  color: #4b5563;         
+  text-decoration: none;   
+  cursor: default;         
+  pointer-events: none;   
+}
+
+a:not([aria-current="page"]) {
+  color: #1355db;             
+  text-decoration: underline;
+}
+
+.error-text {
+  color: red;
+}

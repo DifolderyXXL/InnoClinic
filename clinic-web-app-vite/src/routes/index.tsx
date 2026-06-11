@@ -1,13 +1,48 @@
+import { useAuth } from '#/context'
 import { weatherService } from '#/services/weatherService'
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
 import React, { Component, useState } from 'react'
 
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
+  const { user, isLoading } = useAuth()
+  if (isLoading) {
+    return <div className="p-8 text-center">Verifying session...</div>
+  }
+
+  if (!user) {
+    return (
+      <div className="p-8">
+        <h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
+
+        <div className="mt-6 flex justify-center gap-4">
+          <Link
+            to="/login"
+            className="px-4 py-2 bg-blue-300 hover:bg-blue-200 text-white rounded-lg font-medium transition"
+          >
+            Sign In
+          </Link>
+          <Link
+            to="/register"
+            className="px-4 py-2 border border-zinc-300 hover:bg-zinc-50 rounded-lg font-medium transition"
+          >
+            Register
+          </Link>
+        </div>
+
+        <p className="mt-4 text-lg">
+          Edit <code>src/routes/index.tsx</code> to get started.
+        </p>
+        <WeatherApiForm />
+        <Outlet />
+      </div>
+    )
+  }
+
   return (
     <div className="p-8">
-      <h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
+      <h1 className="text-4xl font-bold">Welcome back {user.email}</h1>
       <p className="mt-4 text-lg">
         Edit <code>src/routes/index.tsx</code> to get started.
       </p>

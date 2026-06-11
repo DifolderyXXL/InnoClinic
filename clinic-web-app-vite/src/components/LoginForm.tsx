@@ -10,7 +10,10 @@ import {
 
 const loginSchema = z.object({
   email: z.email('Invalid email address'),
-  password: z.string(),
+  password: z
+    .string()
+    .min(6, { message: 'Password must have 6 characters or more' })
+    .max(15, { message: 'Password must have max 15 characters' }),
 
   rememberMe: z.boolean(),
 })

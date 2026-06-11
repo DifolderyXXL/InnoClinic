@@ -27,7 +27,7 @@ function Home() {
             to="/register"
             className="px-4 py-2 border border-zinc-300 hover:bg-zinc-50 rounded-lg font-medium transition"
           >
-            Register
+            Sign Up
           </Link>
         </div>
 

@@ -12,10 +12,14 @@ function Login() {
   return (
     <div>
       <LoginForm></LoginForm>
-      <Link to="/register">Sign Up</Link>
-      <Link to="/login" disabled={true}>
-        Sign In
-      </Link>
+      <div className="flex gap-4">
+        <Link to="/register" className="border rounded-lg">
+          Sign Up
+        </Link>
+        <Link to="/login" className="border rounded-lg" disabled={true}>
+          Sign In
+        </Link>
+      </div>
     </div>
   )
 }

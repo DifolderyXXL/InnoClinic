@@ -12,10 +12,14 @@ function Register() {
   return (
     <div>
       <RegisterForm></RegisterForm>
-      <Link to="/register" disabled={true}>
-        Sign Up
-      </Link>
-      <Link to="/login">Sign In</Link>
+      <div className="flex gap-4">
+        <Link to="/register" className="border rounded-lg" disabled={true}>
+          Sign Up
+        </Link>
+        <Link to="/login" className="border rounded-lg">
+          Sign In
+        </Link>
+      </div>
     </div>
   )
 }

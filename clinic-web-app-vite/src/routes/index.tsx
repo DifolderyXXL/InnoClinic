@@ -1,6 +1,12 @@
 import { useAuth } from '#/context'
+import { userService } from '#/services/userService'
 import { weatherService } from '#/services/weatherService'
-import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
+import {
+  Link,
+  Outlet,
+  createFileRoute,
+  useNavigate,
+} from '@tanstack/react-router'
 import React, { Component, useState } from 'react'
 
 export const Route = createFileRoute('/')({ component: Home })
@@ -42,6 +48,7 @@ function Home() {
 
   return (
     <div className="p-8">
+      <Logout />
       <h1 className="text-4xl font-bold">Welcome back {user.email}</h1>
       <p className="mt-4 text-lg">
         Edit <code>src/routes/index.tsx</code> to get started.
@@ -49,6 +56,24 @@ function Home() {
       <WeatherApiForm />
       <Outlet />
     </div>
+  )
+}
+
+export function Logout() {
+  const navigate = useNavigate()
+  const handleClick = async (e: any) => {
+    await userService.logout()
+
+    navigate({ to: '/' })
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500"
+    >
+      Logout
+    </button>
   )
 }
 
@@ -66,7 +91,7 @@ export default function WeatherApiForm() {
     <div>
       <button
         onClick={handleClick}
-        className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-blue-300"
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-300"
       >
         Click Me
       </button>

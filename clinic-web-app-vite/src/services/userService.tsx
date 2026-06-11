@@ -27,4 +27,7 @@ export const userService = {
       }),
     )
   },
+  logout: async () => {
+    return catchResult(api.post('/core/auth/logout'))
+  },
 }

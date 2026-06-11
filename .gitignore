@@ -211,3 +211,5 @@ nunit-*.xml
 
 #APP
 *.db
+*.db-wal
+*.db-shm

@@ -1,7 +1,7 @@
-
 using AuthorizationAPI.Data;
+using AuthorizationAPI.Extensions;
+using AuthorizationAPI.Services;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.EntityFrameworkCore;
 
 const string ALLOWCORS_POLICY = "ALLOWCORS_POLICY";
@@ -10,8 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+//builder.AddSqlServerClient(connectionName: "AuthDB");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=app.db"));
+    options.UseSqlite("Data Source=app.db")); //builder.Configuration.GetConnectionString("AuthDB")
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -19,6 +20,7 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
+    options.SignIn.RequireConfirmedEmail = true;
     // Password settings.
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
@@ -72,10 +74,21 @@ builder.Services.AddCors(options =>
             .AllowCredentials(); 
     });
 });
+builder.Services.AddEndpoints(typeof(Program).Assembly);
 
+builder.Services.AddScoped<ISessionAuthorizeManager, SessionAuthorizeManager>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    await dbContext.Database.MigrateAsync();
+}
+
+
+app.MapEndpoints();
 app.MapDefaultEndpoints();
 
 app.UseCors(ALLOWCORS_POLICY);
@@ -98,7 +111,6 @@ app.MapGet("/weatherforecast", async () =>
 {
     return "ZAEBISCHE";
 }).RequireAuthorization();
-
 
 
 app.Run();

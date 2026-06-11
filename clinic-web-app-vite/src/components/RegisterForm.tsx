@@ -12,6 +12,7 @@ const loginSchema = z.object({
   password1: z
     .string()
     .min(6, { message: 'Confirm password must have 6 characters or more' }),
+  rememberMe: z.boolean(),
 })
 
 export function RegisterForm() {
@@ -22,6 +23,7 @@ export function RegisterForm() {
       email: '',
       password0: '',
       password1: '',
+      rememberMe: false,
     },
     validators: {
       onChange: loginSchema,
@@ -39,23 +41,38 @@ export function RegisterForm() {
     onSubmit: async ({ value }) => {
       setSubmitError(null)
 
-      const { email, password0, password1 } = value
+      const { email, password0, password1, rememberMe } = value
       if (password0 != password1) {
         return
       }
 
       try {
-        const response = await userService.register({
-          email: email,
-          password: password0,
-        })
+        const response = await userService.register(
+          {
+            email: email,
+            password: password0,
+          },
+          rememberMe,
+        )
 
         if (!response.ok) {
+          const responseTargetErrors = response.error?.response?.data?.errors
+
+          if (responseTargetErrors) {
+            const targetErrors = Object.values(responseTargetErrors)
+              .filter((x): x is string[] => Array.isArray(x) && x.length > 0)
+              .flatMap((x) => x[0])
+
+            if (targetErrors.length > 0) {
+              throw new Error(targetErrors.join(';\n'))
+            }
+          }
+
           const errorData = await response.error.json().catch(() => ({}))
           throw new Error(errorData.message || 'Something went wrong')
         }
 
-        navigate({ to: '/' })
+        navigate({ to: '/verifyEmail' })
       } catch (error: any) {
         setSubmitError(
           error.message || 'Failed to submit the form. Please try again.',
@@ -107,6 +124,7 @@ export function RegisterForm() {
         name="password1"
         children={(field) => (
           <>
+            <label htmlFor={field.name}>Repeat password:</label>
             <input
               name={field.name}
               value={field.state.value}
@@ -115,6 +133,23 @@ export function RegisterForm() {
               onChange={(e) => field.handleChange(e.target.value)}
             />
           </>
+        )}
+      />
+      <form.Field
+        name="rememberMe"
+        children={(field) => (
+          <div>
+            <label htmlFor={field.name}>Remember me:</label>
+
+            <input
+              type="checkbox"
+              id={field.name}
+              name={field.name}
+              checked={field.state.value}
+              onBlur={field.handleBlur}
+              onChange={(e) => field.handleChange(e.target.checked)}
+            />
+          </div>
         )}
       />
       <form.Subscribe selector={(state) => [state.canSubmit, state.errors]}>

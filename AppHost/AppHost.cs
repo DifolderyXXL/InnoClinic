@@ -1,7 +1,13 @@
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+//var sql = builder.AddSqlServer("sql")
+//    .WithLifetime(ContainerLifetime.Persistent);
+
+//var db = sql.AddDatabase("AuthDB");
+
 var backend = builder.AddProject<Projects.AuthorizationAPI>("AuthorizationAPI");
+    //.WithReference(db);
 
 //builder.AddJavaScriptApp("react-frontend", "../clinic-web-app-react")
 //       .WithRunScript("start")

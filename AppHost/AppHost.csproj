@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AuthorizationAPI\AuthorizationAPI.csproj" />
+    <ProjectReference Include="..\ProfilesAPI\ProfilesAPI.csproj" />
   </ItemGroup>
 
 </Project>

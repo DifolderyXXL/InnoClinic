@@ -2,16 +2,12 @@
 
 namespace AuthorizationAPI.Services;
 
-public interface ISessionAuthorizeManager
-{
-    public Task<bool> AuthorizeSession(IdentityUser user, bool useCookies, bool rememberMe);   
-}
 public class SessionAuthorizeManager(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager) : ISessionAuthorizeManager
 {
     public async Task<bool> AuthorizeSession(IdentityUser user, bool useCookies, bool rememberMe)
     {
         bool isEmailVerificationRequired = userManager.Options.SignIn.RequireConfirmedEmail;
-        if (isEmailVerificationRequired) 
+        if (isEmailVerificationRequired)
         {
             var confirmed = await userManager.IsEmailConfirmedAsync(user);
             if (!confirmed)

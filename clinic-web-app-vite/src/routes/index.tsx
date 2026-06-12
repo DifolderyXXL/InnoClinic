@@ -1,6 +1,7 @@
 import { useAuth } from '#/context'
 import { userService } from '#/services/userService'
 import { weatherService } from '#/services/weatherService'
+import { profileService } from '#/services/profilesService'
 import {
   Link,
   Outlet,
@@ -54,6 +55,7 @@ function Home() {
         Edit <code>src/routes/index.tsx</code> to get started.
       </p>
       <WeatherApiForm />
+      <ProfileForm />
       <Outlet />
     </div>
   )
@@ -94,6 +96,29 @@ export default function WeatherApiForm() {
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-300"
       >
         Click Me
+      </button>
+      <label className="block"> Result: {result} </label>
+    </div>
+  )
+}
+
+export function ProfileForm() {
+  const [result, setResult] = useState<string | null>(null)
+
+  const handleClick = async () => {
+    const response = await profileService.myProfile()
+
+    if (response.ok) setResult(JSON.stringify(response.data))
+    else setResult(JSON.stringify(response.error))
+  }
+
+  return (
+    <div>
+      <button
+        onClick={handleClick}
+        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-300"
+      >
+        My Profile
       </button>
       <label className="block"> Result: {result} </label>
     </div>

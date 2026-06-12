@@ -6,8 +6,11 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 //var db = sql.AddDatabase("AuthDB");
 
-var backend = builder.AddProject<Projects.AuthorizationAPI>("AuthorizationAPI");
-    //.WithReference(db);
+var authorizationAPI = builder.AddProject<Projects.AuthorizationAPI>("AuthorizationAPI");
+//.WithReference(db);
+
+
+var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI");
 
 //builder.AddJavaScriptApp("react-frontend", "../clinic-web-app-react")
 //       .WithRunScript("start")
@@ -18,7 +21,10 @@ var backend = builder.AddProject<Projects.AuthorizationAPI>("AuthorizationAPI");
 
 builder.AddViteApp("vite-frontend", "../clinic-web-app-vite")
        .WithHttpEndpoint(port: 3000)
-       .WithEnvironment("VITE_API_URL", backend.GetEndpoint("http"))
-       .WithReference(backend);
+       .WithEnvironment("VITE_AUTHORIZATION_API_URL", authorizationAPI.GetEndpoint("http"))
+       .WithEnvironment("VITE_PROFILES_API_URL", profilesAPI.GetEndpoint("http"))
+       .WithReference(authorizationAPI)
+       .WithReference(profilesAPI);
+
 
 builder.Build().Run();

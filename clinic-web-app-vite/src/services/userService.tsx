@@ -1,14 +1,14 @@
-import { api } from './api'
+import { authorizationApi } from './api'
 import type { LoginData, RegisterData } from '../types/auth'
 import { catchResult } from '#/helpers/ServiceResult'
 
 export const userService = {
   myInfo: async () => {
-    return catchResult(api.get('/auth/manage/info'))
+    return catchResult(authorizationApi.get('/auth/manage/info'))
   },
   login: async (loginData: LoginData, rememberMe: boolean) => {
     return catchResult(
-      api.post('/core/auth/login', loginData, {
+      authorizationApi.post('/core/auth/login', loginData, {
         params: {
           useCookies: true,
           rememberMe: rememberMe,
@@ -19,7 +19,7 @@ export const userService = {
 
   register: async (registerData: RegisterData, rememberMe: boolean) => {
     return catchResult(
-      api.post('/core/auth/register', registerData, {
+      authorizationApi.post('/core/auth/register', registerData, {
         params: {
           useCookies: true,
           rememberMe: rememberMe,
@@ -28,6 +28,6 @@ export const userService = {
     )
   },
   logout: async () => {
-    return catchResult(api.post('/core/auth/logout'))
+    return catchResult(authorizationApi.post('/core/auth/logout'))
   },
 }

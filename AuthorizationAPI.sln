@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppHost", "AppHost\AppHost.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceDefaults", "ServiceDefaults\ServiceDefaults.csproj", "{A5CEC213-9537-416E-90B1-3E5FED2AC1A4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProfilesAPI", "ProfilesAPI\ProfilesAPI.csproj", "{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{A5CEC213-9537-416E-90B1-3E5FED2AC1A4}.Release|x64.Build.0 = Release|Any CPU
 		{A5CEC213-9537-416E-90B1-3E5FED2AC1A4}.Release|x86.ActiveCfg = Release|Any CPU
 		{A5CEC213-9537-416E-90B1-3E5FED2AC1A4}.Release|x86.Build.0 = Release|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Debug|x64.Build.0 = Debug|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Debug|x86.Build.0 = Debug|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Release|x64.ActiveCfg = Release|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Release|x64.Build.0 = Release|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Release|x86.ActiveCfg = Release|Any CPU
+		{A3CC35D5-25FE-FE2C-FECC-FA32E6FAEA5D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

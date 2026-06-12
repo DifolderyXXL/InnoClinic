@@ -7,6 +7,7 @@ using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using ServiceDefaults;
 
 namespace Microsoft.Extensions.Hosting;
 // Adds common Aspire services: service discovery, resilience, health checks, and OpenTelemetry.
@@ -32,6 +33,17 @@ public static class Extensions
 
             // Turn on service discovery by default
             http.AddServiceDiscovery();
+        });
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(PolicyConstants.FRONTEND_CORS_POLICY, policy =>
+            {
+                policy.WithOrigins("http://localhost:3000")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
         });
 
         // Uncomment the following to restrict the allowed schemes for service discovery.

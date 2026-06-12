@@ -1,12 +1,26 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
+const AUTHORIZATION_API_URL = import.meta.env.VITE_AUTHORIZATION_API_URL
+const PROFILES_API_URL = import.meta.env.VITE_PROFILES_API_URL
 
-if (!API_BASE_URL) {
-  console.warn('Warning: VITE_API_URL is undefined. Fallback applied.')
+if (!AUTHORIZATION_API_URL) {
+  console.warn('Warning: AUTHORIZATION_API_URL is undefined. Fallback applied.')
 }
-export const api = axios.create({
-  baseURL: API_BASE_URL,
+
+if (!PROFILES_API_URL) {
+  console.warn('Warning: PROFILES_API_URL is undefined. Fallback applied.')
+}
+
+export const authorizationApi = axios.create({
+  baseURL: AUTHORIZATION_API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true,
+})
+
+export const profilesApi = axios.create({
+  baseURL: PROFILES_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

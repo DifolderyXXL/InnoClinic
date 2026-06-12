@@ -3,8 +3,8 @@ using AuthorizationAPI.Extensions;
 using AuthorizationAPI.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
-const string ALLOWCORS_POLICY = "ALLOWCORS_POLICY";
+using ServiceDefaults;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,19 +64,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(ALLOWCORS_POLICY, policy =>
-    {
-        policy.WithOrigins("http://localhost:3000")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials(); 
-    });
-});
 builder.Services.AddEndpoints(typeof(Program).Assembly);
 
 builder.Services.AddScoped<ISessionAuthorizeManager, SessionAuthorizeManager>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IConfirmationSender, LogsConfirmationSender>();
 
 var app = builder.Build();
 
@@ -91,7 +84,7 @@ using (var scope = app.Services.CreateScope())
 app.MapEndpoints();
 app.MapDefaultEndpoints();
 
-app.UseCors(ALLOWCORS_POLICY);
+app.UseCors(PolicyConstants.FRONTEND_CORS_POLICY);
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -107,9 +100,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/weatherforecast", async () =>
+app.MapGet("/weatherforecast", async (ClaimsPrincipal user) =>
 {
-    return "ZAEBISCHE";
+    var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var email = user.FindFirst(ClaimTypes.Email)?.Value;
+
+    return $"ZAEBISCHE {userId}: {email}";
 }).RequireAuthorization();
 
 

@@ -22,15 +22,14 @@ public class Register : IEndpoint
         builder.MapPost("/core/auth/register", async ([FromBody] Request request,
                                                       [FromQuery] bool useCookies,
                                                       [FromQuery] bool rememberMe,
-                                                      HttpContext httpContext,
                                                       SignInManager<IdentityUser> signInManager,
                                                       UserManager<IdentityUser> userManager,
                                                       ISessionAuthorizeManager sessionAuthorizeManager,
-                                                      ILogger<Register> logger) =>
+                                                      IConfirmationSender confirmationSender) =>
         {
-            var user = new IdentityUser { UserName = request.Email, Email = request.Email,  };
+            var user = new IdentityUser { UserName = request.Email, Email = request.Email, };
             var result = await userManager.CreateAsync(user, request.Password);
-            
+
 
             if (!result.Succeeded)
             {
@@ -43,14 +42,7 @@ public class Register : IEndpoint
             {
                 var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
-                string scheme = httpContext.Request.Scheme;
-                string host = httpContext.Request.Host.Value;
-
-                string baseHostLink = $"{scheme}://{host}";
-
-                string approveLink = $"{baseHostLink}/core/auth/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}&useCookies={useCookies}&rememberMe={rememberMe}";
-
-                logger.LogInformation($"Email confirmation link for user {user.Email}: {approveLink}");
+                await confirmationSender.SendConfirmation(user, token, useCookies, rememberMe);
             }
 
             await sessionAuthorizeManager.AuthorizeSession(user, useCookies, rememberMe);

@@ -27,12 +27,17 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.MapGet("/my-profile", async (ClaimsPrincipal user) =>
+app.MapGet("/profiles/my-profile", async (ClaimsPrincipal user) =>
 {
     var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     var email = user.FindFirst(ClaimTypes.Email)?.Value;
 
     return $"Okey, we have profile: {userId}: {email}";
 }).RequireAuthorization();
+
+app.MapGet("/profiles/weather", async () =>
+{
+    return "weatherNice";
+});
 
 app.Run();

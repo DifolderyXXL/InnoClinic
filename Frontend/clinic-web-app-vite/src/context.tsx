@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { userService } from './services/userService'
-import { useQuery } from '@tanstack/react-query'
 
 type User = {
   email: string

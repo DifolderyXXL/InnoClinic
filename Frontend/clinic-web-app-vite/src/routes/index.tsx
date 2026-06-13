@@ -9,6 +9,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router'
 import React, { Component, useState } from 'react'
+import { bffProfileService } from '#/services/bff-services/bffProfileService'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -42,6 +43,7 @@ function Home() {
           Edit <code>src/routes/index.tsx</code> to get started.
         </p>
         <WeatherApiForm />
+        <TestBFFForm />
         <Outlet />
       </div>
     )
@@ -119,6 +121,29 @@ export function ProfileForm() {
         className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-300"
       >
         My Profile
+      </button>
+      <label className="block"> Result: {result} </label>
+    </div>
+  )
+}
+
+export function TestBFFForm() {
+  const [result, setResult] = useState<string | null>(null)
+
+  const handleClick = async () => {
+    const response = await bffProfileService.getMyProfile()
+
+    if (response.ok) setResult(JSON.stringify(response.data))
+    else setResult(JSON.stringify(response.error))
+  }
+
+  return (
+    <div>
+      <button
+        onClick={handleClick}
+        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-300"
+      >
+        Get BFF test User
       </button>
       <label className="block"> Result: {result} </label>
     </div>

@@ -19,12 +19,22 @@ var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI");
 //       .WithHttpEndpoint(port: 3000, env: "PORT")
 //       .WithExternalHttpEndpoints();
 
-builder.AddViteApp("vite-frontend", "../clinic-web-app-vite")
-       .WithHttpEndpoint(port: 3000)
-       .WithEnvironment("VITE_AUTHORIZATION_API_URL", authorizationAPI.GetEndpoint("http"))
-       .WithEnvironment("VITE_PROFILES_API_URL", profilesAPI.GetEndpoint("http"))
+var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
+       // .WithEnvironment("AUTHORIZATION_API_URL", authorizationAPI.GetEndpoint("http"))
+       // .WithEnvironment("PROFILES_API_URL", profilesAPI.GetEndpoint("http"))
+       .WithHttpEndpoint(port: 5000)
+       .WithHttpsEndpoint(port: 5001)
        .WithReference(authorizationAPI)
        .WithReference(profilesAPI);
+
+builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-vite")
+       .WithHttpEndpoint(port: 3001)
+       .WithEnvironment("VITE_BFF_PROXY_URL", bff.GetEndpoint("https"))
+       .WithReference(bff);
+// .WithEnvironment("VITE_AUTHORIZATION_API_URL", authorizationAPI.GetEndpoint("http"))
+// .WithEnvironment("VITE_PROFILES_API_URL", profilesAPI.GetEndpoint("http"))
+// .WithReference(authorizationAPI)
+// .WithReference(profilesAPI);
 
 
 builder.Build().Run();

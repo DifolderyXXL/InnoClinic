@@ -62,6 +62,8 @@ builder.Services.AddAuthentication(options =>
     });
 
 
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 app.MapDefaultEndpoints();
 
@@ -75,10 +77,15 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseBff();
 
-app.MapBffManagementEndpoints();
+app.UseAuthorization();
 
-app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/bff/profiles")
-  .WithAccessToken(RequiredTokenType.User);
+app.MapGet("/hello-world", () => "hello-world")
+  .AsBffApiEndpoint();
+
+//app.MapBffManagementEndpoints();
+
+app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
+  .WithAccessToken(RequiredTokenType.Client);
 
 
 if (config.Apis.Any())
@@ -91,5 +98,8 @@ if (config.Apis.Any())
            .WithAccessToken(api.RequiredToken);
     }
 }
+
+
+
 
 app.Run();

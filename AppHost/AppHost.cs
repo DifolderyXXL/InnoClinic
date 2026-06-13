@@ -27,7 +27,8 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithReference(authorizationAPI)
        .WithReference(profilesAPI);
 
-builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-vite")
+//builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-vite")
+builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")
        .WithHttpEndpoint(port: 3001)
        .WithEnvironment("VITE_BFF_PROXY_URL", bff.GetEndpoint("https"))
        .WithReference(bff);

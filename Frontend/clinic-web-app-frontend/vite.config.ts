@@ -1,30 +1,47 @@
-import { defineConfig, loadEnv } from 'vite'
-import react from '@vitejs/plugin-react'
+import { fileURLToPath, URL } from 'node:url';
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
 
-
-const config = defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
+export default defineConfig(({ mode }) => {
+  const localEnv = loadEnv(mode, process.cwd(), '');
+  // Твой бэкенд BFF
+  const target = localEnv.VITE_BFF_PROXY_URL || 'https://localhost:5001';
 
   return {
     plugins: [react()],
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url))
+      }
+    },
     server: {
-      port: 3001,
+      port: 5173,
+      host: true,     // Чтобы .NET и браузер всегда находили Vite
+      https: false,   // Без HTTPS, чтобы забыть про ошибки сертификатов
+
+      hmr: {
+        protocol: 'ws',
+        host: 'localhost',
+        port: 5173
+      },
+
       proxy: {
-        '/bff': {
-          target: env.VITE_BFF_PROXY_URL,
+        // Проксируем авторизацию Duende
+        '^/bff': {
+          target,
           changeOrigin: true,
           secure: false
         },
-        '/api': {
-          target: env.VITE_BFF_PROXY_URL,
-          changeOrigin: true,
+        // Проксируем запросы к ProfilesAPI через BFF
+        '^/api': {
+          target,
+          changeOrigin: true, // BFF сотрет куку и подставит Bearer JWT
           secure: false
-        }
+        },
+        // Колбэки Identity Server
+        '^/signin-oidc': { target, secure: false },
+        '^/signout-callback-oidc': { target, secure: false }
       }
     }
-  }
-})
-
-
-
-export default config
+  };
+});

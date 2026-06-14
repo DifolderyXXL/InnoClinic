@@ -39,7 +39,7 @@ public static class Extensions
         {
             options.AddPolicy(PolicyConstants.FRONTEND_CORS_POLICY, policy =>
             {
-                policy.WithOrigins("http://localhost:3001")
+                policy.WithOrigins("https://localhost:3001")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

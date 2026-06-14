@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AuthorizationAPI\AuthorizationAPI.csproj" />
+    <ProjectReference Include="..\Backend\Deunde.IdentityServer\Deunde.IdentityServer.csproj" />
     <ProjectReference Include="..\Frontend\BFF.FrontendProxy\BFF.FrontendProxy.csproj" />
     <ProjectReference Include="..\ProfilesAPI\ProfilesAPI.csproj" />
   </ItemGroup>

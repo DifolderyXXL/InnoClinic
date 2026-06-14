@@ -3,8 +3,7 @@ using Duende.Bff;
 using Duende.Bff.AccessTokenManagement;
 using Duende.Bff.Yarp;
 using Microsoft.AspNetCore.HttpLogging;
-using ServiceDefaults;
-using Yarp.ReverseProxy.Forwarder; // НЕОБХОДИМО ДЛЯ ТВОЕГО МЕТОДА С СКРИНШОТА
+using Yarp.ReverseProxy.Forwarder;
 using System.Net;
 using System.Diagnostics;
 
@@ -20,7 +19,6 @@ builder.Services.AddHttpLogging(logging =>
 
 builder.AddServiceDefaults();
 
-// Регистрируем службы YARP Forwarder, которые используются на скриншоте
 builder.Services.AddHttpForwarder();
 
 builder.Services.AddBff()
@@ -43,7 +41,10 @@ builder.Services.AddAuthentication(options =>
     })
     .AddOpenIdConnect("oidc", options =>
     {
-        options.Authority = config.Authority;
+        options.Authority = builder.Configuration["services:IdentityServer:https:0"]
+                      ?? builder.Configuration["services:IdentityServer:http:0"]
+                      ?? config.Authority;
+
         options.ClientId = config.ClientId;
         options.ClientSecret = config.ClientSecret;
         options.ResponseType = "code";
@@ -75,12 +76,8 @@ app.UseAuthentication();
 app.UseBff();
 app.UseAuthorization();
 
-// Твои эндпоинты
-app.MapGet("/hello-world", () => "hello-world").AsBffApiEndpoint();
-
-// Прокси до твоего ProfilesAPI
-app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
-    .WithAccessToken(RequiredTokenType.User);
+// app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
+//     .WithAccessToken(RequiredTokenType.User);
 
 if (config.Apis.Any())
 {

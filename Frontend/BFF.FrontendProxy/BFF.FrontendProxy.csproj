@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization> 
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +16,5 @@
     <ProjectReference Include="..\..\ServiceDefaults\ServiceDefaults.csproj" />
     <ProjectReference Include="..\..\ProfilesAPI\ProfilesAPI.csproj" />
   </ItemGroup>
-
 
 </Project>

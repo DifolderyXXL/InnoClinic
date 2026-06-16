@@ -14,12 +14,18 @@ public static class Config
             new IdentityResources.OpenId(),
             new IdentityResources.Profile(),
             new IdentityResources.Email(),
-            new IdentityResources.Phone(),
-            new IdentityResources.Address(),
         ];
 
     public static IEnumerable<ApiScope> ApiScopes => [
         new ApiScope("api")
+    ];
+
+    public static IEnumerable<ApiResource> ApiResources => [
+        new ApiResource("api")
+        {
+            Scopes = { "api" },
+            UserClaims = { "email" }
+        }
     ];
 
     public static IEnumerable<Client> Clients => [

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Identity;
 
 namespace Deunde.IdentityServer.Pages.ExternalLogin;
 
@@ -16,7 +17,9 @@ namespace Deunde.IdentityServer.Pages.ExternalLogin;
 [SecurityHeaders]
 public class Callback : PageModel
 {
-    private readonly TestUserStore _users;
+
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly SignInManager<IdentityUser> _signInManager;
     private readonly IIdentityServerInteractionService _interaction;
     private readonly ILogger<Callback> _logger;
     private readonly IEventService _events;
@@ -25,14 +28,14 @@ public class Callback : PageModel
         IIdentityServerInteractionService interaction,
         IEventService events,
         ILogger<Callback> logger,
-        TestUserStore? users = null)
+        UserManager<IdentityUser> userManager,
+        SignInManager<IdentityUser> signInManager)
     {
-        // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-        _users = users ?? throw new InvalidOperationException("Please call 'AddTestUsers(TestUsers.Users)' on the IIdentityServerBuilder in Startup or remove the TestUserStore from the AccountController.");
-
         _interaction = interaction;
         _logger = logger;
         _events = events;
+        _userManager = userManager;
+        _signInManager = signInManager;
     }
 
     public async Task<IActionResult> OnGet()
@@ -53,29 +56,46 @@ public class Callback : PageModel
             _logger.ExternalClaims(externalClaims);
         }
 
-        // lookup our user and external provider info
-        // try to determine the unique id of the external user (issued by the provider)
-        // the most common claim type for that are the sub claim and the NameIdentifier
-        // depending on the external provider, some other claim type might be used
-        var userIdClaim = externalUser.FindFirst(JwtClaimTypes.Subject) ??
-                          externalUser.FindFirst(ClaimTypes.NameIdentifier) ??
-                          throw new InvalidOperationException("Unknown userid");
+        var userId = externalUser.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                     externalUser.FindFirst("sub")?.Value
+                     ?? throw new InvalidOperationException("Unknown userid");
+        var email = externalUser.FindFirst(ClaimTypes.Email)?.Value ??
+                     externalUser.FindFirst("email")?.Value ??
+                     externalUser.FindFirst("mail")?.Value
+                     ?? throw new InvalidOperationException("Unknown email");
+
 
         var provider = result.Properties.Items["scheme"] ?? throw new InvalidOperationException("Null scheme in authentication properties");
-        var providerUserId = userIdClaim.Value;
+        var providerDisplayName = externalUser.FindFirst(ClaimTypes.Name)?.Value ?? email;
 
-        // find external user
-        var user = _users.FindByExternalProvider(provider, providerUserId);
+        var user = await _userManager.FindByLoginAsync(provider, userId);
+
         if (user == null)
         {
-            // this might be where you might initiate a custom workflow for user registration
-            // in this sample we don't show how that would be done, as our sample implementation
-            // simply auto-provisions new external user
-            //
-            // remove the user id and name identifier claims so we don't include it as an extra claim if/when we provision the user
-            var claims = externalUser.Claims.ToList();
-            claims.RemoveAll(c => c.Type is JwtClaimTypes.Subject or ClaimTypes.NameIdentifier);
-            user = _users.AutoProvisionUser(provider, providerUserId, claims.ToList());
+            bool isEmailVerificationRequired = _userManager.Options.SignIn.RequireConfirmedEmail;
+            bool defaultEmailConfirmed = !isEmailVerificationRequired;
+            // find external user
+            user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                user = new IdentityUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = defaultEmailConfirmed
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    throw new InvalidOperationException($"Error while creating user: {createResult.Errors.First().Description}");
+                }
+            }
+            var addLoginResult = await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, userId, providerDisplayName));
+            if (!addLoginResult.Succeeded)
+            {
+                throw new InvalidOperationException($"Can't bind external login: {addLoginResult.Errors.First().Description}");
+            }
         }
 
         // this allows us to collect any additional claims or properties
@@ -86,12 +106,14 @@ public class Callback : PageModel
         CaptureExternalLoginContext(result, additionalLocalClaims, localSignInProps);
 
         // issue authentication cookie for user
-        var isuser = new IdentityServerUser(user.SubjectId)
+        var additionalClaims = new List<Claim>();
+        var isuser = new IdentityServerUser(user.Id)
         {
-            DisplayName = user.Username,
+            DisplayName = user.UserName,
             IdentityProvider = provider,
-            AdditionalClaims = additionalLocalClaims
+            AdditionalClaims = additionalClaims
         };
+
 
         await HttpContext.SignInAsync(isuser, localSignInProps);
 
@@ -103,7 +125,7 @@ public class Callback : PageModel
 
         // check if external login is in the context of an OIDC request
         var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
-        await _events.RaiseAsync(new UserLoginSuccessEvent(provider, providerUserId, user.SubjectId, user.Username, true, context?.Client.ClientId));
+        await _events.RaiseAsync(new UserLoginSuccessEvent(provider, userId, user.Id, user.UserName, true, context?.Client.ClientId));
         Telemetry.Metrics.UserLogin(context?.Client.ClientId, provider!);
 
         if (context != null)

@@ -7,6 +7,7 @@ using Yarp.ReverseProxy.Forwarder;
 using System.Net;
 using System.Diagnostics;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpLogging(logging =>
@@ -20,9 +21,12 @@ builder.Services.AddHttpLogging(logging =>
 builder.AddServiceDefaults();
 
 builder.Services.AddHttpForwarder();
+builder.Services.AddServiceDiscovery();
+
 
 builder.Services.AddBff()
     .AddRemoteApis();
+
 
 Configuration config = new();
 builder.Configuration.Bind("BFF", config);
@@ -41,8 +45,7 @@ builder.Services.AddAuthentication(options =>
     })
     .AddOpenIdConnect("oidc", options =>
     {
-        options.Authority = builder.Configuration["services:IdentityServer:https:0"]
-                      ?? builder.Configuration["services:IdentityServer:http:0"]
+        options.Authority = builder.Configuration.DiscoverHttps("IdentityServer")
                       ?? config.Authority;
 
         options.ClientId = config.ClientId;
@@ -76,17 +79,26 @@ app.UseAuthentication();
 app.UseBff();
 app.UseAuthorization();
 
-// app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
-//     .WithAccessToken(RequiredTokenType.User);
+// app.MapRemoteBffApiEndpoint("/api/profiles", new Uri("https://localhost:7113"))
+//   .WithAccessToken(RequiredTokenType.User);
 
-if (config.Apis.Any())
-{
-    foreach (var api in config.Apis)
-    {
-        var remoteUri = new Uri(api.RemoteUrl!);
-        app.MapRemoteBffApiEndpoint(api.PathMatch, remoteUri).WithAccessToken(api.RequiredToken);
-    }
-}
+app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
+    .WithAccessToken(RequiredTokenType.User);
+
+// if (config.Apis.Any())
+// {
+//     foreach (var api in config.Apis)
+//     {
+//         var discovered = builder.Configuration.DiscoverAny(new Uri(api.RemoteUrl!).Host)
+//             ?? api.RemoteUrl!;
+
+//         var remoteUri = new Uri(discovered);
+
+//         app.MapRemoteBffApiEndpoint(api.PathMatch, remoteUri)
+//             .WithAccessToken(api.RequiredToken);
+//     }
+// }
+
 
 // =========================================================================
 // Все запросы, которые не подошли под API, улетают на дев-сервер Vite (5173)

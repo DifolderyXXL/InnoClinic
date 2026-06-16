@@ -26,8 +26,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    // Твои настройки (убедись, что они совпадают с твоим Identity сервером)
-    options.Authority = "https://demo.duendesoftware.com";
+    options.Authority = builder.Configuration.DiscoverHttps("IdentityServer");
     options.Audience = "api";
     options.IncludeErrorDetails = true;
 
@@ -58,8 +57,11 @@ app.UseAuthorization();
 
 app.MapGet("/my-profile", (ClaimsPrincipal user) =>
 {
-    var userId = user.FindFirst("sub")?.Value;
-    var email = user.FindFirst("email")?.Value;
+    var userId = user.FindFirst("sub")?.Value
+              ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+    var email = user.FindFirst("email")?.Value
+             ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
     return Results.Ok(new { Message = "Okey, we have profile", UserId = userId, Email = email });
 }).RequireAuthorization();

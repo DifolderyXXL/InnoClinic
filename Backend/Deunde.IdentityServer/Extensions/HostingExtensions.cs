@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Filters;
+using Microsoft.AspNetCore.Identity;
+using Deunde.IdentityServer.Data;
 
 namespace Deunde.IdentityServer.Extensions;
 
@@ -61,6 +63,21 @@ internal static class HostingExtensions
         // Configure the JwtSecurityTokenHandler to not map inbound claims automatically
         JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlite(connectionString));
+
+        builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 6;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
         var isBuilder = builder.Services
             .AddIdentityServer(options =>
             {
@@ -77,7 +94,7 @@ internal static class HostingExtensions
                     options.Diagnostics.ChunkSize = 1024 * 1024 * 10; // 10 MB
                 }
             })
-            .AddTestUsers(TestUsers.Users)
+            .AddAspNetIdentity<IdentityUser>()
             // this adds the config data from DB (clients, resources, CORS)
             // .AddConfigurationStore(options =>
             // {
@@ -95,6 +112,7 @@ internal static class HostingExtensions
             //         b.UseSqlite(connectionString,
             //             dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
             // })
+            .AddInMemoryApiResources(Config.ApiResources)
             .AddInMemoryIdentityResources(Config.IdentityResources)
             .AddInMemoryApiScopes(Config.ApiScopes)
             .AddInMemoryClients(Config.Clients)
@@ -124,21 +142,24 @@ internal static class HostingExtensions
 
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
+                options.Scope.Add("email");
 
             });
 
         // this adds the necessary config for the simple admin/config pages
         {
-            // builder.Services.AddAuthorization(options =>
-            // {
-            //     options.AddPolicy(Config.Policies.Admin,
-            //         policy => policy.RequireClaim("role", "admin"));
-            // });
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Config.Policies.Admin,
+                    policy => policy.RequireClaim("role", "admin"));
+            });
 
             // builder.Services.AddTransient<ClientRepository>();
             // builder.Services.AddTransient<IdentityScopeRepository>();
             // builder.Services.AddTransient<ApiScopeRepository>();
         }
+
+
 
         // this adds the necessary config for the portal page
         //builder.Services.AddTransient<Pages.Portal.ClientRepository>();

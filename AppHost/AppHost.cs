@@ -14,6 +14,7 @@ var identityServer = builder.AddProject<Projects.Deunde_IdentityServer>("Identit
        .WithExternalHttpEndpoints();
 
 var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI")
+       .WithReference(identityServer)
        .WithExternalHttpEndpoints();
 
 //builder.AddJavaScriptApp("react-frontend", "../clinic-web-app-react")

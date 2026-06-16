@@ -26,17 +26,20 @@
                     </h5>
                     <div class="card-body pt-2">
 
-                        <!-- Form -->
                         <form asp-page="/Account/Login/Index">
                             <input type="hidden" asp-for="Input.ReturnUrl" />
 
                             <div class="form-group mb-3">
-                                <label asp-for="Input.Username"></label>
-                                <input class="form-control form-control-sm" placeholder="Username" asp-for="Input.Username" autofocus>
+                                <label asp-for="Input.Email">Email</label>
+                                <input class="form-control form-control-sm" placeholder="name@example.com"
+                                       asp-for="Input.Email" autofocus>
+                                <span asp-validation-for="Input.Email" class="text-danger"></span>
                             </div>
                             <div class="form-group mb-3">
-                                <label asp-for="Input.Password"></label>
-                                <input type="password" class="form-control form-control-sm" placeholder="Password" asp-for="Input.Password" autocomplete="off">
+                                <label asp-for="Input.Password">Password</label>
+                                <input type="password" class="form-control form-control-sm" placeholder="Password"
+                                       asp-for="Input.Password" autocomplete="off">
+                                <span asp-validation-for="Input.Password" class="text-danger"></span>
                             </div>
 
                             @if (Model.View.AllowRememberLogin)
@@ -51,12 +54,20 @@
                                 </div>
                             }
 
-                            <small class="d-block mb-3">
-                                Tip: for testing, use either <code>bob</code>/<code>bob</code>, <code>alice</code>/<code>alice</code> or <code>admin</code>/<code>admin</code>
-                            </small>
+                            <div class="mb-3">
+                                <button class="btn btn-brand" name="Input.Button" value="login">Login</button>
+                                <button class="btn btn-secondary" name="Input.Button" value="cancel">Cancel</button>
+                            </div>
 
-                            <button class="btn btn-brand" name="Input.Button" value="login">Login</button>
-                            <button class="btn btn-secondary" name="Input.Button" value="cancel">Cancel</button>
+                            <hr />
+
+                            <div class="text-center">
+                                <span class="text-muted d-block mb-2">New to the clinic?</span>
+                                <a class="btn btn-outline-primary btn-sm w-100" asp-page="/Account/Register/Index"
+                                   asp-route-returnUrl="@Model.Input.ReturnUrl">
+                                    Create an Account
+                                </a>
+                            </div>
                         </form>
 
                     </div>
@@ -75,13 +86,11 @@
                     </h5>
                     <div class="card-body">
 
-                        <!-- External providers (preconfigured or dynamic) -->
                         <ul class="list-inline">
                             @foreach (var provider in Model.View.VisibleExternalProviders)
                             {
                                 <li class="list-inline-item">
-                                    <a class="btn btn-brand"
-                                       asp-page="/ExternalLogin/Challenge"
+                                    <a class="btn btn-brand" asp-page="/ExternalLogin/Challenge"
                                        asp-route-scheme="@provider.AuthenticationScheme"
                                        asp-route-returnUrl="@Model.Input.ReturnUrl">
                                         @provider.DisplayName

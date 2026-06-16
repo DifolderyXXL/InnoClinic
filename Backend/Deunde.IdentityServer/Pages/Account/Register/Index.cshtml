@@ -1,0 +1,78 @@
+﻿@page
+@model Deunde.IdentityServer.Pages.Account.Register.Index
+
+@{
+    Layout = "_LayoutLogin";
+}
+
+<div class="register-page">
+
+    <div class="lead text-center">
+        <h1 class="text-brand mb-0">Register</h1>
+        <p>Create a new local account</p>
+    </div>
+
+    <partial name="_ValidationSummary" />
+
+    <div class="row">
+
+        @if (Model.View.EnableLocalLogin)
+        {
+            <div class="col-12 col-lg-6 mb-3 mb-lg-0 mx-auto">
+
+                <div class="card text-bg-light">
+                    <h5 class="card-header">
+                        New Account Details
+                    </h5>
+                    <div class="card-body pt-2">
+
+                        <form asp-page="/Account/Register/Index">
+                            <input type="hidden" asp-for="Input.ReturnUrl" />
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Input.Email">Email</label>
+                                <input type="email" class="form-control form-control-sm" placeholder="name@example.com"
+                                       asp-for="Input.Email" autofocus>
+                                <span asp-validation-for="Input.Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Input.Password">Password</label>
+                                <input type="password" class="form-control form-control-sm" placeholder="Password"
+                                       asp-for="Input.Password" autocomplete="off">
+                                <span asp-validation-for="Input.Password" class="text-danger"></span>
+                            </div>
+
+                            @if (Model.View.AllowRememberLogin)
+                            {
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" asp-for="Input.RememberLogin">
+                                        <label class="form-check-label" asp-for="Input.RememberLogin">
+                                            Remember Me After Registration
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="mt-4">
+                                <button class="btn btn-brand" name="Input.Button" value="register">Register</button>
+                                <button class="btn btn-secondary" name="Input.Button" value="cancel">Cancel</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        }
+
+        @if (!Model.View.EnableLocalLogin)
+        {
+            <div class="alert alert-warning col-12 col-lg-6 mx-auto">
+                <strong>Invalid registration request</strong>
+                Local registration is currently disabled for this client.
+            </div>
+        }
+    </div>
+</div>

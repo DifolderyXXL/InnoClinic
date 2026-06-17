@@ -162,7 +162,7 @@ function App() {
           <button onClick={handleLogin}>LOGIN</button>
         )}
 
-        <div style={{ marginTop: "10px", gap: "3px" }}>
+        <div style={{ marginTop: "10px", gap: "3px", display: "flex" }}>
           <ApiButton
             api="/api/profiles/get-headers"
             onDataFetched={(data) => setApiResponse(formatDisplayData(data))}

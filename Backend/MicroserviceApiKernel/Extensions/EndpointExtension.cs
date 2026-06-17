@@ -1,9 +1,9 @@
-﻿using AuthorizationAPI.Endpoints;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.ComponentModel.Design;
 using System.Reflection;
 
-namespace AuthorizationAPI.Extensions;
+namespace MicroserviceApiKernel.Extensions;
 
 public static class EndpointExtension
 {

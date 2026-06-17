@@ -1,6 +1,6 @@
 using AuthorizationAPI.Data;
-using AuthorizationAPI.Extensions;
 using AuthorizationAPI.Services;
+using MicroserviceApiKernel.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ServiceDefaults;

@@ -1,4 +1,6 @@
-﻿namespace AuthorizationAPI.Endpoints;
+﻿using Microsoft.AspNetCore.Routing;
+
+namespace MicroserviceApiKernel;
 
 public interface IEndpoint
 {

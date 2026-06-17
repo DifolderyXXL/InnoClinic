@@ -56,7 +56,7 @@ public class Callback : PageModel
             _logger.ExternalClaims(externalClaims);
         }
 
-        var userId = externalUser.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+        var providerKey = externalUser.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                      externalUser.FindFirst("sub")?.Value
                      ?? throw new InvalidOperationException("Unknown userid");
         var email = externalUser.FindFirst(ClaimTypes.Email)?.Value ??
@@ -68,7 +68,9 @@ public class Callback : PageModel
         var provider = result.Properties.Items["scheme"] ?? throw new InvalidOperationException("Null scheme in authentication properties");
         var providerDisplayName = externalUser.FindFirst(ClaimTypes.Name)?.Value ?? email;
 
-        var user = await _userManager.FindByLoginAsync(provider, userId);
+        var user = await _userManager.FindByLoginAsync(provider, providerKey);
+
+        var isExternalEmailVerified = externalUser.FindFirst("email_verified")?.Value == "true";
 
         if (user == null)
         {
@@ -76,13 +78,27 @@ public class Callback : PageModel
             bool defaultEmailConfirmed = !isEmailVerificationRequired;
             // find external user
             user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            if (user != null)
+            {
+                //TODO: security leak, check providers
+
+                // if (!isExternalEmailVerified)
+                // {
+                //     throw new InvalidOperationException("Automatic account linking failed because the external email provider has not verified this email address.");
+                // }
+
+                if (isEmailVerificationRequired && !user.EmailConfirmed)
+                {
+                    throw new InvalidOperationException("Automatic account linking failed because the external email is unverified.");
+                }
+            }
+            else
             {
                 user = new IdentityUser
                 {
                     UserName = email,
                     Email = email,
-                    EmailConfirmed = defaultEmailConfirmed
+                    EmailConfirmed = true
                 };
 
                 var createResult = await _userManager.CreateAsync(user);
@@ -91,7 +107,8 @@ public class Callback : PageModel
                     throw new InvalidOperationException($"Error while creating user: {createResult.Errors.First().Description}");
                 }
             }
-            var addLoginResult = await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, userId, providerDisplayName));
+
+            var addLoginResult = await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, providerKey, providerDisplayName));
             if (!addLoginResult.Succeeded)
             {
                 throw new InvalidOperationException($"Can't bind external login: {addLoginResult.Errors.First().Description}");
@@ -125,7 +142,7 @@ public class Callback : PageModel
 
         // check if external login is in the context of an OIDC request
         var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
-        await _events.RaiseAsync(new UserLoginSuccessEvent(provider, userId, user.Id, user.UserName, true, context?.Client.ClientId));
+        await _events.RaiseAsync(new UserLoginSuccessEvent(provider, providerKey, user.Id, user.UserName, true, context?.Client.ClientId));
         Telemetry.Metrics.UserLogin(context?.Client.ClientId, provider!);
 
         if (context != null)

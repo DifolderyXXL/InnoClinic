@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Deunde.IdentityServer</RootNamespace>
+    <UserSecretsId>faf35edb-888d-4b5b-be3e-be1ff9752eae</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

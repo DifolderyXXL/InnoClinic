@@ -1,4 +1,5 @@
 ﻿using AuthorizationAPI.Services;
+using MicroserviceApiKernel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

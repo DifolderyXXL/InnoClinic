@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\ServiceDefaults\ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\ProfilesAPI\ProfilesAPI.csproj" />
   </ItemGroup>
 
 </Project>

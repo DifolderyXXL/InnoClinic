@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Identity;
+using Deunde.IdentityServer.Services;
 
 namespace Deunde.IdentityServer.Pages.ExternalLogin;
 
@@ -19,6 +20,8 @@ public class Callback : PageModel
 {
 
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly IUserCreateManager _userCreateManager;
+
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly IIdentityServerInteractionService _interaction;
     private readonly ILogger<Callback> _logger;
@@ -29,12 +32,15 @@ public class Callback : PageModel
         IEventService events,
         ILogger<Callback> logger,
         UserManager<IdentityUser> userManager,
+        IUserCreateManager userCreateManager,
         SignInManager<IdentityUser> signInManager)
     {
         _interaction = interaction;
         _logger = logger;
         _events = events;
         _userManager = userManager;
+        _userCreateManager = userCreateManager;
+
         _signInManager = signInManager;
     }
 
@@ -94,18 +100,7 @@ public class Callback : PageModel
             }
             else
             {
-                user = new IdentityUser
-                {
-                    UserName = email,
-                    Email = email,
-                    EmailConfirmed = true
-                };
-
-                var createResult = await _userManager.CreateAsync(user);
-                if (!createResult.Succeeded)
-                {
-                    throw new InvalidOperationException($"Error while creating user: {createResult.Errors.First().Description}");
-                }
+                user = await _userCreateManager.CreateClientExternal(email);
             }
 
             var addLoginResult = await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, providerKey, providerDisplayName));

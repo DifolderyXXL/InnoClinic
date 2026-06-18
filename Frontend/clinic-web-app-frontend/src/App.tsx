@@ -174,6 +174,11 @@ function App() {
             onError={(err) => setApiResponse(String(err))}
           />
           <ApiButton
+            api="/api/profiles/client-only"
+            onDataFetched={(data) => setApiResponse(formatDisplayData(data))}
+            onError={(err) => setApiResponse(String(err))}
+          />
+          <ApiButton
             api="/api/profiles/weather"
             onDataFetched={(data) => setApiResponse(formatDisplayData(data))}
             onError={(err) => setApiResponse(String(err))}

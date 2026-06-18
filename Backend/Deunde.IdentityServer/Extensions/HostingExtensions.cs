@@ -11,6 +11,7 @@ using Serilog;
 using Serilog.Filters;
 using Microsoft.AspNetCore.Identity;
 using Deunde.IdentityServer.Data;
+using Deunde.IdentityServer.Services;
 
 namespace Deunde.IdentityServer.Extensions;
 
@@ -117,7 +118,8 @@ internal static class HostingExtensions
             .AddInMemoryApiScopes(Config.ApiScopes)
             .AddInMemoryClients(Config.Clients)
             .AddServerSideSessions()
-            .AddLicenseSummary();
+            .AddLicenseSummary()
+            .AddProfileService<RoleEnsuranceProfileService>();
 
         // Adds configuration to use Duende's Demo IdentityServer instance.
         builder.Services.AddAuthentication()
@@ -145,6 +147,10 @@ internal static class HostingExtensions
                 options.Scope.Add("email");
 
             });
+
+
+        builder.Services.AddScoped<IUserRoleManager, UserRoleManager>();
+        builder.Services.AddScoped<IUserCreateManager, UserCreateManager>();
 
         // this adds the necessary config for the simple admin/config pages
         {

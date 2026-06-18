@@ -34,6 +34,7 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Pages\Account\Register\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

@@ -16,4 +16,10 @@
     <ProjectReference Include="..\MicroserviceApiKernel\MicroserviceApiKernel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Endpoints\" />
+    <Folder Include="Endpoints\Patient\" />
+    <Folder Include="Models\" />
+  </ItemGroup>
+
 </Project>

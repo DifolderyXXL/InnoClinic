@@ -24,7 +24,7 @@ public static class Config
         new ApiResource("api")
         {
             Scopes = { "api" },
-            UserClaims = { "email" }
+            UserClaims = { "email", "role" }
         }
     ];
 
@@ -36,6 +36,7 @@ public static class Config
             AllowedGrantTypes = GrantTypes.Code,
             AllowOfflineAccess = true,
             AlwaysIncludeUserClaimsInIdToken = true,
+            UpdateAccessTokenClaimsOnRefresh = true,
             RedirectUris = { "https://localhost:5001/signin-oidc" },
             PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
             AllowedScopes = { "openid", "profile", "email", "api", "offline_access" }

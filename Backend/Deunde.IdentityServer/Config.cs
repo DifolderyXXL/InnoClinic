@@ -17,7 +17,8 @@ public static class Config
         ];
 
     public static IEnumerable<ApiScope> ApiScopes => [
-        new ApiScope("api")
+        new ApiScope("api"),
+        new ApiScope("identity")
     ];
 
     public static IEnumerable<ApiResource> ApiResources => [
@@ -40,6 +41,13 @@ public static class Config
             RedirectUris = { "https://localhost:5001/signin-oidc" },
             PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
             AllowedScopes = { "openid", "profile", "email", "api", "offline_access" }
+        },
+        new Client
+        {
+            ClientId = "m2m",
+            ClientSecrets = { new Secret("secret".Sha256()) },
+            AllowedGrantTypes = GrantTypes.ClientCredentials,
+            AllowedScopes = {  "identity" }
         }
     ];
 }

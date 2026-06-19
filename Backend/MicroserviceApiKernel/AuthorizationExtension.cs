@@ -49,7 +49,7 @@ public static class AuthorizationExtension
         app.UseAuthorization();
     }
 
-    public static void AddAuthorizationPolicies(this IServiceCollection services)
+    public static void AddApiAuthorizationPolicies(this IServiceCollection services)
     {
         services.AddAuthorizationBuilder()
             .AddPolicy(RolePolicy.Client, policy =>
@@ -57,12 +57,23 @@ public static class AuthorizationExtension
                     .AddRequirements(
                         new RoleRequirement("client"),
                         new ScopeRequirement("api"))
+                    )
+            .AddPolicy(RolePolicy.Receptionist, policy =>
+                policy
+                    .AddRequirements(
+                        new RoleRequirement("receptionist"),
+                        new ScopeRequirement("api"))
+                    );
+
+    }
+
+    public static void AddIdentityAuthorizationPolicies(this IServiceCollection services)
+    {
+        services.AddAuthorizationBuilder()
+            .AddPolicy(RolePolicy.IdentityServer, policy =>
+                policy
+                    .AddRequirements(
+                        new ScopeRequirement("identity"))
                     );
     }
-}
-
-
-public static class RolePolicy
-{
-    public const string Client = "ClientPolicyName";
 }

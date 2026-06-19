@@ -12,6 +12,7 @@ using Serilog.Filters;
 using Microsoft.AspNetCore.Identity;
 using Deunde.IdentityServer.Data;
 using Deunde.IdentityServer.Services;
+using MicroserviceApiKernel;
 
 namespace Deunde.IdentityServer.Extensions;
 
@@ -145,7 +146,6 @@ internal static class HostingExtensions
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
-
             });
 
 
@@ -159,6 +159,8 @@ internal static class HostingExtensions
                 options.AddPolicy(Config.Policies.Admin,
                     policy => policy.RequireClaim("role", "admin"));
             });
+
+            builder.Services.AddIdentityAuthorizationPolicies();
 
             // builder.Services.AddTransient<ClientRepository>();
             // builder.Services.AddTransient<IdentityScopeRepository>();

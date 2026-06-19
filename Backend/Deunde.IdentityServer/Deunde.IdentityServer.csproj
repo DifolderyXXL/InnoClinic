@@ -37,4 +37,8 @@
     <Folder Include="Services\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MicroserviceApiKernel\MicroserviceApiKernel.csproj" />
+  </ItemGroup>
+
 </Project>

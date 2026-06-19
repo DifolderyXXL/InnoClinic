@@ -1,3 +1,4 @@
+using Duende.AccessTokenManagement;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
 using ServiceDefaults;
@@ -11,11 +12,27 @@ builder.AddServiceDefaults();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen();
 
 builder.AddAuthorizationDefaultsWithAspire();
 
 builder.Services.AddEndpoints(typeof(Program).Assembly);
-builder.Services.AddAuthorizationPolicies();
+builder.Services.AddApiAuthorizationPolicies();
+
+builder.Services.AddClientCredentialsTokenManagement()
+    .AddClient("identityclient", client =>
+    {
+        client.TokenEndpoint = new Uri("https://localhost:6001/connect/token");
+
+        client.ClientId = ClientId.Parse("m2m");
+        client.ClientSecret = ClientSecret.Parse("secret");
+        client.Scope = Scope.Parse("identity");
+    });
+builder.Services.AddClientCredentialsHttpClient("client", ClientCredentialsClientName.Parse("client"), client =>
+{
+    client.BaseAddress = new Uri("https://localhost:6001/api");
+});
+
 
 var app = builder.Build();
 
@@ -25,6 +42,9 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    app.MapSwagger();
+    app.MapSwaggerUI();
 }
 
 

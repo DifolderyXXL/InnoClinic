@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.HttpLogging;
 using Yarp.ReverseProxy.Forwarder;
 using System.Net;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +29,10 @@ builder.Services.AddServiceDiscovery();
 
 builder.Services.AddBff()
     .AddRemoteApis();
+builder.Services.AddOpenApi(options =>
+        options.AddDocumentTransformer<BearerSecuritySchemeTransformer>()
+    );
+
 
 
 Configuration config = new();
@@ -41,7 +48,7 @@ builder.Services.AddAuthentication(options =>
     {
         options.Cookie.Name = "bff-local-session";
         options.Cookie.Path = "/";
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SameSite = SameSiteMode.Lax;
     })
     .AddOpenIdConnect("oidc", options =>
     {
@@ -78,12 +85,35 @@ app.UseHttpLogging();
 app.UseAuthentication();
 app.UseBff();
 app.UseAuthorization();
+app.MapGet("/login", async (HttpContext context) =>
+{
+    await context.ChallengeAsync("oidc", new AuthenticationProperties
+    {
+        RedirectUri = "/swagger/index.html"
+    });
+});
+app.MapGet("/api/profiles/openapi/v1.json", async (HttpContext context) =>
+{
+    // Этот эндпоинт просто проксирует запрос на микросервис в обход BFF-фильтров защиты
+    var httpClient = context.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient();
+    var response = await httpClient.GetAsync("https://localhost:7113/openapi/v1.json");
+
+    var json = await response.Content.ReadAsStringAsync();
+    return Results.Content(json, "application/json");
+});
+
+app.MapSwaggerUI(setupAction: options =>
+{
+    options.SwaggerEndpoint("/api/profiles/openapi/v1.json", "Profiles API v1");
+    options.ConfigObject.AdditionalItems["withCredentials"] = true;
+    options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';return request;}");
+})
+.AllowAnonymous();
 
 // app.MapRemoteBffApiEndpoint("/api/profiles", new Uri("https://localhost:7113"))
 //   .WithAccessToken(RequiredTokenType.User);
-
 app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
-    .WithAccessToken(RequiredTokenType.User);
+    .WithAccessToken(RequiredTokenType.User).DisableAntiforgery();
 
 // if (config.Apis.Any())
 // {
@@ -137,4 +167,30 @@ static async Task ForwardAllRequestsToNpmDevServer(IHttpForwarder forwarder, Htt
         requestConfig,
         HttpTransformer.Default
     );
+}
+
+
+internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider)
+    : IOpenApiDocumentTransformer
+{
+    public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context,
+        CancellationToken cancellationToken)
+    {
+        var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
+        if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
+        {
+            var requirements = new Dictionary<string, OpenApiSecurityScheme>
+            {
+                ["Bearer"] = new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer", // "bearer" refers to the header name here
+                    In = ParameterLocation.Header,
+                    BearerFormat = "Json Web Token"
+                }
+            };
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes = (IDictionary<string, IOpenApiSecurityScheme>?)requirements;
+        }
+    }
 }

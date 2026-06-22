@@ -41,6 +41,7 @@ public static class AuthorizationExtension
         });
 
         builder.Services.AddSingleton<IAuthorizationHandler, RoleRequirementHandler>();
+        builder.Services.AddSingleton<IAuthorizationHandler, ScopeRequirementHandler>();
     }
 
     public static void UseAuthorizationDefaultsWithAspire(this IApplicationBuilder app)

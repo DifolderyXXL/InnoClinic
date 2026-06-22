@@ -1,9 +1,17 @@
 using Duende.AccessTokenManagement;
+using Duende.AccessTokenManagement.OTel;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Update.Internal;
+using Microsoft.OpenApi;
+using ProfilesAPI.Data;
 using ServiceDefaults;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+
 
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 var builder = WebApplication.CreateBuilder(args);
@@ -11,10 +19,28 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Servers.Clear();
+        document.Servers.Add(new()
+        {
+            Url = "https://localhost:5001/api/profiles"
+        });
+        return Task.CompletedTask;
+    });
+});
+
+builder.Services.AddSwaggerGen(options =>
+{
+    builder.Services.AddSwaggerGen(options => options.CustomSchemaIds(i => i.FullName));
+});
 
 builder.AddAuthorizationDefaultsWithAspire();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContextPool<ProfilesDbContext>(options => options.UseSqlite(connectionString).UseLazyLoadingProxies());
 
 builder.Services.AddEndpoints(typeof(Program).Assembly);
 builder.Services.AddApiAuthorizationPolicies();
@@ -26,7 +52,7 @@ builder.Services.AddClientCredentialsTokenManagement()
 
         client.ClientId = ClientId.Parse("m2m");
         client.ClientSecret = ClientSecret.Parse("secret");
-        client.Scope = Scope.Parse("identity");
+        client.Scope = Duende.AccessTokenManagement.Scope.Parse("identity");
     });
 builder.Services.AddClientCredentialsHttpClient("client", ClientCredentialsClientName.Parse("client"), client =>
 {
@@ -35,7 +61,10 @@ builder.Services.AddClientCredentialsHttpClient("client", ClientCredentialsClien
 
 
 var app = builder.Build();
-
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
@@ -43,9 +72,11 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 
+
     app.MapSwagger();
-    app.MapSwaggerUI();
+    app.MapSwaggerUI(setupAction: options => options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';return request;}"));
 }
+
 
 
 app.UseCors(PolicyConstants.FRONTEND_BFF_CORS_POLICY);

@@ -17,8 +17,17 @@ public class ScopeRequirementHandler : AuthorizationHandler<ScopeRequirement>
 {
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ScopeRequirement requirement)
     {
-        if (context.User.Claims.Any(c => (c is { Type: "scope" or JwtClaimTypes.Scope }) && c.Value == requirement.Scope))
+        var roleClaims = context.User.Claims.Where(c =>
+    c.Type == "scope" ||
+    c.Type == JwtClaimTypes.Scope);
+
+        var hasMatchingRole = roleClaims.Any(c =>
+            string.Equals(c.Value, requirement.Scope, StringComparison.OrdinalIgnoreCase));
+
+        if (hasMatchingRole)
+        {
             context.Succeed(requirement);
+        }
 
         return Task.CompletedTask;
     }

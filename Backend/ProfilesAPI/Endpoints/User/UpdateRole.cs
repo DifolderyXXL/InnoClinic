@@ -6,10 +6,10 @@ namespace ProfilesAPI.Endpoints.User;
 
 public class UpdateRole : IEndpoint
 {
-    class Request
+    public class Request
     {
-        public string UserId;
-        public string Role;
+        public string UserId { get; set; }
+        public string Role { get; set; }
     }
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
@@ -26,7 +26,7 @@ public class UpdateRole : IEndpoint
             if (response == null)
                 return Results.BadRequest();
 
-            return response.IsSuccessStatusCode ? Results.Created() : Results.BadRequest();
+            return response.IsSuccessStatusCode ? Results.Ok() : Results.BadRequest();
         })
         .RequireAuthorization(RolePolicy.Receptionist)
         .WithDescription("Updates role for user."); ;

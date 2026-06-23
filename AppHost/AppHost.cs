@@ -20,15 +20,16 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithReference(identityServer)
        .WithReference(officesAPI)
        .WithReference(profilesAPI)
-       .WithExternalHttpEndpoints(); ;
-
-
-identityServer.WithReference(bff);
+       .WithExternalHttpEndpoints();
 
 var frontend = builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")
        .WithHttpEndpoint(port: 5173)
        .WithEnvironment("VITE_BFF_PROXY_URL", bff.GetEndpoint("https"))
        .WithReference(bff);
+
+bff.WithReference(frontend);
+
+identityServer.WithReference(bff);
 
 
 builder.Build().Run();

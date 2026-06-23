@@ -13,14 +13,6 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ConfigureEndpointDefaults(listenOptions =>
-    {
-        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-    });
-});
-
 builder.Services.AddHttpLogging(logging =>
 {
     logging.LoggingFields = HttpLoggingFields.RequestPath
@@ -94,6 +86,7 @@ app.UseAuthentication();
 app.UseBff();
 app.UseAuthorization();
 
+
 app.MapGet("/login", async (HttpContext context) =>
 {
     await context.ChallengeAsync("oidc", new AuthenticationProperties
@@ -105,7 +98,6 @@ var profiles = app.Configuration.DiscoverAny("ProfilesAPI");
 var offices = app.Configuration.DiscoverAny("OfficesAPI");
 app.MapSwaggerUI(setupAction: options =>
 {
-
     options.SwaggerEndpoint(profiles + "/openapi/v1.json", "Profiles API v1");
     options.SwaggerEndpoint(offices + "/openapi/v1.json", "Offices API v1");
 
@@ -132,49 +124,54 @@ app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
 //             .WithAccessToken(api.RequiredToken);
 //     }
 // }
-
-
+app.UseWebSockets();
+var realViteAddress = app.Configuration.DiscoverAny("vite-frontend") ?? throw new Exception("Frontend address is not defined.");
 // =========================================================================
 // Все запросы, которые не подошли под API, улетают на дев-сервер Vite (5173)
 // =========================================================================
 app.MapGet("/{*rest}", async (IHttpForwarder forwarder, HttpContext context) =>
 {
-    await ForwardAllRequestsToNpmDevServer(forwarder, context, "http://localhost:5173");
+    await ViteDevServerProxy.ForwardRequestAsync(forwarder, context, realViteAddress);
 });
 
 app.Run();
 
-static async Task ForwardAllRequestsToNpmDevServer(IHttpForwarder forwarder, HttpContext context, string destinationPrefix)
+internal static class ViteDevServerProxy
 {
-    var httpClient = new HttpMessageInvoker(
+    private static readonly HttpMessageInvoker ViteProxyClient = new(
         new SocketsHttpHandler()
         {
             UseProxy = false,
             AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.All,
             UseCookies = false,
-            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current)
+            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current),
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
         }
     );
 
-    var requestConfig = new ForwarderRequestConfig
+    public static async Task ForwardRequestAsync(IHttpForwarder forwarder, HttpContext context, string destinationPrefix)
     {
-        Version = HttpVersion.Version11,
-        VersionPolicy = HttpVersionPolicy.RequestVersionExact
-    };
+        var requestConfig = new ForwarderRequestConfig
+        {
+            Version = HttpVersion.Version11,
+            VersionPolicy = HttpVersionPolicy.RequestVersionExact
+        };
 
-    if (context.Request.Path == "/")
-    {
-        context.Request.Path = "/index.html";
+        if (context.Request.Path == "/")
+        {
+            context.Request.Path = "/index.html";
+        }
+
+        await forwarder.SendAsync(
+            context,
+            destinationPrefix,
+            ViteProxyClient,
+            requestConfig,
+            HttpTransformer.Default
+        );
     }
-
-    var error = await forwarder.SendAsync(
-        context,
-        destinationPrefix,
-        httpClient,
-        requestConfig,
-        HttpTransformer.Default
-    );
 }
 
 

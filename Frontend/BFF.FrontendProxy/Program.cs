@@ -13,6 +13,14 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ConfigureEndpointDefaults(listenOptions =>
+    {
+        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+    });
+});
+
 builder.Services.AddHttpLogging(logging =>
 {
     logging.LoggingFields = HttpLoggingFields.RequestPath
@@ -85,6 +93,7 @@ app.UseHttpLogging();
 app.UseAuthentication();
 app.UseBff();
 app.UseAuthorization();
+
 app.MapGet("/login", async (HttpContext context) =>
 {
     await context.ChallengeAsync("oidc", new AuthenticationProperties
@@ -92,26 +101,21 @@ app.MapGet("/login", async (HttpContext context) =>
         RedirectUri = "/swagger/index.html"
     });
 });
-app.MapGet("/api/profiles/openapi/v1.json", async (HttpContext context) =>
-{
-    // Этот эндпоинт просто проксирует запрос на микросервис в обход BFF-фильтров защиты
-    var httpClient = context.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient();
-    var response = await httpClient.GetAsync("https://localhost:7113/openapi/v1.json");
-
-    var json = await response.Content.ReadAsStringAsync();
-    return Results.Content(json, "application/json");
-});
-
+var profiles = app.Configuration.DiscoverAny("ProfilesAPI");
+var offices = app.Configuration.DiscoverAny("OfficesAPI");
 app.MapSwaggerUI(setupAction: options =>
 {
-    options.SwaggerEndpoint("/api/profiles/openapi/v1.json", "Profiles API v1");
+
+    options.SwaggerEndpoint(profiles + "/openapi/v1.json", "Profiles API v1");
+    options.SwaggerEndpoint(offices + "/openapi/v1.json", "Offices API v1");
+
+
     options.ConfigObject.AdditionalItems["withCredentials"] = true;
     options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';return request;}");
 })
 .AllowAnonymous();
 
-// app.MapRemoteBffApiEndpoint("/api/profiles", new Uri("https://localhost:7113"))
-//   .WithAccessToken(RequiredTokenType.User);
+
 app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
     .WithAccessToken(RequiredTokenType.User).DisableAntiforgery();
 
@@ -153,7 +157,11 @@ static async Task ForwardAllRequestsToNpmDevServer(IHttpForwarder forwarder, Htt
         }
     );
 
-    var requestConfig = new ForwarderRequestConfig { };
+    var requestConfig = new ForwarderRequestConfig
+    {
+        Version = HttpVersion.Version11,
+        VersionPolicy = HttpVersionPolicy.RequestVersionExact
+    };
 
     if (context.Request.Path == "/")
     {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using MicroserviceApiKernel.CQRS;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -26,5 +27,22 @@ public static class EndpointExtension
         {
             endpoint.MapEndpoint(app);
         }
+    }
+}
+
+
+public static class HandlerExtension
+{
+    public static IServiceCollection AddHandlers(this IServiceCollection builder, Assembly assembly)
+    {
+        return builder.Scan(scan =>
+            scan.FromAssemblies(assembly)
+                .AddClasses(classes => classes.AssignableTo(typeof(IQueryHandler<,>)))
+                    .AsImplementedInterfaces()
+                .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<,>)))
+                    .AsImplementedInterfaces()
+                .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<>)))
+                    .AsImplementedInterfaces()
+        );
     }
 }

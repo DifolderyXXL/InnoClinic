@@ -17,6 +17,7 @@ JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.Services.AddHandlers(typeof(Program).Assembly);
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>

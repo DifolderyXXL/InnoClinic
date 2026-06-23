@@ -1,11 +1,7 @@
-using MicroserviceApiKernel;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using ProfilesAPI.CustomBindAsync;
-using ProfilesAPI.Data;
+using System;
 using ProfilesAPI.Models;
 
-namespace ProfilesAPI.Endpoints.User;
+namespace ProfilesAPI.Endpoints.User.GetProfiles;
 
 public record BaseAccountDto(
     Guid Id,
@@ -37,45 +33,6 @@ public record ReceptionistDto(
     long OfficeId,
     BaseAccountDto Account
 );
-public class GetProfiles : IEndpoint
-{
-    public record Response(PatientDto Patient, DoctorDto Doctor, ReceptionistDto Receptionist);
-
-    public void MapEndpoint(IEndpointRouteBuilder builder)
-    {
-        builder.MapGet("/api/get-profiles", async (
-            UserClaimInfo user,
-            ProfilesDbContext context) =>
-        {
-            var guid = Guid.Parse(user.Id);
-
-            var account = await context.Accounts
-                .FirstOrDefaultAsync(x => x.Id == guid);
-
-            if (account == null) return Results.BadRequest();
-
-            var baseAccount = account.ToDto();
-
-            var response = new Response(
-                    account.Patient.ToDto(baseAccount),
-                    user.Roles.Any(x => x == ConstantRoles.Doctor) ? account.Doctor.ToDto(baseAccount) : null,
-                    user.Roles.Any(x => x == ConstantRoles.Receptionist) ? account.Receptionist.ToDto(baseAccount) : null
-                    );
-
-            return Results.Ok(response);
-        })
-        .RequireAuthorization(RolePolicy.Client)
-        .WithDescription("Provides user all available profiles.")
-        .Produces<Response>(StatusCodes.Status200OK);
-    }
-}
-
-public static class ConstantRoles
-{
-    public const string Patient = "Client";
-    public const string Doctor = "Doctor";
-    public const string Receptionist = "Receptionist";
-}
 
 public static class DtoConverters
 {

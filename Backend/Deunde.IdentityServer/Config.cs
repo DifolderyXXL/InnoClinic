@@ -48,6 +48,20 @@ public static class Config
             ClientSecrets = { new Secret("secret".Sha256()) },
             AllowedGrantTypes = GrantTypes.ClientCredentials,
             AllowedScopes = {  "identity" }
-        }
+        },
+        new Client
+        {
+            ClientId = "swagger-interactive",
+            ClientSecrets = { new Secret("secret".Sha256()) },
+            AllowedGrantTypes = GrantTypes.Code,
+            AllowOfflineAccess = true,
+            AlwaysIncludeUserClaimsInIdToken = true,
+            UpdateAccessTokenClaimsOnRefresh = true,
+            AllowedScopes = { "openid", "profile", "email", "api", "offline_access" },
+
+            RedirectUris = { "https://localhost:7113/swagger/oauth2-redirect.html" },
+            PostLogoutRedirectUris = { "https://localhost:7113/swagger/index.html" },
+            AllowedCorsOrigins = { "https://localhost:7113" }
+        },
     ];
 }

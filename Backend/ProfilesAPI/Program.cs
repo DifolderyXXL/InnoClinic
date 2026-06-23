@@ -20,24 +20,100 @@ builder.AddServiceDefaults();
 builder.Services.AddHandlers(typeof(Program).Assembly);
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// builder.Services.AddOpenApi(options =>
+// {
+//     options.AddDocumentTransformer((document, context, cancellationToken) =>
+//     {
+//         document.Servers.Clear();
+//         document.Servers.Add(new()
+//         {
+//             Url = "https://localhost:5001/api/profiles"
+//         });
+//         return Task.CompletedTask;
+//     });
+// });
+
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
-        document.Servers.Clear();
-        document.Servers.Add(new()
+        // Ensure instances exist
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+
+
+
+        // Add OAuth2 security scheme (Authorization Code flow only)
+        document.Components.SecuritySchemes.Add("oauth2", new OpenApiSecurityScheme
         {
-            Url = "https://localhost:5001/api/profiles"
+            Type = SecuritySchemeType.OAuth2,
+            Flows = new OpenApiOAuthFlows
+            {
+                AuthorizationCode = new OpenApiOAuthFlow
+                {
+                    AuthorizationUrl = new Uri("https://localhost:6001/connect/authorize"),
+                    TokenUrl = new Uri("https://localhost:6001/connect/token"),
+                    Scopes = new Dictionary<string, string>
+                    {
+                        { "api", "Access the Weather API" },
+                        { "openid", "Access the OpenID Connect user profile" },
+                        { "email", "Access the user's email address" },
+                        { "profile", "Access the user's profile" }
+                    }
+                }
+            }
         });
+
+        // Apply security requirement globally
+        document.Security = [
+            new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecuritySchemeReference("oauth2"),
+                    ["api", "profile", "email", "openid"]
+                }
+            }
+        ];
+
+        // Set the host document for all elements
+        // including the security scheme references
+        document.SetReferenceHostDocument();
+
         return Task.CompletedTask;
     });
 });
 
 builder.Services.AddSwaggerGen(options =>
 {
-    builder.Services.AddSwaggerGen(options => options.CustomSchemaIds(i => i.FullName));
-});
+    options.CustomSchemaIds(i => i.FullName?.Replace('+', '_'));
 
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.OAuth2,
+        Flows = new OpenApiOAuthFlows
+        {
+            AuthorizationCode = new OpenApiOAuthFlow
+            {
+                AuthorizationUrl = new Uri("https://localhost:6001/connect/authorize"),
+                TokenUrl = new Uri("https://localhost:6001/connect/token"),
+                Scopes = new Dictionary<string, string>
+                {
+                    { "api", "Access the Weather API" },
+                    { "openid", "Access the OpenID Connect user profile" },
+                    { "email", "Access the user's email address" },
+                    { "profile", "Access the user's profile" }
+                }
+            }
+        }
+    });
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("oauth2", document),
+            new List<string> { "api", "profile", "email", "openid" }
+        }
+    });
+});
 builder.AddAuthorizationDefaultsWithAspire();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -75,7 +151,13 @@ if (app.Environment.IsDevelopment())
 
 
     app.MapSwagger();
-    app.MapSwaggerUI(setupAction: options => options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';return request;}"));
+    app.MapSwaggerUI(setupAction: options =>
+    {
+
+        options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';return request;}");
+        options.OAuthUsePkce();
+
+    });
 }
 
 

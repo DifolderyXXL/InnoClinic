@@ -1,6 +1,7 @@
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
+using Microsoft.AspNetCore.Http.HttpResults;
 using ProfilesAPI.CustomBindAsync;
 using ProfilesAPI.Data;
 using ProfilesAPI.Endpoints.User.GetProfiles;
@@ -22,7 +23,7 @@ public class Endpoint : IEndpoint
 
             var result = await handler.Handle(new(guid, user.Roles), ct);
 
-            return result.MapTyped(x => TypedResults.Ok(new Response(x.Patient, x.Doctor, x.Receptionist)));
+            return result.MapToTypedResult(x => TypedResults.Ok(new Response(x.Patient, x.Doctor, x.Receptionist)));
         })
         .RequireAuthorization(RolePolicy.Client)
         .WithDescription("Provides user all available profiles.")
@@ -47,6 +48,25 @@ public static class TypedResultExtension
     public static IResult MapTyped<T>(this Result<T> result, Func<T, IResult> onSuccess)
     {
         return result.IsSuccess ? onSuccess(result.Value!) : TypedError(result.Error!);
+    }
+
+    public static Results<TSuccess, BadRequest<string>, NotFound<string>, Conflict<string>, ProblemHttpResult> MapToTypedResult<TIn, TSuccess>(
+        this Result<TIn> result,
+        Func<TIn, TSuccess> onSuccess)
+        where TSuccess : IResult
+    {
+        if (result.IsSuccess)
+        {
+            return onSuccess(result.Value!);
+        }
+
+        return result.Error!.ErrorType switch
+        {
+            ErrorType.NotFound => TypedResults.NotFound(result.Error.ErrorName),
+            ErrorType.Validation => TypedResults.BadRequest(result.Error.ErrorName),
+            ErrorType.Conflict => TypedResults.Conflict(result.Error.ErrorName),
+            _ => TypedResults.Problem(result.Error.ErrorName, statusCode: StatusCodes.Status500InternalServerError)
+        };
     }
 
     public static IResult TypedError(Error error)

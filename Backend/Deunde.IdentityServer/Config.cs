@@ -57,9 +57,11 @@ public static class Config
             AllowOfflineAccess = true,
             AlwaysIncludeUserClaimsInIdToken = true,
             UpdateAccessTokenClaimsOnRefresh = true,
+RequirePkce = true,
+    RequireClientSecret = false,
             AllowedScopes = { "openid", "profile", "email", "api", "offline_access" },
 
-            RedirectUris = { "https://localhost:7113/swagger/oauth2-redirect.html" },
+            RedirectUris = { "https://localhost:7113/swagger/oauth2-redirect.html", "https://localhost:7113/swagger/oauth2-silent.html" },
             PostLogoutRedirectUris = { "https://localhost:7113/swagger/index.html" },
             AllowedCorsOrigins = { "https://localhost:7113" }
         },

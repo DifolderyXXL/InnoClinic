@@ -32,56 +32,8 @@ builder.Services.AddHandlers(typeof(Program).Assembly);
 //         return Task.CompletedTask;
 //     });
 // });
+builder.Services.AddOpenApi();
 
-builder.Services.AddOpenApi(options =>
-{
-    options.AddDocumentTransformer((document, context, cancellationToken) =>
-    {
-        // Ensure instances exist
-        document.Components ??= new OpenApiComponents();
-        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-
-
-
-        // Add OAuth2 security scheme (Authorization Code flow only)
-        document.Components.SecuritySchemes.Add("oauth2", new OpenApiSecurityScheme
-        {
-            Type = SecuritySchemeType.OAuth2,
-            Flows = new OpenApiOAuthFlows
-            {
-                AuthorizationCode = new OpenApiOAuthFlow
-                {
-                    AuthorizationUrl = new Uri("https://localhost:6001/connect/authorize"),
-                    TokenUrl = new Uri("https://localhost:6001/connect/token"),
-                    Scopes = new Dictionary<string, string>
-                    {
-                        { "api", "Access the Weather API" },
-                        { "openid", "Access the OpenID Connect user profile" },
-                        { "email", "Access the user's email address" },
-                        { "profile", "Access the user's profile" }
-                    }
-                }
-            }
-        });
-
-        // Apply security requirement globally
-        document.Security = [
-            new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecuritySchemeReference("oauth2"),
-                    ["api", "profile", "email", "openid"]
-                }
-            }
-        ];
-
-        // Set the host document for all elements
-        // including the security scheme references
-        document.SetReferenceHostDocument();
-
-        return Task.CompletedTask;
-    });
-});
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -98,7 +50,7 @@ builder.Services.AddSwaggerGen(options =>
                 TokenUrl = new Uri("https://localhost:6001/connect/token"),
                 Scopes = new Dictionary<string, string>
                 {
-                    { "api", "Access the Weather API" },
+                    { "api", "Api" },
                     { "openid", "Access the OpenID Connect user profile" },
                     { "email", "Access the user's email address" },
                     { "profile", "Access the user's profile" }
@@ -136,6 +88,12 @@ builder.Services.AddClientCredentialsHttpClient("client", ClientCredentialsClien
     client.BaseAddress = new Uri("https://localhost:6001/api");
 });
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.SameSite = SameSiteMode.None;
+
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 
 var app = builder.Build();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -153,10 +111,11 @@ if (app.Environment.IsDevelopment())
     app.MapSwagger();
     app.MapSwaggerUI(setupAction: options =>
     {
-
-        options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';return request;}");
+        options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';request.credentials = 'include';return request;}");
         options.OAuthUsePkce();
 
+        options.OAuthClientId(builder.Configuration["oauth:clientid"]);
+        options.OAuthClientSecret(builder.Configuration["oauth:secret"]);
     });
 }
 

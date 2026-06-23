@@ -167,7 +167,16 @@ internal static class HostingExtensions
             // builder.Services.AddTransient<ApiScopeRepository>();
         }
 
-
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("SwaggerUiCorsPolicy", policy =>
+            {
+                policy.WithOrigins("https://localhost:7113")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
 
         // this adds the necessary config for the portal page
         //builder.Services.AddTransient<Pages.Portal.ClientRepository>();
@@ -209,6 +218,7 @@ internal static class HostingExtensions
             }
         });
 
+        app.UseCors("SwaggerUiCorsPolicy");
         app.UseRouting();
         app.UseIdentityServer();
 

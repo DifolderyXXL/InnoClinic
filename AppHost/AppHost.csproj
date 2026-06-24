@@ -12,6 +12,7 @@
 	<PackageReference Include="Aspire.Hosting.SqlServer" Version="*" />
     <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.4.3" />
     <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.5.2" />
+    <PackageReference Include="Aspire.Hosting.MongoDB" Version="*" />
   </ItemGroup>
 
   <ItemGroup>

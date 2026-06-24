@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Deunde.IdentityServer.Data;
 using Deunde.IdentityServer.Services;
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.Extensions;
 
 namespace Deunde.IdentityServer.Extensions;
 
@@ -55,6 +56,8 @@ internal static class HostingExtensions
 
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
+        builder.Services.AddHandlers(typeof(HostingExtensions).Assembly);
+
         builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddRazorPages()

@@ -9,8 +9,16 @@ var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI")
        .WithReference(identityServer)
        .WithExternalHttpEndpoints();
 
+
+var mongo = builder.AddMongoDB("mongo", 53460)
+                   .WithLifetime(ContainerLifetime.Persistent);
+
+var mongodb = mongo.AddDatabase("officesdb");
+
 var officesAPI = builder.AddProject<Projects.OfficesApi>("OfficesAPI")
        .WithReference(identityServer)
+       .WithReference(mongodb)
+       .WaitFor(mongodb)
        .WithExternalHttpEndpoints();
 
 

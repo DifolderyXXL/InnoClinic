@@ -1,18 +1,27 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>72d606e7-9454-4f71-860f-07b47c670a53</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.MongoDB.Driver.v3" Version="9.5.2" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\ServiceDefaults\ServiceDefaults.csproj" />
     <ProjectReference Include="..\MicroserviceApiKernel\MicroserviceApiKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Endpoints\" />
+    <Folder Include="Endpoints\CreateOffice\" />
+    <Folder Include="Infrastructure\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>

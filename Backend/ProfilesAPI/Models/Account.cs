@@ -43,7 +43,12 @@ public class Receptionist
 public class Office
 {
     public long Id { get; set; }
-    public Photo? Photo { get; set; }
+    public long? PhotoId { get; set; }
+
+    public string City { get; set; }
+    public string Street { get; set; }
+    public string HouseNumber { get; set; }
+
     public string RegistryPhoneNumber { get; set; }
     public bool IsActive { get; set; }
 }

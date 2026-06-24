@@ -27,4 +27,3 @@ public class CreateOfficeCommandHandler(OfficesDbContext officesRepository) : IC
         return Result.Success();
     }
 }
-

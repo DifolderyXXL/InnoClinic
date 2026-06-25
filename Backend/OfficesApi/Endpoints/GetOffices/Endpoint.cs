@@ -21,9 +21,11 @@ public class GetOfficesEndpoint : IEndpoint
             return result.MapToTypedResult(x => TypedResults.Ok(result));
         }).RequireAuthorization(RolePolicy.Client);
 
-        builder.MapGet("/api/office", async ([FromQuery] string officeId, OfficesDbContext context, CancellationToken ct) =>
+        builder.MapGet("/api/office/{id}", async (string id, OfficesDbContext context, CancellationToken ct) =>
         {
-            var office = await context.GetOffice(officeId, ct);
+            var officeResult = await context.GetOffice(id, ct);
+
+            var office = officeResult.Value;
 
             Result<OfficeDto> result;
             if (office == null)
@@ -38,17 +40,13 @@ public class GetOfficesEndpoint : IEndpoint
                     City: office.City,
                     Street: office.Street,
                     HouseNumber: office.HouseNumber,
+                    OfficeNumber: office.OfficeNumber,
                     RegistryPhoneNumber: office.RegistryPhoneNumber,
                     IsActive: office.IsActive
                 ));
             }
 
-            return result.MapToTypedResult(x => TypedResults.Ok(result));
+            return result.MapToTypedResult(x => TypedResults.Ok(x));
         }).RequireAuthorization(RolePolicy.Client);
     }
-}
-
-public static class OfficeErrors
-{
-    public static Error NotFound() => Error.Create(ErrorType.NotFound);
 }

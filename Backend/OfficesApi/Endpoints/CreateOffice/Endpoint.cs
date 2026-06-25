@@ -9,7 +9,7 @@ namespace OfficesApi.Endpoints.CreateOffice;
 
 public class Endpoint : IEndpoint
 {
-    public record Request(long? PhotoId, string City, string Street, string HouseNumber, string RegistryPhoneNumber, string IsActive);
+    public record Request(long? PhotoId, string City, string Street, string HouseNumber, string? OfficeNumber, string RegistryPhoneNumber, string IsActive);
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapPost("/api/create", async (
@@ -18,7 +18,7 @@ public class Endpoint : IEndpoint
             CancellationToken ct) =>
         {
             var result = await handler.Handle(
-                new(request.PhotoId, request.City, request.Street, request.HouseNumber, request.RegistryPhoneNumber, request.IsActive), ct);
+                new(request.PhotoId, request.City, request.Street, request.HouseNumber, request.OfficeNumber, request.RegistryPhoneNumber, request.IsActive), ct);
 
             return result.MapToTypedResult(() => TypedResults.Created());
         }).RequireAuthorization(RolePolicy.Receptionist);

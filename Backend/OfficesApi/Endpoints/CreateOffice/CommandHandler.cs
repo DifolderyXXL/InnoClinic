@@ -6,7 +6,7 @@ using OfficesApi.Models;
 namespace OfficesApi.Endpoints.CreateOffice;
 
 
-public record CreateOfficeCommand(long? PhotoId, string City, string Street, string HouseNumber, string RegistryPhoneNumber, string IsActive) : ICommand;
+public record CreateOfficeCommand(long? PhotoId, string City, string Street, string HouseNumber, string? OfficeNumber, string RegistryPhoneNumber, string IsActive) : ICommand;
 public class CreateOfficeCommandHandler(OfficesDbContext officesRepository) : ICommandHandler<CreateOfficeCommand>
 {
     public async Task<Result> Handle(CreateOfficeCommand command, CancellationToken ct)
@@ -18,6 +18,7 @@ public class CreateOfficeCommandHandler(OfficesDbContext officesRepository) : IC
             Street = command.Street,
             HouseNumber = command.HouseNumber,
             RegistryPhoneNumber = command.RegistryPhoneNumber,
+            OfficeNumber = command.OfficeNumber,
 
             IsActive = bool.TryParse(command.IsActive, out var isActive) && isActive
         };

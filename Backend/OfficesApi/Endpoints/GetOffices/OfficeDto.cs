@@ -5,5 +5,6 @@ public record OfficeDto(string Id,
     string City,
     string Street,
     string HouseNumber,
+    string? OfficeNumber,
     string RegistryPhoneNumber,
     bool IsActive);

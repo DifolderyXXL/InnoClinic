@@ -1,9 +1,10 @@
 using System;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using MicroserviceApiKernel.Results;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.IdGenerators;
 using MongoDB.Driver;
+using OfficesApi.Endpoints.GetOffices;
 using OfficesApi.Models;
 
 namespace OfficesApi.Infrastructure;
@@ -55,7 +56,31 @@ public class OfficesDbContext(IMongoDatabase database)
         }
     }
 
-    public async Task<Office> GetOffice(string officeId, CancellationToken ct)
+    public async Task<Result> UpdateOfficeActive(Office office, bool active, CancellationToken ct)
+    {
+        var collection = database.GetCollection<Office>(OfficesTableName);
+
+        try
+        {
+            var filter = Builders<Office>.Filter.Eq(x => x.Id, office.Id);
+            var update = Builders<Office>.Update.Set(x => x.IsActive, active);
+
+            var result = await collection.UpdateOneAsync(filter, update);
+
+            if (result.MatchedCount == 0)
+            {
+                return Result.Failure(null);
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result<Office>> GetOffice(string officeId, CancellationToken ct)
     {
         var collection = database.GetCollection<Office>(OfficesTableName);
 
@@ -67,7 +92,7 @@ public class OfficesDbContext(IMongoDatabase database)
         }
         catch (Exception)
         {
-            throw;
+            return OfficeErrors.NotFound();
         }
     }
     public async Task<List<Office>> GetAll(CancellationToken ct)

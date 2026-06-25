@@ -20,6 +20,7 @@ public class GetOfficesQueryHandler(OfficesDbContext dbContext) : IQueryHandler<
             City: x.City,
             Street: x.Street,
             HouseNumber: x.HouseNumber,
+            OfficeNumber: x.OfficeNumber,
             RegistryPhoneNumber: x.RegistryPhoneNumber,
             IsActive: x.IsActive
         )).ToList();

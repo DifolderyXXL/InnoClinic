@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Endpoints\ChangeOfficeActive\" />
     <Folder Include="Endpoints\GetOffices\" />
     <Folder Include="Models\" />
   </ItemGroup>

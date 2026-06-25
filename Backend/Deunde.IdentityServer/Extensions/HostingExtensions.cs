@@ -187,9 +187,11 @@ internal static class HostingExtensions
         return builder.Build();
     }
 
-    public static WebApplication ConfigurePipeline(this WebApplication app)
+    public static async Task<WebApplication> ConfigurePipeline(this WebApplication app)
     {
         app.UseSerilogRequestLogging();
+
+        await app.ConfigureDefaultRoles();
 
         if (app.Environment.IsDevelopment())
         {
@@ -230,6 +232,20 @@ internal static class HostingExtensions
 
         app.MapRazorPages()
             .RequireAuthorization();
+
+        return app;
+    }
+
+    public static async Task<WebApplication> ConfigureDefaultRoles(this WebApplication app)
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            await RoleHelper.EnsureRole(roleManager, "client");
+            await RoleHelper.EnsureRole(roleManager, "doctor");
+            await RoleHelper.EnsureRole(roleManager, "receptionist");
+        }
 
         return app;
     }

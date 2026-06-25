@@ -109,7 +109,10 @@ app.MapSwaggerUI(setupAction: options =>
 
 
 app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
-    .WithAccessToken(RequiredTokenType.User).DisableAntiforgery();
+    .WithAccessToken(RequiredTokenType.User);
+
+app.MapAspireBffService(builder.Configuration, "OfficesAPI", "/api/offices")
+    .WithAccessToken(RequiredTokenType.User);
 
 // if (config.Apis.Any())
 // {

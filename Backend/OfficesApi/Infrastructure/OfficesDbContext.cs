@@ -52,4 +52,25 @@ public class OfficesDbContext(IMongoDatabase database)
             throw new InvalidOperationException($"Office with ID {office.Id} already exists.");
         }
     }
+
+    public async Task<List<Office>> GetAll(CancellationToken ct)
+    {
+        var collection = database.GetCollection<Office>(OfficesTableName);
+
+        try
+        {
+            var filter = Builders<Office>.Filter.Empty;
+
+            return await collection.Find(filter).ToListAsync(ct);
+        }
+        catch (MongoDuplicateKeyException)
+        {
+            throw;
+        }
+    }
+}
+public enum PageDirection
+{
+    Up,
+    Down,
 }

@@ -20,9 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Endpoints\" />
-    <Folder Include="Endpoints\CreateOffice\" />
-    <Folder Include="Infrastructure\" />
+    <Folder Include="Endpoints\GetOffices\" />
     <Folder Include="Models\" />
   </ItemGroup>
 

@@ -56,6 +56,28 @@ public class OfficesDbContext(IMongoDatabase database)
         }
     }
 
+
+    public async Task<Result> UpdateOffice(Office office, CancellationToken ct)
+    {
+        var collection = database.GetCollection<Office>(OfficesTableName);
+
+        try
+        {
+            var result = await collection.ReplaceOneAsync(x => x.Id == office.Id, office, cancellationToken: ct);
+
+            if (result.MatchedCount == 0)
+            {
+                return Result.Failure(null);
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+
+        return Result.Success();
+    }
+
     public async Task<Result> UpdateOfficeActive(Office office, bool active, CancellationToken ct)
     {
         var collection = database.GetCollection<Office>(OfficesTableName);
@@ -65,7 +87,7 @@ public class OfficesDbContext(IMongoDatabase database)
             var filter = Builders<Office>.Filter.Eq(x => x.Id, office.Id);
             var update = Builders<Office>.Update.Set(x => x.IsActive, active);
 
-            var result = await collection.UpdateOneAsync(filter, update);
+            var result = await collection.UpdateOneAsync(filter, update, cancellationToken: ct);
 
             if (result.MatchedCount == 0)
             {

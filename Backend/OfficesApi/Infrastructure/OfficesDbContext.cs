@@ -1,4 +1,6 @@
 using System;
+using System.Runtime.CompilerServices;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
 using MongoDB.Driver;
@@ -53,6 +55,21 @@ public class OfficesDbContext(IMongoDatabase database)
         }
     }
 
+    public async Task<Office> GetOffice(string officeId, CancellationToken ct)
+    {
+        var collection = database.GetCollection<Office>(OfficesTableName);
+
+        try
+        {
+            var id = ObjectId.Parse(officeId);
+
+            return await collection.Find(x => x.Id == id).FirstOrDefaultAsync(ct);
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
     public async Task<List<Office>> GetAll(CancellationToken ct)
     {
         var collection = database.GetCollection<Office>(OfficesTableName);
@@ -63,7 +80,7 @@ public class OfficesDbContext(IMongoDatabase database)
 
             return await collection.Find(filter).ToListAsync(ct);
         }
-        catch (MongoDuplicateKeyException)
+        catch (Exception)
         {
             throw;
         }

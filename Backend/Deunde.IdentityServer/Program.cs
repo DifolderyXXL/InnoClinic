@@ -16,7 +16,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    var app = builder
+    var app = await builder
         .ConfigureLogging()
         .ConfigureServices()
         .ConfigurePipeline();

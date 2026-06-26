@@ -18,7 +18,7 @@ public class GetOfficesEndpoint : IEndpoint
         {
             var result = await handler.Handle(new(), ct);
 
-            return result.MapToTypedResult(x => TypedResults.Ok(result));
+            return result.MapToTypedResult(x => TypedResults.Ok(x));
         }).RequireAuthorization(RolePolicy.Client);
 
         builder.MapGet("/api/office/{id}", async (string id, OfficesDbContext context, CancellationToken ct) =>

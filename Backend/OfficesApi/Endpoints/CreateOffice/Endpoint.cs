@@ -9,11 +9,10 @@ namespace OfficesApi.Endpoints.CreateOffice;
 
 public class Endpoint : IEndpoint
 {
-    public record Request(long? PhotoId, string City, string Street, string HouseNumber, string? OfficeNumber, string RegistryPhoneNumber, string IsActive);
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapPost("/api/create", async (
-            [FromBody] Request request,
+            [FromBody] CreateOfficeCommand request,
             ICommandHandler<CreateOfficeCommand> handler,
             CancellationToken ct) =>
         {

@@ -1,37 +1,27 @@
 using System;
+using FluentValidation;
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;
-using MicroserviceApiKernel.Results;
-using OfficesApi.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 
 namespace OfficesApi.Endpoints.ChangeOfficeActive;
 
+
 public class Endpoint : IEndpoint
 {
-    public record OfficeStatusUpdate(bool IsActive);
+    public record Request(bool IsActive);
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPatch("/api/office/{id}", async (string id, OfficeStatusUpdate request, OfficesDbContext context, CancellationToken ct) =>
+        builder.MapPatch("/api/office/{id}", async (
+            string id,
+            [FromBody] Request request,
+            ICommandHandler<ChangeOfficeActiveCommand> handler,
+            CancellationToken ct) =>
         {
-            var result = await Query(id, request, context, ct);
+            var result = await handler.Handle(new(id, request.IsActive), ct);
 
             return result.MapToTypedResult(() => TypedResults.Ok());
         }).RequireAuthorization(RolePolicy.Receptionist);
-    }
-
-    public async Task<Result> Query(string id, OfficeStatusUpdate request, OfficesDbContext context, CancellationToken ct)
-    {
-        var officeResult = await context.GetOffice(id, ct);
-
-        if (officeResult.IsError)
-        {
-            return officeResult;
-        }
-
-        var office = officeResult.Value!;
-
-        var result = await context.UpdateOfficeActive(office, request.IsActive, ct);
-
-        return result;
     }
 }

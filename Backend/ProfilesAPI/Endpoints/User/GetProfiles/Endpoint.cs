@@ -1,10 +1,12 @@
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.Extensions;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ProfilesAPI.CustomBindAsync;
 using ProfilesAPI.Data;
 using ProfilesAPI.Endpoints.User.GetProfiles;
+
 namespace ProfilesAPI.Endpoints.User;
 
 public class Endpoint : IEndpoint
@@ -36,49 +38,4 @@ public static class ConstantRoles
     public const string Patient = "Client";
     public const string Doctor = "Doctor";
     public const string Receptionist = "Receptionist";
-}
-
-public static class TypedResultExtension
-{
-    public static TResult Map<T, TResult>(this Result<T> result, Func<Result<T>, TResult> onFailure, Func<Result<T>, TResult> onSuccess)
-    {
-        return result.IsSuccess ? onSuccess(result) : onFailure(result);
-    }
-
-    public static IResult MapTyped<T>(this Result<T> result, Func<T, IResult> onSuccess)
-    {
-        return result.IsSuccess ? onSuccess(result.Value!) : TypedError(result.Error!);
-    }
-
-    public static Results<TSuccess, BadRequest<string>, NotFound<string>, Conflict<string>, ProblemHttpResult> MapToTypedResult<TIn, TSuccess>(
-        this Result<TIn> result,
-        Func<TIn, TSuccess> onSuccess)
-        where TSuccess : IResult
-    {
-        if (result.IsSuccess)
-        {
-            return onSuccess(result.Value!);
-        }
-
-        return result.Error!.ErrorType switch
-        {
-            ErrorType.NotFound => TypedResults.NotFound(result.Error.ErrorName),
-            ErrorType.Validation => TypedResults.BadRequest(result.Error.ErrorName),
-            ErrorType.Conflict => TypedResults.Conflict(result.Error.ErrorName),
-            _ => TypedResults.Problem(result.Error.ErrorName, statusCode: StatusCodes.Status500InternalServerError)
-        };
-    }
-
-    public static IResult TypedError(Error error)
-    {
-        return error.ErrorType switch
-        {
-            ErrorType.Internal => TypedResults.InternalServerError(error.ErrorName),
-            ErrorType.NotFound => TypedResults.NotFound(error.ErrorName),
-            ErrorType.Conflict => TypedResults.Conflict(error.ErrorName),
-            ErrorType.Problem => TypedResults.Problem(error.ErrorName),
-            ErrorType.Validation => TypedResults.Problem(error.ErrorName),
-            _ => throw new NotImplementedException(),
-        };
-    }
 }

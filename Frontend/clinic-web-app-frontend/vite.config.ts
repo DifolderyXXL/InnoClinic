@@ -15,14 +15,10 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
-      port: 5173,
-      host: true,     // Чтобы .NET и браузер всегда находили Vite
-      https: false,   // Без HTTPS, чтобы забыть про ошибки сертификатов
 
       hmr: {
         protocol: 'ws',
         host: 'localhost',
-        port: 5173
       },
 
       proxy: {

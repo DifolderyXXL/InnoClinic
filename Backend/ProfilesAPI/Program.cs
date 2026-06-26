@@ -20,52 +20,9 @@ builder.AddServiceDefaults();
 builder.Services.AddHandlers(typeof(Program).Assembly);
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-// builder.Services.AddOpenApi(options =>
-// {
-//     options.AddDocumentTransformer((document, context, cancellationToken) =>
-//     {
-//         document.Servers.Clear();
-//         document.Servers.Add(new()
-//         {
-//             Url = "https://localhost:5001/api/profiles"
-//         });
-//         return Task.CompletedTask;
-//     });
-// });
-builder.Services.AddOpenApi();
+builder.AddOpenApiReversedThroughProxy("/api/profiles");
 
-
-builder.Services.AddSwaggerGen(options =>
-{
-    options.CustomSchemaIds(i => i.FullName?.Replace('+', '_'));
-
-    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-    {
-        Type = SecuritySchemeType.OAuth2,
-        Flows = new OpenApiOAuthFlows
-        {
-            AuthorizationCode = new OpenApiOAuthFlow
-            {
-                AuthorizationUrl = new Uri("https://localhost:6001/connect/authorize"),
-                TokenUrl = new Uri("https://localhost:6001/connect/token"),
-                Scopes = new Dictionary<string, string>
-                {
-                    { "api", "Api" },
-                    { "openid", "Access the OpenID Connect user profile" },
-                    { "email", "Access the user's email address" },
-                    { "profile", "Access the user's profile" }
-                }
-            }
-        }
-    });
-    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecuritySchemeReference("oauth2", document),
-            new List<string> { "api", "profile", "email", "openid" }
-        }
-    });
-});
+builder.AddSwaggerDefaults();
 builder.AddAuthorizationDefaultsWithAspire();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -107,16 +64,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 
-
-    app.MapSwagger();
-    app.MapSwaggerUI(setupAction: options =>
-    {
-        options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';request.credentials = 'include';return request;}");
-        options.OAuthUsePkce();
-
-        options.OAuthClientId(builder.Configuration["oauth:clientid"]);
-        options.OAuthClientSecret(builder.Configuration["oauth:secret"]);
-    });
+    app.MapSwaggerDefaults();
 }
 
 
@@ -129,6 +77,7 @@ app.UseAuthorizationDefaultsWithAspire();
 
 app.MapEndpoints();
 
+const string TestGroupTag = "Test Endpoints";
 app.MapGet("/my-profile", (ClaimsPrincipal user) =>
 {
     var userId = user.FindFirst("sub")?.Value
@@ -138,7 +87,7 @@ app.MapGet("/my-profile", (ClaimsPrincipal user) =>
              ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
     return Results.Ok(new { Message = "Okey, we have profile", UserId = userId, Email = email });
-}).RequireAuthorization();
+}).RequireAuthorization().WithTags(TestGroupTag);
 
 app.MapGet("/client-only", (ClaimsPrincipal user) =>
 {
@@ -149,12 +98,12 @@ app.MapGet("/client-only", (ClaimsPrincipal user) =>
              ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
     return Results.Ok(new { Message = "You are only client, ok!", UserId = userId, Email = email });
-}).RequireAuthorization(RolePolicy.Client);
+}).RequireAuthorization(RolePolicy.Client).WithTags(TestGroupTag);
 
 app.MapGet("/get-headers", (HttpContext context) =>
 {
     return Results.Ok(context.Request.Headers.Select(x => $"{x.Key}: {x.Value}").ToArray());
-});
+}).WithTags(TestGroupTag);
 
 
 

@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace MicroserviceApiKernel.Results;
 
@@ -10,16 +11,20 @@ public class Error
         ErrorType = errorType;
     }
 
-    public Error(string errorName, string errorDescription, ErrorType errorType)
+    public Error(string errorName, string errorDescription, ErrorType errorType, IDictionary<string, string[]>? validationResults = null)
     {
         ErrorName = errorName;
         ErrorDescription = errorDescription;
         ErrorType = errorType;
+        ValidationResults = validationResults;
     }
 
     public string ErrorName { get; }
     public string? ErrorDescription { get; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ErrorType ErrorType { get; }
+    public IDictionary<string, string[]>? ValidationResults { get; }
 
     public override string ToString()
     {

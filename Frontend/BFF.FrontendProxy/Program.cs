@@ -85,6 +85,8 @@ app.UseHttpLogging();
 app.UseAuthentication();
 app.UseBff();
 app.UseAuthorization();
+
+
 app.MapGet("/login", async (HttpContext context) =>
 {
     await context.ChallengeAsync("oidc", new AuthenticationProperties
@@ -92,28 +94,25 @@ app.MapGet("/login", async (HttpContext context) =>
         RedirectUri = "/swagger/index.html"
     });
 });
-app.MapGet("/api/profiles/openapi/v1.json", async (HttpContext context) =>
-{
-    // Этот эндпоинт просто проксирует запрос на микросервис в обход BFF-фильтров защиты
-    var httpClient = context.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient();
-    var response = await httpClient.GetAsync("https://localhost:7113/openapi/v1.json");
-
-    var json = await response.Content.ReadAsStringAsync();
-    return Results.Content(json, "application/json");
-});
-
+var profiles = app.Configuration.DiscoverAny("ProfilesAPI");
+var offices = app.Configuration.DiscoverAny("OfficesAPI");
 app.MapSwaggerUI(setupAction: options =>
 {
-    options.SwaggerEndpoint("/api/profiles/openapi/v1.json", "Profiles API v1");
+    options.SwaggerEndpoint(profiles + "/openapi/v1.json", "Profiles API v1");
+    options.SwaggerEndpoint(offices + "/openapi/v1.json", "Offices API v1");
+
+
     options.ConfigObject.AdditionalItems["withCredentials"] = true;
     options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';return request;}");
 })
 .AllowAnonymous();
 
-// app.MapRemoteBffApiEndpoint("/api/profiles", new Uri("https://localhost:7113"))
-//   .WithAccessToken(RequiredTokenType.User);
+
 app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
-    .WithAccessToken(RequiredTokenType.User).DisableAntiforgery();
+    .WithAccessToken(RequiredTokenType.User);
+
+app.MapAspireBffService(builder.Configuration, "OfficesAPI", "/api/offices")
+    .WithAccessToken(RequiredTokenType.User);
 
 // if (config.Apis.Any())
 // {
@@ -128,45 +127,54 @@ app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
 //             .WithAccessToken(api.RequiredToken);
 //     }
 // }
-
-
+app.UseWebSockets();
+var realViteAddress = app.Configuration.DiscoverAny("vite-frontend") ?? throw new Exception("Frontend address is not defined.");
 // =========================================================================
 // Все запросы, которые не подошли под API, улетают на дев-сервер Vite (5173)
 // =========================================================================
 app.MapGet("/{*rest}", async (IHttpForwarder forwarder, HttpContext context) =>
 {
-    await ForwardAllRequestsToNpmDevServer(forwarder, context, "http://localhost:5173");
+    await ViteDevServerProxy.ForwardRequestAsync(forwarder, context, realViteAddress);
 });
 
 app.Run();
 
-static async Task ForwardAllRequestsToNpmDevServer(IHttpForwarder forwarder, HttpContext context, string destinationPrefix)
+internal static class ViteDevServerProxy
 {
-    var httpClient = new HttpMessageInvoker(
+    private static readonly HttpMessageInvoker ViteProxyClient = new(
         new SocketsHttpHandler()
         {
             UseProxy = false,
             AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.All,
             UseCookies = false,
-            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current)
+            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current),
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
         }
     );
 
-    var requestConfig = new ForwarderRequestConfig { };
-
-    if (context.Request.Path == "/")
+    public static async Task ForwardRequestAsync(IHttpForwarder forwarder, HttpContext context, string destinationPrefix)
     {
-        context.Request.Path = "/index.html";
-    }
+        var requestConfig = new ForwarderRequestConfig
+        {
+            Version = HttpVersion.Version11,
+            VersionPolicy = HttpVersionPolicy.RequestVersionExact
+        };
 
-    var error = await forwarder.SendAsync(
-        context,
-        destinationPrefix,
-        httpClient,
-        requestConfig,
-        HttpTransformer.Default
-    );
+        if (context.Request.Path == "/")
+        {
+            context.Request.Path = "/index.html";
+        }
+
+        await forwarder.SendAsync(
+            context,
+            destinationPrefix,
+            ViteProxyClient,
+            requestConfig,
+            HttpTransformer.Default
+        );
+    }
 }
 
 

@@ -27,3 +27,14 @@ public class UserRoleManager(
         }
     }
 }
+
+public class RoleHelper
+{
+    public static async Task EnsureRole(RoleManager<IdentityRole> roleManager, string role)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+}

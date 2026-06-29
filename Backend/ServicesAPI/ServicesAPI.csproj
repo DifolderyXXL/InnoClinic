@@ -18,6 +18,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
+    <Folder Include="Endpoints\CreateCategory\" />
+    <Folder Include="Endpoints\CreateService\" />
+    <Folder Include="Endpoints\CreateSpecialization\" />
     <Folder Include="Models\" />
   </ItemGroup>
 </Project>

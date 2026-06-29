@@ -32,6 +32,7 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithReference(identityServer)
        .WithReference(officesAPI)
        .WithReference(profilesAPI)
+       .WithReference(servicesAPI)
        .WithExternalHttpEndpoints();
 
 var frontend = builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")

@@ -10,7 +10,7 @@ public class Service
     public virtual ServiceCategory ServiceCategory { get; set; }
 
     public string ServiceName { get; set; }
-    public double Price { get; set; }
+    public decimal Price { get; set; }
 
     public long SpecializationId { get; set; }
     public virtual Specialization Specialization { get; set; }

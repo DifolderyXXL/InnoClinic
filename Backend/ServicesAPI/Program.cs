@@ -1,6 +1,10 @@
+using System.Text.Json.Nodes;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+using ServiceDefaults;
 using ServicesAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +14,6 @@ builder.Services.AddHandlers(typeof(Program).Assembly);
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.AddOpenApiReversedThroughProxy("/api/services");
-
 builder.AddSwaggerDefaults();
 builder.AddAuthorizationDefaultsWithAspire();
 
@@ -34,6 +37,8 @@ if (app.Environment.IsDevelopment())
     app.MapSwaggerDefaults();
 }
 
+
+app.UseCors(PolicyConstants.FRONTEND_BFF_CORS_POLICY);
 
 app.UseAuthorizationDefaultsWithAspire();
 

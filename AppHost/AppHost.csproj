@@ -20,6 +20,7 @@
     <ProjectReference Include="..\Backend\Deunde.IdentityServer\Deunde.IdentityServer.csproj" />
     <ProjectReference Include="..\Backend\OfficesApi\OfficesApi.csproj" />
     <ProjectReference Include="..\Backend\ProfilesAPI\ProfilesAPI.csproj" />
+    <ProjectReference Include="..\Backend\ServicesAPI\ServicesAPI.csproj" />
     <ProjectReference Include="..\Frontend\BFF.FrontendProxy\BFF.FrontendProxy.csproj" />
   </ItemGroup>
 

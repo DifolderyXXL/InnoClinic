@@ -114,6 +114,9 @@ app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
 app.MapAspireBffService(builder.Configuration, "OfficesAPI", "/api/offices")
     .WithAccessToken(RequiredTokenType.User);
 
+app.MapAspireBffService(builder.Configuration, "ServicesAPI", "/api/services")
+    .WithAccessToken(RequiredTokenType.User);
+
 // if (config.Apis.Any())
 // {
 //     foreach (var api in config.Apis)

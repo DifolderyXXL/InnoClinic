@@ -64,28 +64,3 @@ public class Create : IEndpoint
         }).RequireAuthorization(RolePolicy.Client);
     }
 }
-
-
-// public class Get : IEndpoint
-// {
-//     class Response
-//     {
-
-//     }
-
-//     public void MapEndpoint(IEndpointRouteBuilder builder)
-//     {
-//         builder.MapGet("/api/account", async (
-//             UserClaimInfo user,
-//             ProfilesDbContext context) =>
-//         {
-//             var guid = Guid.Parse(user.Id);
-
-//             var account = await context.Accounts
-//                 .AsNoTracking()
-//                 .FirstOrDefaultAsync(x => x.Id == guid);
-
-//             return account == null ? Results.NotFound() : Results.Ok(account);
-//         }).RequireAuthorization(RolePolicy.Client);
-//     }
-// }

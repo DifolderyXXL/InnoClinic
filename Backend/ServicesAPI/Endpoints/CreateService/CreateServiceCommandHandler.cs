@@ -32,6 +32,7 @@ public class CreateServiceCommandHandler(ServicesDbContext context) : ICommandHa
                 Price = command.Price,
                 IsActive = command.IsActive,
                 CategoryId = command.CategoryId,
+                SpecializationId = command.SpecializationId
             }, ct);
 
             await context.SaveChangesAsync(ct);

@@ -1,11 +1,10 @@
-using System.Text.Json.Nodes;
+using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
 using ServiceDefaults;
 using ServicesAPI.Data;
+using ServicesAPI.Endpoints.UpdateSpecialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +23,15 @@ builder.Services.AddApiAuthorizationPolicies();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContextPool<ServicesDbContext>(options => options.UseSqlite(connectionString).UseLazyLoadingProxies());
 
+
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 

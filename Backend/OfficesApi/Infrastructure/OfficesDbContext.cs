@@ -1,6 +1,3 @@
-using System;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 using MicroserviceApiKernel.Results;
 using MongoDB.Bson;
 using MongoDB.Driver;

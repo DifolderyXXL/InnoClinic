@@ -1,12 +1,16 @@
 using Duende.AccessTokenManagement;
 using Duende.AccessTokenManagement.OTel;
+using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Microsoft.OpenApi;
+using ProfilesAPI.Consumers;
 using ProfilesAPI.Data;
+using ProfilesAPI.Options;
+using Quartz;
 using ServiceDefaults;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.IdentityModel.Tokens.Jwt;
@@ -40,6 +44,7 @@ builder.Services.AddClientCredentialsTokenManagement()
         client.ClientSecret = ClientSecret.Parse("secret");
         client.Scope = Duende.AccessTokenManagement.Scope.Parse("identity");
     });
+
 builder.Services.AddClientCredentialsHttpClient("client", ClientCredentialsClientName.Parse("client"), client =>
 {
     client.BaseAddress = new Uri("https://localhost:6001/api");
@@ -51,6 +56,31 @@ builder.Services.ConfigureApplicationCookie(options =>
 
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
+
+
+builder.Services.Configure<MessageDefferOptions>(
+    builder.Configuration.GetSection(MessageDefferOptions.SectionName));
+
+builder.Services.AddMassTransit(x =>
+{
+    x.SetKebabCaseEndpointNameFormatter();
+
+    x.AddConsumer<SpecializationUpdatedEventConsumer>();
+    x.AddConsumer<SpecializationCreatedEventConsumer>();
+    
+    x.AddDelayedMessageScheduler();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
+
+        cfg.UseDelayedMessageScheduler();
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+
 
 var app = builder.Build();
 app.UseForwardedHeaders(new ForwardedHeadersOptions

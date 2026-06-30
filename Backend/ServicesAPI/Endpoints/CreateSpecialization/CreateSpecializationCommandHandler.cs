@@ -1,3 +1,6 @@
+using Contracts;
+using MassTransit;
+using MassTransit.Transports;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using ServicesAPI.Data;
@@ -7,7 +10,7 @@ namespace ServicesAPI.Endpoints.CreateSpecialization;
 
 public record CreateSpecializationCommand(string SpecializationName, bool IsActive) : ICommand;
 
-public class CreateSpecializationCommandHandler(ServicesDbContext context) : ICommandHandler<CreateSpecializationCommand>
+public class CreateSpecializationCommandHandler(ServicesDbContext context, IPublishEndpoint publishEndpoint) : ICommandHandler<CreateSpecializationCommand>
 {
     public async Task<Result> Handle(CreateSpecializationCommand command, CancellationToken ct)
     {
@@ -21,6 +24,13 @@ public class CreateSpecializationCommandHandler(ServicesDbContext context) : ICo
 
             context.Specializations.Add(specialization);
             await context.SaveChangesAsync(ct);
+
+            await publishEndpoint.Publish(new SpecializationCreatedEvent
+            {
+                SpecializationName = specialization.SpecializationName,
+                IsActive = specialization.IsActive,
+                Id = specialization.Id
+            }, ct);
         }
         catch (Exception ex)
         {

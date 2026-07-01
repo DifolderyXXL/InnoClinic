@@ -3,15 +3,15 @@ using MassTransit;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using ServicesAPI.Data;
-using ServicesAPI.Endpoints.Services.CreateService;
+using ServicesAPI.Endpoints.Categories.DeleteCategory;
 
-namespace ServicesAPI.Endpoints.Categories.UpdateCategory;
+namespace ServicesAPI.Endpoints.Categories.DeleteCategory;
 
-public record UpdateCategoryCommand(long Id, string CategoryName, TimeSpan TimeSlotSize) : ICommand;
+public record DeleteCategoryCommand(long Id) : ICommand;
 
-public class UpdateCategoryCommandHandler(ServicesDbContext context, IPublishEndpoint publishEndpoint) : ICommandHandler<UpdateCategoryCommand>
+public class DeleteCategoryCommandHandler(ServicesDbContext context, IPublishEndpoint publishEndpoint) : ICommandHandler<DeleteCategoryCommand>
 {
-    public async Task<Result> Handle(UpdateCategoryCommand command, CancellationToken ct)
+    public async Task<Result> Handle(DeleteCategoryCommand command, CancellationToken ct)
     {
         var category = await context.ServiceCategories.FindAsync([command.Id], ct);
 
@@ -22,12 +22,10 @@ public class UpdateCategoryCommandHandler(ServicesDbContext context, IPublishEnd
 
         try
         {
-            category.CategoryName = command.CategoryName;
-            category.TimeSlotSize = command.TimeSlotSize;
-
+            context.ServiceCategories.Remove(category);
             await context.SaveChangesAsync(ct);
             
-            await publishEndpoint.Publish(new CategoryUpdatedEvent
+            await publishEndpoint.Publish(new CategoryDeletedEvent()
             {
                 Id = category.Id,
                 CategoryName = category.CategoryName,

@@ -1,3 +1,5 @@
+using Contracts;
+using MassTransit;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using ServicesAPI.Data;
@@ -6,7 +8,7 @@ namespace ServicesAPI.Endpoints.Services.UpdateService;
 
 public record UpdateServiceCommand(long Id, string ServiceName, decimal Price, bool IsActive, long CategoryId, long SpecializationId) : ICommand;
 
-public class UpdateServiceCommandHandler(ServicesDbContext context) : ICommandHandler<UpdateServiceCommand>
+public class UpdateServiceCommandHandler(ServicesDbContext context, IPublishEndpoint publishEndpoint) : ICommandHandler<UpdateServiceCommand>
 {
     public async Task<Result> Handle(UpdateServiceCommand command, CancellationToken ct)
     {
@@ -40,6 +42,16 @@ public class UpdateServiceCommandHandler(ServicesDbContext context) : ICommandHa
             service.SpecializationId = command.SpecializationId;
 
             await context.SaveChangesAsync(ct);
+            
+            await publishEndpoint.Publish(new ServiceUpdatedEvent
+            {
+                Id = service.Id,
+                CategoryId = service.CategoryId,
+                ServiceName = service.ServiceName,
+                Price = service.Price,
+                SpecializationId = service.SpecializationId,
+                IsActive = service.IsActive,
+            }, ct);
         }
         catch (Exception ex)
         {

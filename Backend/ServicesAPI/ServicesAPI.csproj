@@ -22,7 +22,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
-    <Folder Include="Endpoints\Categories\" />
     <Folder Include="Endpoints\Services\" />
     <Folder Include="Endpoints\Specializations\" />
     <Folder Include="Models\" />

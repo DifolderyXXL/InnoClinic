@@ -22,7 +22,7 @@ public class ServiceCategory
 {
     public long Id { get; set; }
     public string CategoryName { get; set; }
-    public TimeSpan TimeSlotSize { get; set; }
+    public uint TimeSlotSize { get; set; }
 
     public virtual ICollection<Service> Services { get; set; }
 }

@@ -4,9 +4,8 @@ namespace ServicesAPI.Endpoints.Categories.CreateCategory;
 
 public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCommand>
 {
-    public CreateCategoryCommandValidator()
+    public CreateCategoryCommandValidator(IValidator<CategoryObject> validator)
     {
-        RuleFor(x => x.CategoryName).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.TimeSlotSize).GreaterThan(TimeSpan.Zero);
+        Include(validator);
     }
 }

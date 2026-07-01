@@ -39,3 +39,20 @@ public class SpecializationCreatedEventConsumer(ProfilesDbContext dbcontext) : I
         await dbcontext.SaveChangesAsync(context.CancellationToken);
     }
 }
+
+public class SpecializationDeletedEventConsumer(ProfilesDbContext dbcontext) : IConsumer<SpecializationDeletedEvent>
+{
+    public async Task Consume(ConsumeContext<SpecializationDeletedEvent> context)
+    {
+        var specialization = await dbcontext.Specializations.FindAsync(context.Message.Id, context.CancellationToken);
+
+        if (specialization == null)
+        {
+            throw new EntityNotFoundException($"Specialization {context.Message.Id} is not created yet.");
+        }
+            
+        dbcontext.Specializations.Remove(specialization);
+
+        await dbcontext.SaveChangesAsync(context.CancellationToken);
+    }
+}

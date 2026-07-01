@@ -7,7 +7,7 @@ using ServicesAPI.Models;
 
 namespace ServicesAPI.Endpoints.Categories.CreateCategory;
 
-public record CreateCategoryCommand(string CategoryName, TimeSpan TimeSlotSize) : ICommand;
+public record CreateCategoryCommand : CategoryObject, ICommand;
 
 public class CreateCategoryCommandHandler(ServicesDbContext context, IPublishEndpoint publishEndpoint) : ICommandHandler<CreateCategoryCommand>
 {

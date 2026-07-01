@@ -31,7 +31,7 @@ public record CategoryEventObject
 {
     public long Id { get; init; }
     public string CategoryName { get; init; }
-    public TimeSpan TimeSlotSize { get; init; }
+    public uint TimeSlotSize { get; init; }
 }
 public record CategoryUpdatedEvent : CategoryEventObject;
 public record CategoryCreatedEvent : CategoryEventObject;

@@ -7,7 +7,7 @@ using ServicesAPI.Endpoints.Services.CreateService;
 
 namespace ServicesAPI.Endpoints.Categories.UpdateCategory;
 
-public record UpdateCategoryCommand(long Id, string CategoryName, TimeSpan TimeSlotSize) : ICommand;
+public record UpdateCategoryCommand(long Id) : CategoryObject, ICommand;
 
 public class UpdateCategoryCommandHandler(ServicesDbContext context, IPublishEndpoint publishEndpoint) : ICommandHandler<UpdateCategoryCommand>
 {

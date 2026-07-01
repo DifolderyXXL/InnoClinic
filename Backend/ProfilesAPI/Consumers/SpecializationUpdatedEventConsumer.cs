@@ -1,18 +1,13 @@
 ﻿using Contracts;
 using MassTransit;
-using Microsoft.Extensions.Options;
 using ProfilesAPI.Data;
 using ProfilesAPI.Models;
-using ProfilesAPI.Options;
 
 namespace ProfilesAPI.Consumers;
 
 
 [Serializable]
-public class EntityNotFoundException : Exception
-{
-    public EntityNotFoundException(string message) : base(message) { }
-}
+public class EntityNotFoundException(string message) : Exception(message);
 public class SpecializationUpdatedEventConsumer(ProfilesDbContext dbcontext) : IConsumer<SpecializationUpdatedEvent>
 {
     public async Task Consume(ConsumeContext<SpecializationUpdatedEvent> context)

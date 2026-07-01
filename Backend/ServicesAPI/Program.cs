@@ -4,7 +4,6 @@ using MicroserviceApiKernel.Extensions;
 using Microsoft.EntityFrameworkCore;
 using ServiceDefaults;
 using ServicesAPI.Data;
-using ServicesAPI.Endpoints.UpdateSpecialization;
 
 var builder = WebApplication.CreateBuilder(args);
 

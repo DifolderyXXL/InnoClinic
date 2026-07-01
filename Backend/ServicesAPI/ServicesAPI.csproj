@@ -7,8 +7,8 @@
   </PropertyGroup>
   <ItemGroup>
       <PackageReference Include="Mapster.EFCore" Version="10.0.10" />
-      <PackageReference Include="MassTransit" Version="9.1.2" />
-      <PackageReference Include="MassTransit.RabbitMQ" Version="9.1.2" />
+      <PackageReference Include="MassTransit" Version="8.5.10" />
+      <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.10" />
     <ProjectReference Include="..\..\ServiceDefaults\ServiceDefaults.csproj" />
     <ProjectReference Include="..\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\MicroserviceApiKernel\MicroserviceApiKernel.csproj" />
@@ -22,12 +22,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
-    <Folder Include="Endpoints\CreateCategory\" />
-    <Folder Include="Endpoints\CreateService\" />
-    <Folder Include="Endpoints\CreateSpecialization\" />
-    <Folder Include="Endpoints\GetCategories\" />
-    <Folder Include="Endpoints\GetServices\" />
-    <Folder Include="Endpoints\GetSpecialization\" />
+    <Folder Include="Endpoints\Categories\" />
+    <Folder Include="Endpoints\Services\" />
+    <Folder Include="Endpoints\Specializations\" />
     <Folder Include="Models\" />
   </ItemGroup>
 </Project>

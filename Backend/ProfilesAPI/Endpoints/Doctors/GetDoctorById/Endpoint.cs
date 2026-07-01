@@ -1,4 +1,3 @@
-using System;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;

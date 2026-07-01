@@ -1,8 +1,6 @@
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
 using MicroserviceApiKernel.CQRS;
-using MicroserviceApiKernel.Results;
-using Microsoft.AspNetCore.Http.HttpResults;
 using ProfilesAPI.CustomBindAsync;
 using ProfilesAPI.Data;
 using ProfilesAPI.Endpoints.User.GetProfiles;

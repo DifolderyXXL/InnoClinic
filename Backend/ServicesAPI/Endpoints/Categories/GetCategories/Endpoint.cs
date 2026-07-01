@@ -24,7 +24,7 @@ public class GetCategoriesEndpoint : IEndpoint
     }
 }
 
-public record CategoryDto(long Id, string CategoryName, TimeSpan TimeSlotSize);
+public record CategoryDto(long Id, string CategoryName, uint TimeSlotSize);
 
 public record GetCategoriesQuery() : IQuery<GetCategoriesResponse>;
 
@@ -35,7 +35,6 @@ public class GetCategoriesQueryHandler(ServicesDbContext context)
     public async Task<Result<GetCategoriesResponse>> Handle(GetCategoriesQuery query, CancellationToken ct)
     {
         var categories = await context.ServiceCategories
-            .AsNoTracking()
             .ProjectToType<CategoryDto>()
             .ToListAsync(ct);
 

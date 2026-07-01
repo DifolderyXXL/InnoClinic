@@ -57,6 +57,7 @@ builder.Services.AddMassTransit(x =>
 
     x.AddConsumer<SpecializationUpdatedEventConsumer>();
     x.AddConsumer<SpecializationCreatedEventConsumer>();
+    x.AddConsumer<SpecializationDeletedEventConsumer>();
     
     x.AddDelayedMessageScheduler();
 

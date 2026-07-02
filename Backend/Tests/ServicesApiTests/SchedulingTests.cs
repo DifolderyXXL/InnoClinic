@@ -1,11 +1,23 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
 using ServicesAPI.Application.Scheduling;
+using ServicesAPI.Data;
 
 namespace ServicesApiTests;
 
 public class SchedulingTests
 {
+    private ServicesDbContext CreateInMemoryDbContext()
+    {
+        var options = new DbContextOptionsBuilder<ServicesDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
+
+        return new ServicesDbContext(options);
+    }
+    
     [Fact]
     public async Task ScheduleService_GetAvailablePositionsOnDay_OnePosition()
     {
@@ -18,15 +30,16 @@ public class SchedulingTests
         var option = new Mock<IScheduleSlotsProvider>();
         option.Setup(x => x.GetSlotsAmount()).Returns(slotsAmount);
         
-        var repository = new ReservedTimeWindowMemoryRepository();
+        await using var context = CreateInMemoryDbContext();
+        var repository = new ReservedTimeWindowStore(context, null);
 
-        await repository.Add(new() { Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
+        await repository.TryAdd(new() { Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
         
         var service = new ScheduleService(repository, option.Object);
 
         
         // Act
-        var positions = await service.GetAvailablePositionsOnDay(day);
+        var positions = await service.GetAvailablePositionsOnDay(day, default);
 
 
         // Assert
@@ -51,16 +64,17 @@ public class SchedulingTests
         var option = new Mock<IScheduleSlotsProvider>();
         option.Setup(x => x.GetSlotsAmount()).Returns(slotsAmount);
         
-        var repository = new ReservedTimeWindowMemoryRepository();
+        await using var context = CreateInMemoryDbContext();
+        var repository = new ReservedTimeWindowStore(context, null);
 
-        await repository.Add(new() { Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
-        await repository.Add(new() { Date = day, StartSlotIndex = targetPoint2, SlotCount = targetPointSize }, default);
+        await repository.TryAdd(new() { Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
+        await repository.TryAdd(new() { Date = day, StartSlotIndex = targetPoint2, SlotCount = targetPointSize }, default);
         
         var service = new ScheduleService(repository, option.Object);
 
         
         // Act
-        var positions = await service.GetAvailablePositionsOnDay(day);
+        var positions = await service.GetAvailablePositionsOnDay(day, default);
 
 
         // Assert
@@ -82,12 +96,13 @@ public class SchedulingTests
         var option = new Mock<IScheduleSlotsProvider>();
         option.Setup(x => x.GetSlotsAmount()).Returns(slotsAmount);
         
-        var repository = new ReservedTimeWindowMemoryRepository();
+        await using var context = CreateInMemoryDbContext();
+        var repository = new ReservedTimeWindowStore(context, null);
 
         var service = new ScheduleService(repository, option.Object);
         
         // Act
-        var positions = await service.GetAvailablePositionsOnDay(day);
+        var positions = await service.GetAvailablePositionsOnDay(day, default);
 
 
         // Assert

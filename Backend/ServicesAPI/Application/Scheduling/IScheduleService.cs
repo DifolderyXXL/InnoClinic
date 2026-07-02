@@ -1,5 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using System.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using ServicesAPI.Data;
+using ServicesAPI.Models;
+using SQLitePCL;
 
 namespace ServicesAPI.Application.Scheduling;
 
@@ -13,8 +18,8 @@ public record ScheduleTimeWindow(DateOnly Date, int TimeSlotStart, int TimeSlotS
 
 public interface IScheduleService
 {
-    Task<bool> TrySchedule(ScheduleTimeWindow scheduleTimeWindow);
-    Task<IEnumerable<ScheduleTimeWindow>> GetAvailablePositionsOnDay(DateOnly date);
+    Task<bool> TrySchedule(ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct);
+    Task<IEnumerable<ScheduleTimeWindow>> GetAvailablePositionsOnDay(DateOnly date, CancellationToken ct);
 }
 
 public interface IScheduleSlotsProvider
@@ -39,16 +44,21 @@ public class ScheduleOptions : IScheduleSlotsProvider
     }
 }
 
-public class ScheduleService(IReservedTimeWindowRepository repository, IScheduleSlotsProvider provider) : IScheduleService
+public class ScheduleService(IReservedTimeWindowStore store, IScheduleSlotsProvider provider) : IScheduleService
 {
-    public Task<bool> TrySchedule(ScheduleTimeWindow scheduleTimeWindow)
+    public async Task<bool> TrySchedule(ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        return await store.TryAdd(
+            new ReservedTimeWindow
+            {
+                StartSlotIndex = scheduleTimeWindow.TimeSlotStart, SlotCount = scheduleTimeWindow.TimeSlotSize,
+                Date = scheduleTimeWindow.Date
+            }, ct);
     }
 
-    public async Task<IEnumerable<ScheduleTimeWindow>> GetAvailablePositionsOnDay(DateOnly date)
+    public async Task<IEnumerable<ScheduleTimeWindow>> GetAvailablePositionsOnDay(DateOnly date, CancellationToken ct)
     {
-        var reserved = (await repository.GetReservedWindows(date)).ToList();
+        var reserved = (await store.GetReservedWindows(date, ct)).ToList();
         
         var slotAmount = provider.GetSlotsAmount();
         if (reserved.Count == 0)
@@ -64,15 +74,13 @@ public class ScheduleService(IReservedTimeWindowRepository repository, ISchedule
 
         var startGap = ScheduleTimeWindow.TimeWindowFromBegin(date, firstReservation.StartSlotIndex);
         var endGap = ScheduleTimeWindow.TimeWindowToEnd(date, lastReservation.EndSlotIndex, slotAmount);
-
-        var allAvailableGaps = new List<ScheduleTimeWindow> { startGap };
-        allAvailableGaps.AddRange(middleGaps);
-        allAvailableGaps.Add(endGap);
+        
+        List<ScheduleTimeWindow> allAvailableGaps = [startGap, ..middleGaps, endGap];
 
         return allAvailableGaps.Where(w => w.TimeSlotSize > 0).ToList();
     }
 
-    private ScheduleTimeWindow GetTimeSlotBetween(ReservedTimeWindow left, ReservedTimeWindow right)
+    private static ScheduleTimeWindow GetTimeSlotBetween(ReservedTimeWindow left, ReservedTimeWindow right)
     {
         var prevEnd = left.EndSlotIndex;
         var space = new ScheduleTimeWindow(left.Date, prevEnd, right.StartSlotIndex - prevEnd);
@@ -81,32 +89,50 @@ public class ScheduleService(IReservedTimeWindowRepository repository, ISchedule
 }
 
 
-public class ReservedTimeWindow
+public interface IReservedTimeWindowStore
 {
-    public int Id { get; set; }
-    public DateOnly Date { get; set; }
-    public int StartSlotIndex { get; set; }
-    public int SlotCount { get; set; }
+    public Task<List<ReservedTimeWindow>> GetReservedWindows(DateOnly date, CancellationToken ct);
+    public Task<bool> TryAdd(ReservedTimeWindow reservation, CancellationToken ct);
+}
+
+public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<ReservedTimeWindowStore>? logger) : IReservedTimeWindowStore
+{
+    public async Task<List<ReservedTimeWindow>> GetReservedWindows(DateOnly date, CancellationToken ct)
+        => await context.ReservedTimeWindows
+            .AsNoTracking()
+            .Where(x => x.Date == date)
+            .ToListAsync(cancellationToken: ct);
     
-    public int EndSlotIndex => StartSlotIndex + SlotCount;
-}
-public interface IReservedTimeWindowRepository
-{
-    public Task<List<ReservedTimeWindow>> GetReservedWindows(DateOnly date);
-    public Task Add(ReservedTimeWindow reservation, CancellationToken ct);
-}
 
-public class ReservedTimeWindowMemoryRepository : IReservedTimeWindowRepository
-{
-    private List<ReservedTimeWindow> _items = [];
-    public Task<List<ReservedTimeWindow>> GetReservedWindows(DateOnly date)
+    public async Task<bool> TryAdd(ReservedTimeWindow reservation, CancellationToken ct)
     {
-        return Task.FromResult(_items);
-    }
+        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
 
-    public Task Add(ReservedTimeWindow reservation, CancellationToken ct)
-    {
-        _items.Add(reservation);
-        return Task.CompletedTask;
+        try
+        {
+            var hasOverlap = await context.ReservedTimeWindows.AnyAsync(x =>
+                x.Date == reservation.Date
+                && x.StartSlotIndex < (reservation.StartSlotIndex + reservation.SlotCount)
+                && (x.StartSlotIndex + x.SlotCount) > reservation.StartSlotIndex, ct);
+
+            if (hasOverlap)
+            {
+                await transaction.RollbackAsync(ct);
+                return false;
+            }
+
+            await context.ReservedTimeWindows.AddAsync(reservation, ct);
+            await context.SaveChangesAsync(ct);
+            
+            await transaction.CommitAsync(ct);
+            return true;
+        }
+        catch(Exception ex)
+        {
+            await transaction.RollbackAsync(ct);
+            
+            logger?.LogError(ex, "Error on reserving time window {@Reservation}", reservation);
+            return false;
+        }
     }
 }

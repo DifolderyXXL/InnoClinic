@@ -11,7 +11,9 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options) : Db
     public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
     public DbSet<Specialization> Specializations => Set<Specialization>();
 
-
+    public DbSet<ReservedTimeWindow> ReservedTimeWindows => Set<ReservedTimeWindow>();
+    
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -19,6 +21,15 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options) : Db
         modelBuilder.ApplyConfiguration(new ServiceTypeConfiguration());
         modelBuilder.ApplyConfiguration(new ServiceCategoryTypeConfiguration());
         modelBuilder.ApplyConfiguration(new SpecializationTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new ReservedTimeWindowTypeConfiguration());
+    }
+}
+
+public class ReservedTimeWindowTypeConfiguration : IEntityTypeConfiguration<ReservedTimeWindow>
+{
+    public void Configure(EntityTypeBuilder<ReservedTimeWindow> builder)
+    {
+        builder.HasIndex(x => new { x.Date, x.StartSlotIndex, x.SlotCount });
     }
 }
 

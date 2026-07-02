@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +12,7 @@ namespace MicroserviceApiKernel.Extensions;
 
 public static class SwaggerExtension
 {
-    public static void AddOpenApiReversedThroughProxy(this IHostApplicationBuilder builder, string routeOnProxy)
+    public static void AddOpenApiReversedThroughProxy(this IHostApplicationBuilder builder, string routeOnProxy, Action<Microsoft.AspNetCore.OpenApi.OpenApiOptions>? configureOptions = default)
     {
         builder.Services.AddOpenApi(options =>
         {
@@ -24,9 +25,23 @@ public static class SwaggerExtension
                 });
                 return Task.CompletedTask;
             });
+
+            options.AddSchemaTransformer((schema, context, cancellationToken) =>
+            {
+                if (context.JsonTypeInfo.Type == typeof(TimeSpan))
+                {
+                    schema.Type = JsonSchemaType.String;
+                    schema.Format = "duration";
+                    schema.Example = JsonValue.Create("00:30:00");
+                    schema.Pattern = null;
+                }
+                return Task.CompletedTask;
+            });
+
+            configureOptions?.Invoke(options);
         });
     }
-    public static void AddSwaggerDefaults(this IHostApplicationBuilder builder)
+    public static void AddSwaggerDefaults(this IHostApplicationBuilder builder, Action<Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenOptions> setupAction = null)
     {
         builder.Services.AddSwaggerGen(options =>
         {
@@ -58,6 +73,8 @@ public static class SwaggerExtension
                     new List<string> { "api", "profile", "email", "openid" }
                 }
             });
+
+            setupAction?.Invoke(options);
         });
     }
     public static IEndpointConventionBuilder MapSwaggerDefaults(this IEndpointRouteBuilder app, Action<SwaggerUIOptions>? setupOptions = null)

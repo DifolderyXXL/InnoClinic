@@ -16,7 +16,6 @@ builder.AddOpenApiReversedThroughProxy("/api/offices");
 
 builder.AddSwaggerDefaults();
 builder.Services.AddEndpoints(typeof(Program).Assembly);
-builder.Services.AddValidation(typeof(Program).Assembly);
 builder.AddServiceDefaults();
 
 builder.AddAuthorizationDefaultsWithAspire();

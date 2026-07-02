@@ -13,6 +13,7 @@
     <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.4.3" />
     <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.5.2" />
     <PackageReference Include="Aspire.Hosting.MongoDB" Version="*" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +21,7 @@
     <ProjectReference Include="..\Backend\Deunde.IdentityServer\Deunde.IdentityServer.csproj" />
     <ProjectReference Include="..\Backend\OfficesApi\OfficesApi.csproj" />
     <ProjectReference Include="..\Backend\ProfilesAPI\ProfilesAPI.csproj" />
+    <ProjectReference Include="..\Backend\ServicesAPI\ServicesAPI.csproj" />
     <ProjectReference Include="..\Frontend\BFF.FrontendProxy\BFF.FrontendProxy.csproj" />
   </ItemGroup>
 

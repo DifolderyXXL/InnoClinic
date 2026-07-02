@@ -1,13 +1,32 @@
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
+                  .WithImage("masstransit/rabbitmq", "latest")
+                  .WithLifetime(ContainerLifetime.Persistent)
+                  .WithHttpEndpoint(port: 15672, targetPort: 15672, name: "management")
+                  .WithUrl(
+                        url: "http://127.0.0.1:15672",
+                        displayText: "RabbitMQ Dashboard"
+                    );
+
+
 var identityServer = builder.AddProject<Projects.Deunde_IdentityServer>("IdentityServer")
        .WithHttpsEndpoint(port: 6001)
        .WithExternalHttpEndpoints();
 
 var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI")
        .WithReference(identityServer)
+       .WithReference(rabbitmqServicesApi)
        .WithExternalHttpEndpoints();
+
+var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
+       .WithReference(identityServer)
+       .WithReference(rabbitmqServicesApi)
+       .WithExternalHttpEndpoints();
+
+
+
 
 
 var mongo = builder.AddMongoDB("mongo", 53460)
@@ -28,6 +47,7 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithReference(identityServer)
        .WithReference(officesAPI)
        .WithReference(profilesAPI)
+       .WithReference(servicesAPI)
        .WithExternalHttpEndpoints();
 
 var frontend = builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")

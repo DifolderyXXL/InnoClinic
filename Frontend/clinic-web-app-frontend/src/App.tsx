@@ -70,6 +70,12 @@ export const UserProfile: React.FC = () => {
       >
         Debug
       </Link>
+      <Link
+        to="/swagger/index.html"
+        style={{ padding: "10px", background: "#889a7e", color: "#fff" }}
+      >
+        Swagger
+      </Link>
 
       <div
         style={{

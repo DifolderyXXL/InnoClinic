@@ -1,4 +1,3 @@
-using System;
 using MicroserviceApiKernel;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,11 +5,8 @@ namespace ProfilesAPI.Endpoints.User;
 
 public class UpdateRole : IEndpoint
 {
-    public class Request
-    {
-        public string UserId { get; set; }
-        public string Role { get; set; }
-    }
+    public record Request(string UserId, string Role);
+    
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapPut("/api/role", async ([FromBody] Request request, IHttpClientFactory factory, CancellationToken ct) =>
@@ -32,9 +28,9 @@ public class UpdateRole : IEndpoint
         .WithDescription("Updates role for user."); ;
     }
 
-    private async Task<HttpResponseMessage> SendUpdateRole(HttpClient context, string UserId, params string[] Roles)
+    private async Task<HttpResponseMessage> SendUpdateRole(HttpClient context, string userId, params string[] roles)
     {
-        var response = await context.PutAsJsonAsync("role", new { UserId = UserId, Roles = Roles });
+        var response = await context.PutAsJsonAsync("role", new { UserId = userId, Roles = roles });
         return response;
     }
 }

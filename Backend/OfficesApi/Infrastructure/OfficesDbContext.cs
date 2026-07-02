@@ -11,7 +11,7 @@ public class OfficesDbContext(IMongoDatabase database)
     public const string OfficesTableName = "offices";
     public async Task InitializeAsync(CancellationToken ct)
     {
-        var collectionNames = await database.ListCollectionNames().ToListAsync(ct);
+        var collectionNames = await database.ListCollectionNames(null, ct).ToListAsync(ct);
 
         if (!collectionNames.Contains(OfficesTableName))
         {

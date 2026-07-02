@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using System.Text.Json.Nodes;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +31,9 @@ builder.Services.AddServiceDiscovery();
 builder.Services.AddBff()
     .AddRemoteApis();
 builder.Services.AddOpenApi(options =>
-        options.AddDocumentTransformer<BearerSecuritySchemeTransformer>()
+        {
+            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        }
     );
 
 
@@ -96,10 +99,12 @@ app.MapGet("/login", async (HttpContext context) =>
 });
 var profiles = app.Configuration.DiscoverAny("ProfilesAPI");
 var offices = app.Configuration.DiscoverAny("OfficesAPI");
+var services = app.Configuration.DiscoverAny("ServicesAPI");
 app.MapSwaggerUI(setupAction: options =>
 {
     options.SwaggerEndpoint(profiles + "/openapi/v1.json", "Profiles API v1");
     options.SwaggerEndpoint(offices + "/openapi/v1.json", "Offices API v1");
+    options.SwaggerEndpoint(services + "/openapi/v1.json", "Services API v1");
 
 
     options.ConfigObject.AdditionalItems["withCredentials"] = true;
@@ -112,6 +117,9 @@ app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
     .WithAccessToken(RequiredTokenType.User);
 
 app.MapAspireBffService(builder.Configuration, "OfficesAPI", "/api/offices")
+    .WithAccessToken(RequiredTokenType.User);
+
+app.MapAspireBffService(builder.Configuration, "ServicesAPI", "/api/services")
     .WithAccessToken(RequiredTokenType.User);
 
 // if (config.Apis.Any())

@@ -38,7 +38,7 @@ public static class EndpointExtension
 
 public static class HandlerExtension
 {
-    public static IServiceCollection AddValidation(this IServiceCollection builder, Assembly assembly)
+    private static IServiceCollection AddValidation(this IServiceCollection builder, Assembly assembly)
     {
         builder.AddValidatorsFromAssembly(assembly);
         return builder;
@@ -59,6 +59,7 @@ public static class HandlerExtension
         builder.TryDecorate(typeof(ICommandHandler<,>), typeof(ValidationCommandHandlerDecorator<,>));
         builder.TryDecorate(typeof(IQueryHandler<,>), typeof(ValidationQueryHandlerDecorator<,>));
 
+        builder.AddValidation(assembly);
 
         return builder;
     }

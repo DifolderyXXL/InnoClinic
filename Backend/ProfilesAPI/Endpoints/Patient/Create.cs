@@ -1,11 +1,8 @@
-using System;
 using MicroserviceApiKernel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
 using ProfilesAPI.CustomBindAsync;
 using ProfilesAPI.Data;
-using ProfilesAPI.Models;
 
 namespace ProfilesAPI.Endpoints.Patient;
 

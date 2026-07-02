@@ -25,7 +25,9 @@ var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
        .WithReference(rabbitmqServicesApi)
        .WithExternalHttpEndpoints();
 
-
+var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("AppointmentsAPI")
+       .WithReference(identityServer)
+       .WithExternalHttpEndpoints();
 
 
 
@@ -48,6 +50,7 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithReference(officesAPI)
        .WithReference(profilesAPI)
        .WithReference(servicesAPI)
+       .WithReference(appointmentsAPI)
        .WithExternalHttpEndpoints();
 
 var frontend = builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")

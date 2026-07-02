@@ -7,21 +7,10 @@ using ServicesAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
-builder.Services.AddHandlers(typeof(Program).Assembly);
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.AddOpenApiReversedThroughProxy("/api/services");
-builder.AddSwaggerDefaults();
-builder.AddAuthorizationDefaultsWithAspire();
-
-builder.Services.AddEndpoints(typeof(Program).Assembly);
-builder.Services.AddApiAuthorizationPolicies();
-
+builder.AddMicroserviceDefaults("/api/services");
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContextPool<ServicesDbContext>(options => options.UseSqlite(connectionString).UseLazyLoadingProxies());
-
 
 builder.Services.AddMassTransit(x =>
 {
@@ -43,7 +32,6 @@ if (app.Environment.IsDevelopment())
 
     app.MapSwaggerDefaults();
 }
-
 
 app.UseCors(PolicyConstants.FRONTEND_BFF_CORS_POLICY);
 

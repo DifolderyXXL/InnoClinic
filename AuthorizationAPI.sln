@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "Backend\Contra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesApiTests", "Backend\Tests\ServicesApiTests\ServicesApiTests.csproj", "{22568667-C3F4-4AC1-BDE3-B791F34DF48C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppointmentsAPI", "Backend\AppointmentsAPI\AppointmentsAPI.csproj", "{9C2334BA-2A70-47DD-94BE-5F12626178D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -187,6 +189,18 @@ Global
 		{22568667-C3F4-4AC1-BDE3-B791F34DF48C}.Release|x64.Build.0 = Release|Any CPU
 		{22568667-C3F4-4AC1-BDE3-B791F34DF48C}.Release|x86.ActiveCfg = Release|Any CPU
 		{22568667-C3F4-4AC1-BDE3-B791F34DF48C}.Release|x86.Build.0 = Release|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Debug|x64.Build.0 = Debug|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Debug|x86.Build.0 = Debug|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Release|x64.ActiveCfg = Release|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Release|x64.Build.0 = Release|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Release|x86.ActiveCfg = Release|Any CPU
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -202,6 +216,7 @@ Global
 		{E50A4B9F-DDAF-4533-A60E-4E0941E7023C} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 		{4571FB54-75F3-4B1F-B98B-F313B4DCFF34} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 		{22568667-C3F4-4AC1-BDE3-B791F34DF48C} = {F57642F3-C37C-D174-720E-6A6AAD5BEE22}
+		{9C2334BA-2A70-47DD-94BE-5F12626178D8} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B963B478-9EF0-496E-8C60-5A3C16FA3138}

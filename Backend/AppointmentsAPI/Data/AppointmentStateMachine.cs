@@ -24,6 +24,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
 {
     public Event<AppointmentSubmitted> AppointmentSubmitted { get; private set; } = null!;
     public Event<TimeWindowReserved> TimeWindowReserved { get; private set; } = null!;
+    public Event<ReservationFailed> ReservationFailed { get; private set; } = null!;
     public Event<AppointmentApproved> AppointmentApproved { get; private set; } = null!;
     public Event<ReservationExpired> ReservationExpired { get; private set; } = null!;
     public Event<AppointmentDeclined> AppointmentDeclined { get; private set; } = null!;
@@ -35,6 +36,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         Event(() => AppointmentSubmitted, x => x.CorrelateById(e => e.Message.AppointmentId));
         Event(() => AppointmentApproved, x => x.CorrelateById(e => e.Message.AppointmentId));
         Event(() => AppointmentDeclined, x => x.CorrelateById(e => e.Message.AppointmentId));
+        Event(() => ReservationFailed, x => x.CorrelateById(e => e.Message.AppointmentId));
 
         Event(() => TimeWindowReserved, x => x.CorrelateBy(
             (state, context) => state.ReservationId == context.Message.ReservationId 
@@ -52,6 +54,14 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         DuringAny(
             When(AppointmentDeclined)
                 .PublishAsync(context => context.Init<CancelReservation>(new CancelReservation(context.Saga.ReservationId)))
+                .TransitionTo(Failed) 
+        );
+        DuringAny(
+            When(ReservationFailed)
+                .TransitionTo(Failed) 
+        );
+        DuringAny(
+            When(ReservationExpired)
                 .TransitionTo(Failed) 
         );
         
@@ -87,9 +97,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     var service = context.GetPayload<IAppointmentService>();
                     await service.UpdateState(context.Saga.AppointmentId, Models.AppointmentState.PendingApproval, context.CancellationToken);
                 })
-                .TransitionTo(WaitingForApproval),
-            When(ReservationExpired)
-                .TransitionTo(Failed)
+                .TransitionTo(WaitingForApproval)
         );
         
         During(WaitingForApproval,
@@ -103,9 +111,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context => context.Init<ProcessReservationConfirmation>(
                         new ProcessReservationConfirmation(context.Saga.AppointmentId, context.Saga.ReservationId))
                 )
-                .TransitionTo(WaitingForReservationConfirmation),
-            When(ReservationExpired)
-                .TransitionTo(Failed)
+                .TransitionTo(WaitingForReservationConfirmation)
         );
         
         During(WaitingForReservationConfirmation,
@@ -116,9 +122,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     await service.UpdateState(context.Saga.AppointmentId, Models.AppointmentState.Confirmed, context.CancellationToken);
                 })
                 .TransitionTo(Completed)
-                .Finalize(),
-            When(ReservationExpired)
-                .TransitionTo(Failed)
+                .Finalize()
         );
         
         WhenEnter(Failed, binder => binder

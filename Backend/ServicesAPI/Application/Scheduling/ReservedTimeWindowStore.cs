@@ -45,4 +45,45 @@ public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<Reserved
             return false;
         }
     }
+
+    public async Task<bool> TryConfirm(long reservationId, CancellationToken ct)
+    {
+        try
+        {
+            var reservation = await context.ReservedTimeWindows.FindAsync([reservationId], ct);
+
+            if (reservation == null) return false;
+
+            reservation.IsConfirmed = true;
+            await context.SaveChangesAsync(ct);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Error on confirming reservation {@ReservationId}", reservationId);
+            return false;
+        }
+    }
+
+    public async Task<bool> TryRemove(long reservationId, CancellationToken ct)
+    {
+        try
+        {
+            var reservation = await context.ReservedTimeWindows.FindAsync([reservationId], ct);
+
+            if (reservation == null) return false;
+            
+            context.ReservedTimeWindows.Remove(reservation);
+            
+            await context.SaveChangesAsync(ct);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Error on confirming reservation {@ReservationId}", reservationId);
+            return false;
+        }
+    }
 }

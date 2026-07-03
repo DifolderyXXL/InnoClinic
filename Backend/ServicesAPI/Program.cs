@@ -3,6 +3,7 @@ using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
 using Microsoft.EntityFrameworkCore;
 using ServiceDefaults;
+using ServicesAPI.Consumers;
 using ServicesAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,11 @@ builder.Services.AddDbContextPool<ServicesDbContext>(options => options.UseSqlit
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddConsumer<ProcessReservationConsumer>();
+    x.AddConsumer<ProcessReservationConfirmationConsumer>();
+    x.AddConsumer<CancelReservationConsumer>();
+    
+    
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));

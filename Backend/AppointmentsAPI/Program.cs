@@ -1,5 +1,8 @@
+using AppointmentsAPI.Data;
+using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
+using Microsoft.EntityFrameworkCore;
 using ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +11,27 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddMicroserviceDefaults("/api/appointments");
 
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<AppointmentDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("appointmentsApiDb")));
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddSagaStateMachine<AppointmentStateMachine, AppointmentState>()
+        .EntityFrameworkRepository(r =>
+        {
+            r.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+            r.ExistingDbContext<AppointmentDbContext>();
+            r.UsePostgres();
+        });
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
 
 var app = builder.Build();
 

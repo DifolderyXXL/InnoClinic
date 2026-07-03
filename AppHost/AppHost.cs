@@ -11,6 +11,7 @@ var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                     );
 
 
+
 var identityServer = builder.AddProject<Projects.Deunde_IdentityServer>("IdentityServer")
        .WithHttpsEndpoint(port: 6001)
        .WithExternalHttpEndpoints();
@@ -25,9 +26,15 @@ var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
        .WithReference(rabbitmqServicesApi)
        .WithExternalHttpEndpoints();
 
+
+var postgres = builder.AddPostgres("postgres");
+var postgresdb = postgres.AddDatabase("appointmentsApiDb");
+
 var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("AppointmentsAPI")
        .WithReference(identityServer)
-       .WithExternalHttpEndpoints();
+       .WithReference(postgresdb)
+       .WithExternalHttpEndpoints()
+       .WaitFor(postgresdb);
 
 
 

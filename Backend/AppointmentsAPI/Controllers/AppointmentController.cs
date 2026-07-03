@@ -1,10 +1,21 @@
 using System.Diagnostics;
+using AppointmentsAPI.Data;
 using AppointmentsAPI.ModelBinders;
+using AppointmentsAPI.Models;
+using Contracts.AppointmentContracts;
 using MassTransit;
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.Results;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using AppointmentState = AppointmentsAPI.Models.AppointmentState;
 
 namespace AppointmentsAPI.Controllers;
+
+public record BookAppointmentCommand(long DoctorId, DateOnly Date, int StartSlotIndex, int SlotCount);
+
+public record DeclineCommand(string Reason);
 
 [Route("api/[controller]")]
 [ApiController]
@@ -12,134 +23,108 @@ public class AppointmentController : ControllerBase
 {
     [HttpPost]
     [Route("/book")]
-    public IActionResult BookAppointment([ModelBinder<UserClaimsInfoModelBinder>] UserClaimParserResult? user)
+    [Authorize(Policy = RolePolicy.Client)]
+    public async Task<IActionResult> BookAppointment(
+        [ModelBinder<UserClaimsInfoModelBinder>] UserClaimParserResult? user,
+        [FromBody] BookAppointmentCommand command,
+        IAppointmentService appointmentService,
+        IPublishEndpoint publishEndpoint,
+        CancellationToken ct)
     {
+        if (user == null)
+        {
+            return Problem(statusCode: StatusCodes.Status500InternalServerError);
+        }
 
+        if (!Guid.TryParse(user.Id, out var patientId))
+        {
+            return Unauthorized();
+        }
+        
+        var appointment = new Appointment
+        {
+            State = AppointmentState.Created,
+            DoctorId = command.DoctorId,
+            Date = command.Date,
+            StartSlotIndex = command.StartSlotIndex,
+            SlotCount = command.SlotCount
+        };
+        var result = await appointmentService.AddAppointment(appointment, ct);
+        if (result.IsError) return BadRequest();
+        
+        await publishEndpoint.Publish(
+            new AppointmentSubmitted(
+                result.Value,
+                patientId,
+                command.DoctorId,
+                command.Date,
+                command.StartSlotIndex,
+                command.SlotCount), ct);
 
-        return Ok();
+        return Accepted(result.Value);
+    }
+    
+    [HttpPost]
+    [Route("/approve-book/{id:guid}")]
+    [Authorize(Policy = RolePolicy.Receptionist)]
+    public async Task<IActionResult> ApproveAppointment(
+        [FromRoute] Guid id,
+        IPublishEndpoint publishEndpoint,
+        CancellationToken ct)
+    {
+        await publishEndpoint.Publish(new AppointmentApproved(id), ct);
+
+        return Accepted();
+    }
+
+    [HttpPost]
+    [Route("/decline-book/{id:guid}")]
+    [Authorize(Policy = RolePolicy.Receptionist)]
+    public async Task<IActionResult> DeclineAppointment(
+        [FromRoute] Guid id,
+        [FromBody] DeclineCommand command,
+        IPublishEndpoint publishEndpoint,
+        CancellationToken ct)
+    {
+        await publishEndpoint.Publish(new AppointmentDeclined(id, command.Reason), ct);
+
+        return Accepted();
     }
 }
 
-public class BookAppointmentState : SagaStateMachineInstance
+public interface IAppointmentService
 {
-    public Guid CorrelationId { get; set; }
-    public string CurrentState { get; set; }
-    
-    public long AppointmentId { get; set; }
-    
-    public long PatientId { get; set; }
-    public long DoctorId { get; set; }
-    
-    public long ReservationId { get; set; }
-    public DateOnly Date { get; set; }
-    public int StartSlotIndex { get; set; }
-    public int SlotCount { get; set; }
+    public Task<Result<Guid>> AddAppointment(Appointment appointment, CancellationToken ct);
+    public Task<Result> UpdateState(Guid appointmentId, AppointmentState state, CancellationToken ct);
 }
 
-public record AppointmentSubmitted(long AppointmentId, long PatientId, long DoctorId, DateOnly Date, int StartSlotIndex, int SlotCount);
-public record TimeWindowReserved(long AppointmentId, int ReservationId);
-public record AppointmentApproved(long AppointmentId);
-public record AppointmentDeclined(long AppointmentId, string? Reason);
-public record ReservationExpired(long AppointmentId, int ReservationId);
-public record ReservationConfirmed(long AppointmentId, int ReservationId);
-
-
-public record ProcessReservation(long AppointmentId, DateOnly Date, int StartSlotIndex, int SlotCount);
-public record ProcessApproval(long AppointmentId);
-
-public record ProcessReservationConfirmation(long AppointmentId, long ReservationId);
-
-public record CancelReservation(long ReservationId);
-
-public class BookAppointmentStateMachine : MassTransitStateMachine<BookAppointmentState>
+public class AppointmentService(AppointmentDbContext context) : IAppointmentService
 {
-    public Event<AppointmentSubmitted> AppointmentSubmitted { get; private set; } = null!;
-    public Event<TimeWindowReserved> TimeWindowReserved { get; private set; } = null!;
-    public Event<AppointmentApproved> AppointmentApproved { get; private set; } = null!;
-    public Event<ReservationExpired> ReservationExpired { get; private set; } = null!;
-    public Event<AppointmentDeclined> AppointmentDeclined { get; private set; } = null!;
-    public Event<ReservationConfirmed> ReservationConfirmed { get; private set; } = null!;
-    
-    
-    public BookAppointmentStateMachine()
+    public async Task<Result<Guid>> AddAppointment(Appointment appointment, CancellationToken ct)
     {
-        Event(() => AppointmentSubmitted, x => x.CorrelateById(e => e.AppointmentId, e => e.Message.AppointmentId));
-        Event(() => TimeWindowReserved, x => x.CorrelateById(e => e.AppointmentId, e => e.Message.AppointmentId));
-        Event(() => AppointmentApproved, x => x.CorrelateById(e => e.AppointmentId, e => e.Message.AppointmentId));
-        Event(() => ReservationExpired, x => x.CorrelateById(e => e.AppointmentId, e => e.Message.AppointmentId));
-        Event(() => AppointmentDeclined, x => x.CorrelateById(e => e.AppointmentId, e => e.Message.AppointmentId));
-        Event(() => ReservationConfirmed, x => x.CorrelateById(e => e.AppointmentId, e => e.Message.AppointmentId));
-        
-        InstanceState(x => x.CurrentState);
-        
-        Initially(
-            When(AppointmentSubmitted)
-                .Then(context =>
-                {
-                    context.Saga.PatientId = context.Message.PatientId;
-                    context.Saga.DoctorId = context.Message.DoctorId;
-                    context.Saga.Date = context.Message.Date;
-                    context.Saga.StartSlotIndex = context.Message.StartSlotIndex;
-                    context.Saga.SlotCount = context.Message.SlotCount;
-                })
-                .PublishAsync(context => context.Init<ProcessReservation>(new ProcessReservation
-                (
-                    context.Saga.AppointmentId,
-                    context.Saga.Date,
-                    context.Saga.StartSlotIndex,
-                    context.Saga.SlotCount
-                )))
-                .TransitionTo(ProcessingReservation)
-        );
-        
-        During(ProcessingReservation,
-            When(TimeWindowReserved)
-                .Then(context =>
-                {
-                    context.Saga.ReservationId = context.Message.ReservationId;
-                })
-                .PublishAsync(
-                    context => context.Init<ProcessApproval>(new ProcessApproval(context.Saga.AppointmentId))
-                )
-                .TransitionTo(WaitingForApproval),
-            When(ReservationExpired)
-                .TransitionTo(Failed)
-                .Finalize()
-        );
-        
-        During(WaitingForApproval,
-            When(AppointmentApproved)
-                .PublishAsync(
-                    context => context.Init<ProcessReservationConfirmation>(
-                        new ProcessReservationConfirmation(context.Saga.AppointmentId, context.Saga.ReservationId))
-                    )
-                .TransitionTo(WaitingForReservationConfirmation)
-                .Finalize(),
-            When(AppointmentDeclined)
-                .PublishAsync(context => context.Init<CancelReservation>(new CancelReservation(context.Saga.ReservationId)))
-                .TransitionTo(Failed)
-                .Finalize(),
-            When(ReservationExpired)
-                .TransitionTo(Failed)
-                .Finalize()
-        );
-        
-        During(WaitingForReservationConfirmation,
-            When(ReservationConfirmed)
-                .TransitionTo(Completed)
-                .Finalize(),
-            When(ReservationExpired)
-                .TransitionTo(Failed)
-                .Finalize()
-        );
-        
-        SetCompletedWhenFinalized();
+        await context.Appointments.AddAsync(appointment, ct);
+        await context.SaveChangesAsync(ct);
+
+        return appointment.Id;
     }
 
-    public State ProcessingReservation { get; private set; } = null!;
-    public State WaitingForApproval { get; private set; }= null!;
-    public State WaitingForReservationConfirmation { get; private set; }= null!;
-    public State Completed { get; private set; }= null!;
-    public State Failed { get; private set; }= null!;
+    public async Task<Result> UpdateState(Guid appointmentId, AppointmentState state, CancellationToken ct)
+    {
+        var appointment = await context.Appointments.FindAsync([appointmentId], ct);
+
+        if (appointment == null)
+        {
+            return AppointmentErrors.AppointmentNotFound();
+        }
+        
+        appointment.State = state;
+        
+        await context.SaveChangesAsync(ct);
+        return Result.Success();
+    }
 }
 
+public static class AppointmentErrors
+{
+    public static Error AppointmentNotFound() => Error.Create(ErrorType.NotFound);
+}

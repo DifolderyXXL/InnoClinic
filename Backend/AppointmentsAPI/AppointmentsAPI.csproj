@@ -18,5 +18,8 @@
       <ProjectReference Include="..\Contracts\Contracts.csproj" />
       <ProjectReference Include="..\MicroserviceApiKernel\MicroserviceApiKernel.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Consumers\" />
+    </ItemGroup>
 
 </Project>

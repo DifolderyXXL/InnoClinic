@@ -20,6 +20,34 @@ public class AppointmentState : SagaStateMachineInstance
     public Guid AppointmentId => CorrelationId;
 }
 
+public class AppointmentSagaStateChanged
+{
+    public Guid AppointmentId { get; init; } 
+    public Models.AppointmentState State { get; init; }
+}
+
+public static class AppointmentStateMachineExtension
+{
+    public static EventActivityBinder<TInstance, TData> PublishStateChanged<TInstance, TData>(
+        this EventActivityBinder<TInstance, TData> source,
+        Models.AppointmentState state)
+        where TInstance : class, SagaStateMachineInstance
+        where TData : class
+    {
+        return source.PublishAsync(context => context.Init<AppointmentSagaStateChanged>(
+            new AppointmentSagaStateChanged{AppointmentId = context.Saga.CorrelationId, State = state}));
+    }
+    
+    public static EventActivityBinder<TInstance> PublishStateChanged<TInstance>(
+        this EventActivityBinder<TInstance> source,
+        Models.AppointmentState state)
+        where TInstance : class, SagaStateMachineInstance
+    {
+        return source.PublishAsync(context => context.Init<AppointmentSagaStateChanged>(
+            new AppointmentSagaStateChanged{AppointmentId = context.Saga.CorrelationId, State = state}));
+    }
+}
+
 public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
 {
     public Event<AppointmentSubmitted> AppointmentSubmitted { get; private set; } = null!;
@@ -37,13 +65,12 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         Event(() => AppointmentApproved, x => x.CorrelateById(e => e.Message.AppointmentId));
         Event(() => AppointmentDeclined, x => x.CorrelateById(e => e.Message.AppointmentId));
         Event(() => ReservationFailed, x => x.CorrelateById(e => e.Message.AppointmentId));
+        Event(() => TimeWindowReserved, x => x.CorrelateById(e => e.Message.AppointmentId));
 
-        Event(() => TimeWindowReserved, x => x.CorrelateBy(
-            (state, context) => state.ReservationId == context.Message.ReservationId 
-        ));
         Event(() => ReservationExpired, x => x.CorrelateBy(
             (state, context) => state.ReservationId == context.Message.ReservationId 
         ));
+
         Event(() => ReservationConfirmed, x => x.CorrelateBy(
             (state, context) => state.ReservationId == context.Message.ReservationId 
         ));
@@ -67,17 +94,16 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         
         Initially(
             When(AppointmentSubmitted)
-                .ThenAsync(async context =>
+                .Then(context =>
                 {
+                    context.Saga.CorrelationId = context.Message.AppointmentId;
                     context.Saga.PatientAccountId = context.Message.PatientAccountId;
                     context.Saga.DoctorId = context.Message.DoctorId;
                     context.Saga.Date = context.Message.Date;
                     context.Saga.StartSlotIndex = context.Message.StartSlotIndex;
                     context.Saga.SlotCount = context.Message.SlotCount;
-
-                    var service = context.GetPayload<IAppointmentService>();
-                    await service.UpdateState(context.Saga.AppointmentId, Models.AppointmentState.PendingReservation, context.CancellationToken);
                 })
+                .PublishStateChanged(Models.AppointmentState.PendingReservation)
                 .PublishAsync(context => context.Init<ProcessReservation>(new ProcessReservation
                 (
                     context.Saga.AppointmentId,
@@ -85,52 +111,38 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context.Saga.StartSlotIndex,
                     context.Saga.SlotCount
                 )))
-                .TransitionTo(ProcessingReservation)
+                .TransitionTo(ProcessingReservation)   
         );
         
         During(ProcessingReservation,
             When(TimeWindowReserved)
-                .ThenAsync(async context =>
+                .Then(context =>
                 {
                     context.Saga.ReservationId = context.Message.ReservationId;
-                    
-                    var service = context.GetPayload<IAppointmentService>();
-                    await service.UpdateState(context.Saga.AppointmentId, Models.AppointmentState.PendingApproval, context.CancellationToken);
                 })
-                .TransitionTo(WaitingForApproval)
-        );
+                .PublishStateChanged(Models.AppointmentState.PendingApproval)
+                .TransitionTo(WaitingForApproval)   
+            );
         
         During(WaitingForApproval,
             When(AppointmentApproved)
-                .ThenAsync(async context =>
-                {
-                    var service = context.GetPayload<IAppointmentService>();
-                    await service.UpdateState(context.Saga.AppointmentId, Models.AppointmentState.Approved, context.CancellationToken);
-                })
                 .PublishAsync(
                     context => context.Init<ProcessReservationConfirmation>(
                         new ProcessReservationConfirmation(context.Saga.AppointmentId, context.Saga.ReservationId))
                 )
+                .PublishStateChanged(Models.AppointmentState.Approved)
                 .TransitionTo(WaitingForReservationConfirmation)
         );
         
         During(WaitingForReservationConfirmation,
             When(ReservationConfirmed)
-                .ThenAsync(async context =>
-                {
-                    var service = context.GetPayload<IAppointmentService>();
-                    await service.UpdateState(context.Saga.AppointmentId, Models.AppointmentState.Confirmed, context.CancellationToken);
-                })
+                .PublishStateChanged(Models.AppointmentState.Confirmed)   
                 .TransitionTo(Completed)
                 .Finalize()
         );
         
         WhenEnter(Failed, binder => binder
-            .ThenAsync(async context =>
-            {
-                var service = context.GetPayload<IAppointmentService>();
-                await service.UpdateState(context.Saga.AppointmentId, Models.AppointmentState.Failed, context.CancellationToken);
-            })
+            .PublishStateChanged(Models.AppointmentState.Failed)
             .Finalize() 
         );
         

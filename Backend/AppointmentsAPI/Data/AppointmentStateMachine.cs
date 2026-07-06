@@ -78,7 +78,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         
         InstanceState(x => x.CurrentState);
         
-        DuringAny(
+        During(WaitingForApproval, WaitingForReservationConfirmation,
             When(AppointmentDeclined)
                 .PublishAsync(context => context.Init<CancelReservation>(new CancelReservation(context.Saga.ReservationId)))
                 .TransitionTo(Failed) 
@@ -87,7 +87,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
             When(ReservationFailed)
                 .TransitionTo(Failed) 
         );
-        DuringAny(
+        During(WaitingForApproval, WaitingForReservationConfirmation,
             When(ReservationExpired)
                 .TransitionTo(Failed) 
         );

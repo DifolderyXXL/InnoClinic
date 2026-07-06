@@ -8,7 +8,7 @@ public record TimeWindowReserved(Guid AppointmentId, long ReservationId);
 public record ReservationFailed(Guid AppointmentId);
 public record AppointmentApproved(Guid AppointmentId);
 public record AppointmentDeclined(Guid AppointmentId, string? Reason);
-public record ReservationExpired(long ReservationId);
+public record ReservationExpired(Guid AppointmentId, long ReservationId);
 public record ReservationConfirmed(Guid AppointmentId, long ReservationId);
 
 

@@ -1,4 +1,5 @@
 using AppointmentsAPI.Models;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -16,6 +17,10 @@ public class AppointmentDbContext(DbContextOptions options) : DbContext(options)
 
         modelBuilder.ApplyConfiguration(new AppointmentTypeConfiguration());
         modelBuilder.ApplyConfiguration(new AppointmentStateMap());
+        
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }
 

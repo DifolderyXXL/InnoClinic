@@ -86,7 +86,7 @@ public class AppointmentSagaTests
         Assert.True(await harness.Consumed.Any<TimeWindowReserved>());
         Assert.NotNull(sagaHarness.Sagas.ContainsInState(appointmentId, sagaHarness.StateMachine, sagaHarness.StateMachine.WaitingForApproval));
         
-        await harness.Bus.Publish(new ReservationExpired(reservationId));
+        await harness.Bus.Publish(new ReservationExpired(appointmentId, reservationId));
         Assert.True(await harness.Published.Any<AppointmentSagaStateChanged>(x =>
             x.Context.Message.AppointmentId == appointmentId &&
             x.Context.Message.State == AppointmentsAPI.Models.AppointmentState.Failed

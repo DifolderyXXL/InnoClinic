@@ -1,9 +1,11 @@
+using System.ComponentModel.DataAnnotations;
 using Contracts.AppointmentContracts;
 using FluentValidation;
 using MassTransit;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ServicesAPI.Application.Scheduling;
 using ServicesAPI.Data;
 using ServicesAPI.Endpoints.Services.DeleteService;
@@ -41,10 +43,19 @@ public class ProcessReservationValidator : AbstractValidator<ProcessReservation>
         RuleFor(x => x.ServiceId).GreaterThan(0);
     }
 }
+
+public class ReservationOptions
+{
+    public const string SectionName = "Reservation";
+    
+    [Required]
+    public TimeSpan ReserveTime { get; set; }
+}
 public class ProcessReservationConsumer(
     IReservationService reservationService, 
     IValidator<ProcessReservation> validator,
-    IScheduleService scheduleService)
+    IScheduleService scheduleService,
+    IOptions<ReservationOptions> reservationOptions)
     : IConsumer<ProcessReservation>
 {
     private async Task Fail(ConsumeContext<ProcessReservation> context)
@@ -76,35 +87,13 @@ public class ProcessReservationConsumer(
         if (result.IsSuccess)
         {
             await context.Publish(new TimeWindowReserved(context.Message.AppointmentId, result.ReservationId!.Value));   
+            await context.SchedulePublish(
+                delay: reservationOptions.Value.ReserveTime,
+                message: new ReservationExpired(context.Message.AppointmentId, result.ReservationId!.Value));   
         }
         else
         {
             await Fail(context);
         }
-    }
-}
-
-public class ProcessReservationConfirmationConsumer(IReservationService reservationService) : IConsumer<ProcessReservationConfirmation>
-{
-    public async Task Consume(ConsumeContext<ProcessReservationConfirmation> context)
-    {
-        var result = await reservationService.TryConfirmReservation(context.Message.ReservationId, context.CancellationToken);
-
-        if (result)
-        {
-            await context.Publish(new ReservationConfirmed(context.Message.AppointmentId, context.Message.ReservationId));   
-        }
-        else
-        {
-            await context.Publish(new ReservationFailed(context.Message.AppointmentId));   
-        }
-    }
-}
-
-public class CancelReservationConsumer(IReservationService reservationService) : IConsumer<CancelReservation>
-{
-    public async Task Consume(ConsumeContext<CancelReservation> context)
-    {
-        await reservationService.CancelReservation(context.Message.ReservationId, context.CancellationToken);
     }
 }

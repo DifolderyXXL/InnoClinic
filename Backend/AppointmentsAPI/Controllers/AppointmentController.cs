@@ -58,6 +58,7 @@ public class AppointmentController(
                 command.Date,
                 command.StartSlotIndex,
                 command.ServiceId), ct);
+        await context.SaveChangesAsync(ct);
 
         return Accepted(result.Value);
     }
@@ -70,6 +71,7 @@ public class AppointmentController(
         CancellationToken ct)
     {
         await publishEndpoint.Publish(new AppointmentApproved(id), ct);
+        await context.SaveChangesAsync(ct);
 
         return Accepted();
     }
@@ -83,6 +85,7 @@ public class AppointmentController(
         CancellationToken ct)
     {
         await publishEndpoint.Publish(new AppointmentDeclined(id, command.Reason), ct);
+        await context.SaveChangesAsync(ct);
 
         return Accepted();
     }

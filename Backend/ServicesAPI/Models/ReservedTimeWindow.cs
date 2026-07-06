@@ -8,6 +8,5 @@ public class ReservedTimeWindow
     public int SlotCount { get; set; }
     
     public bool IsConfirmed { get; set; }
-    
     public int EndSlotIndex => StartSlotIndex + SlotCount;
 }

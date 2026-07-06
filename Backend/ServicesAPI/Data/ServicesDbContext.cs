@@ -1,4 +1,5 @@
 using System;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using ServicesAPI.Data.Configurations;
 using ServicesAPI.Models;
@@ -22,5 +23,9 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options) : Db
         modelBuilder.ApplyConfiguration(new ServiceCategoryTypeConfiguration());
         modelBuilder.ApplyConfiguration(new SpecializationTypeConfiguration());
         modelBuilder.ApplyConfiguration(new ReservedTimeWindowTypeConfiguration());
+        
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }

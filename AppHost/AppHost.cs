@@ -23,18 +23,20 @@ var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI")
        .WithReference(rabbitmqServicesApi)
        .WithExternalHttpEndpoints();
 
-var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
-       .WithReference(identityServer)
-       .WithReference(rabbitmqServicesApi)
-       .WithExternalHttpEndpoints();
-
 
 var postgresPassword = builder.AddParameter("postgres-password", secret: true);
 var postgres = builder.AddPostgres("postgres")
        .WithHostPort(5432)
        .WithPassword(postgresPassword)
-       .WithDataVolume();;
+       .WithDataVolume();
 var postgresdb = postgres.AddDatabase("appointmentsApiDb");
+var servicesApiDb = postgres.AddDatabase("servicesApiDb");
+
+var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
+       .WithReference(identityServer)
+       .WithReference(servicesApiDb)
+       .WithReference(rabbitmqServicesApi)
+       .WithExternalHttpEndpoints();
 
 var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("AppointmentsAPI")
        .WithReference(identityServer)

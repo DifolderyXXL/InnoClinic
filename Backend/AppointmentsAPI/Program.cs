@@ -21,13 +21,19 @@ builder.Services.AddDbContext<AppointmentDbContext>(options =>
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddSagaStateMachine<AppointmentStateMachine, AppointmentState>()
+    x.AddSagaStateMachine<AppointmentStateMachine, AppointmentState, AppointmentSagaDefinition>()
         .EntityFrameworkRepository(r =>
         {
             r.ConcurrencyMode = ConcurrencyMode.Pessimistic;
             r.ExistingDbContext<AppointmentDbContext>();
             r.UsePostgres();
         });
+    x.AddEntityFrameworkOutbox<AppointmentDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+    
 
     x.AddConsumer<AppointmentStateChangedConsumer>();
     x.AddConsumer<AppointmentTimeWindowReservedSyncConsumer>();
@@ -59,3 +65,16 @@ app.MapEndpoints();
 app.MapDefaultControllerRoute();
 
 app.Run();
+
+public class AppointmentSagaDefinition : SagaDefinition<AppointmentState>
+{
+    protected override void ConfigureSaga(
+        IReceiveEndpointConfigurator endpointConfigurator, 
+        ISagaConfigurator<AppointmentState> sagaConfigurator, 
+        IRegistrationContext context)
+    {
+        endpointConfigurator.UseMessageRetry(r => r.Interval(5, TimeSpan.FromMilliseconds(100)));
+
+        endpointConfigurator.UseEntityFrameworkOutbox<AppointmentDbContext>(context);
+    }
+}

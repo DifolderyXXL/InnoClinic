@@ -12,11 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddMicroserviceDefaults("/api/services", typeof(Program).Assembly);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContextPool<ServicesDbContext>(options => options.UseSqlite(connectionString).UseLazyLoadingProxies());
+builder.Services.AddDbContext<ServicesDbContext>(options => 
+    options.UseNpgsql(builder.Configuration.GetConnectionString("servicesApiDb")).UseLazyLoadingProxies());
+
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReservedTimeWindowStore, ReservedTimeWindowStore>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+
+builder.Services.Configure<ReservationOptions>(
+    builder.Configuration.GetSection(ReservationOptions.SectionName));
 
 builder.Services.Configure<ScheduleOptions>(
     builder.Configuration.GetSection(ScheduleOptions.SectionName));
@@ -25,14 +29,27 @@ builder.Services.AddScoped<IScheduleSlotsProvider>(
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddEntityFrameworkOutbox<ServicesDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+    x.AddConfigureEndpointsCallback((context, name, cfg) => 
+    { 
+        cfg.UseEntityFrameworkOutbox<ServicesDbContext>(context); 
+    });
+
     x.AddConsumer<ProcessReservationConsumer>();
     x.AddConsumer<ProcessReservationConfirmationConsumer>();
+    
     x.AddConsumer<CancelReservationConsumer>();
+    x.AddConsumer<ReservationExpiredConsumer>();
     
     
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
+        cfg.UseDelayedMessageScheduler();
         cfg.ConfigureEndpoints(context);
     });
 });

@@ -2,9 +2,9 @@ using ServicesAPI.Models;
 
 namespace ServicesAPI.Application.Scheduling;
 
-public class ScheduleService(IReservedTimeWindowStore store, IScheduleSlotsProvider provider) : IScheduleService
+public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsProvider provider) : IReservationService
 {
-    public async Task<ScheduleResult> TrySchedule(ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct)
+    public async Task<ScheduleResult> TryReserve(ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct)
     {
         var reservation = new ReservedTimeWindow
         {
@@ -17,7 +17,7 @@ public class ScheduleService(IReservedTimeWindowStore store, IScheduleSlotsProvi
         return new ScheduleResult(result, result ? reservation.Id : null);
     }
 
-    public async Task<bool> TryConfirmSchedule(long reservationId, CancellationToken ct)
+    public async Task<bool> TryConfirmReservation(long reservationId, CancellationToken ct)
     {
         return await store.TryConfirm(reservationId, ct);
     }
@@ -46,7 +46,7 @@ public class ScheduleService(IReservedTimeWindowStore store, IScheduleSlotsProvi
         return allAvailableGaps.Where(w => w.TimeSlotSize > 0).ToList();
     }
 
-    public async Task CancelSchedule(long reservationId, CancellationToken ct)
+    public async Task CancelReservation(long reservationId, CancellationToken ct)
     {
         await store.TryRemove(reservationId, ct);
     }

@@ -19,7 +19,7 @@ public class Appointment
 
     public DateOnly Date { get; set; }
     public int StartSlotIndex { get; set; }
-    public int SlotCount { get; set; }
+    public long ServiceId { get; set; }
     
     public AppointmentState State { get; set; }
 }

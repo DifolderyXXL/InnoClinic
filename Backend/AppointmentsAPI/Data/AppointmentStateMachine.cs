@@ -15,7 +15,7 @@ public class AppointmentState : SagaStateMachineInstance
     public long ReservationId { get; set; }
     public DateOnly Date { get; set; }
     public int StartSlotIndex { get; set; }
-    public int SlotCount { get; set; }
+    public long ServiceId { get; set; }
 
     public Guid AppointmentId => CorrelationId;
 }
@@ -101,7 +101,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context.Saga.DoctorId = context.Message.DoctorId;
                     context.Saga.Date = context.Message.Date;
                     context.Saga.StartSlotIndex = context.Message.StartSlotIndex;
-                    context.Saga.SlotCount = context.Message.SlotCount;
+                    context.Saga.ServiceId = context.Message.ServiceId;
                 })
                 .PublishStateChanged(Models.AppointmentState.PendingReservation)
                 .PublishAsync(context => context.Init<ProcessReservation>(new ProcessReservation
@@ -109,7 +109,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context.Saga.AppointmentId,
                     context.Saga.Date,
                     context.Saga.StartSlotIndex,
-                    context.Saga.SlotCount
+                    context.Saga.ServiceId
                 )))
                 .TransitionTo(ProcessingReservation)   
         );

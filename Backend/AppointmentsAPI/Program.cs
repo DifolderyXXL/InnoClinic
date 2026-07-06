@@ -30,6 +30,7 @@ builder.Services.AddMassTransit(x =>
         });
 
     x.AddConsumer<AppointmentStateChangedConsumer>();
+    x.AddConsumer<AppointmentTimeWindowReservedSyncConsumer>();
     
     x.UsingRabbitMq((context, cfg) =>
     {

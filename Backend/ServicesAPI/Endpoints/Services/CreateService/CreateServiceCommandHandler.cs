@@ -35,7 +35,7 @@ public class CreateServiceCommandHandler(ServicesDbContext context, IPublishEndp
                 Price = command.Price,
                 IsActive = command.IsActive,
                 CategoryId = command.CategoryId,
-                SpecializationId = command.SpecializationId
+                SpecializationId = command.SpecializationId,
             };
             await context.Services.AddAsync(service, ct);
 

@@ -9,6 +9,7 @@ public interface IAppointmentService
 {
     public Task<Result<Guid>> AddAppointment(Appointment appointment, CancellationToken ct);
     public Task<Result> UpdateState(Guid appointmentId, AppointmentState state, CancellationToken ct);
+    public Task<Result> UpdateReservationId(Guid appointmentId, long reservationId, CancellationToken ct);
 }
 public class AppointmentService(AppointmentDbContext context) : IAppointmentService
 {
@@ -30,6 +31,21 @@ public class AppointmentService(AppointmentDbContext context) : IAppointmentServ
         }
         
         appointment.State = state;
+        
+        await context.SaveChangesAsync(ct);
+        return Result.Success();
+    }
+
+    public async Task<Result> UpdateReservationId(Guid appointmentId, long reservationId, CancellationToken ct)
+    {
+        var appointment = await context.Appointments.FindAsync([appointmentId], ct);
+
+        if (appointment == null)
+        {
+            return AppointmentErrors.AppointmentNotFound();
+        }
+        
+        appointment.ReservationId = reservationId;
         
         await context.SaveChangesAsync(ct);
         return Result.Success();

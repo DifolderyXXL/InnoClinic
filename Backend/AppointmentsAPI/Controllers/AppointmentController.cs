@@ -13,7 +13,7 @@ using AppointmentState = AppointmentsAPI.Models.AppointmentState;
 
 namespace AppointmentsAPI.Controllers;
 
-public record BookAppointmentCommand(long DoctorId, DateOnly Date, int StartSlotIndex, int SlotCount);
+public record BookAppointmentCommand(long DoctorId, DateOnly Date, int StartSlotIndex, long ServiceId);
 
 public record DeclineCommand(string Reason);
 
@@ -51,7 +51,7 @@ public class AppointmentController(
             DoctorId = command.DoctorId,
             Date = command.Date,
             StartSlotIndex = command.StartSlotIndex,
-            SlotCount = command.SlotCount
+            ServiceId = command.ServiceId
         };
         var result = await appointmentService.AddAppointment(appointment, ct);
         if (result.IsError) return BadRequest();
@@ -63,7 +63,7 @@ public class AppointmentController(
                 command.DoctorId,
                 command.Date,
                 command.StartSlotIndex,
-                command.SlotCount), ct);
+                command.ServiceId), ct);
 
         return Accepted(result.Value);
     }
@@ -116,7 +116,7 @@ public class AppointmentController(
             DoctorId = a.DoctorId,
             Date = a.Date,
             StartSlotIndex = a.StartSlotIndex,
-            SlotCount = a.SlotCount,
+            ServiceId = a.ServiceId,
             State = a.State.ToString(),
             ReservationId = a.ReservationIdUnsafe
         }).ToListAsync(ct);
@@ -132,6 +132,6 @@ public class AppointmentDto
     public long? ReservationId { get; init; }
     public DateOnly Date { get; init; }
     public int StartSlotIndex { get; init; }
-    public int SlotCount { get; init; }
+    public long ServiceId { get; init; }
     public string State { get; init; }
 }

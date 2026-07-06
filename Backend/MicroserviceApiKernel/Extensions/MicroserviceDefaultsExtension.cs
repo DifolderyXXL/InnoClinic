@@ -12,10 +12,11 @@ public static class MicroserviceDefaultsExtension
     /// </summary>
     /// <param name="builder"></param>
     /// <param name="routeOnReversedProxy"></param>
+    /// <param name="assembly"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    public static void AddMicroserviceDefaults(this IHostApplicationBuilder builder, string routeOnReversedProxy)
+    public static void AddMicroserviceDefaults(this IHostApplicationBuilder builder, string routeOnReversedProxy, Assembly? assembly = null)
     {
-        var microserviceAssembly = Assembly.GetEntryAssembly() ?? throw new InvalidOperationException("Called from unmanaged code");
+        var microserviceAssembly = assembly ?? Assembly.GetEntryAssembly() ?? throw new InvalidOperationException("Called from unmanaged code");
         
         builder.AddServiceDefaults();
         builder.Services.AddHandlers(microserviceAssembly);

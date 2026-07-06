@@ -10,12 +10,13 @@ using ServicesAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddMicroserviceDefaults("/api/services");
+builder.AddMicroserviceDefaults("/api/services", typeof(Program).Assembly);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContextPool<ServicesDbContext>(options => options.UseSqlite(connectionString).UseLazyLoadingProxies());
-builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReservedTimeWindowStore, ReservedTimeWindowStore>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
 builder.Services.Configure<ScheduleOptions>(
     builder.Configuration.GetSection(ScheduleOptions.SectionName));

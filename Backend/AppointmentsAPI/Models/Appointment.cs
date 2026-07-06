@@ -7,15 +7,7 @@ public class Appointment
     public Guid PatientAccountId { get; set; }
     public long DoctorId { get; set; }
 
-    private long? _reservationId;
-
-    public long ReservationId
-    {
-        get => _reservationId ?? throw new InvalidOperationException("Is not reserved");
-        set => _reservationId = value;
-    }
-
-    public long? ReservationIdUnsafe => _reservationId;
+    public long? ReservationId { get; set; } 
 
     public DateOnly Date { get; set; }
     public int StartSlotIndex { get; set; }

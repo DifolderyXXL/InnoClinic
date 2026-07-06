@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using AppointmentsAPI.Data;
-using AppointmentsAPI.ModelBinders;
 using AppointmentsAPI.Models;
 using Contracts.AppointmentContracts;
 using MassTransit;
@@ -22,7 +21,7 @@ public record DeclineCommand(string Reason);
 public class AppointmentController(
     IPublishEndpoint publishEndpoint, 
     IAppointmentService appointmentService,
-    IServiceProvider provider) : ControllerBase
+    AppointmentDbContext context) : ControllerBase
 {
     private async ValueTask<UserClaimParserResult?> GetUserClaim() => await UserClaimParser.Parse(HttpContext);
     
@@ -34,16 +33,11 @@ public class AppointmentController(
         CancellationToken ct)
     {
         var user = await GetUserClaim();
-        if (user == null)
-        {
-            return Problem(statusCode: StatusCodes.Status500InternalServerError);
-        }
-
-        if (!Guid.TryParse(user.Id, out var patientId))
+        if (user == null || !Guid.TryParse(user.Id, out var patientId))
         {
             return Unauthorized();
         }
-        
+
         var appointment = new Appointment
         {
             PatientAccountId = patientId,
@@ -97,11 +91,11 @@ public class AppointmentController(
     [Route("/appointments")]
     [Authorize(Policy = RolePolicy.Receptionist)]
     public async Task<IActionResult> GetAppointments(
-        AppointmentState? state,
-        CancellationToken ct)
+        [FromQuery] AppointmentState? state,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken ct = default)
     {
-        var context = provider.GetRequiredService<AppointmentDbContext>();
-
         var query = context.Appointments.AsNoTracking();
 
         if (state != null)
@@ -109,18 +103,25 @@ public class AppointmentController(
             query = query.Where(x => x.State == state);
         }
 
-        var result = await query.Select(a => new AppointmentDto
-        {
-            Id = a.Id,
-            PatientAccountId = a.PatientAccountId,
-            DoctorId = a.DoctorId,
-            Date = a.Date,
-            StartSlotIndex = a.StartSlotIndex,
-            ServiceId = a.ServiceId,
-            State = a.State.ToString(),
-            ReservationId = a.ReservationIdUnsafe
-        }).ToListAsync(ct);
-        return Ok(result);
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderBy(x => x.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(a => new AppointmentDto
+            {
+                Id = a.Id,
+                PatientAccountId = a.PatientAccountId,
+                DoctorId = a.DoctorId,
+                Date = a.Date,
+                StartSlotIndex = a.StartSlotIndex,
+                ServiceId = a.ServiceId,
+                State = a.State.ToString(),
+                ReservationId = a.ReservationId
+            })
+            .ToListAsync(ct);
+        
+        return Ok(new{ Items = items, Total = total, Page = page, PageSize = pageSize });
     }
 }
 

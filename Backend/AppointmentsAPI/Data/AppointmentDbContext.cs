@@ -24,9 +24,6 @@ public class AppointmentTypeConfiguration : IEntityTypeConfiguration<Appointment
     public void Configure(EntityTypeBuilder<Appointment> entity)
     {        
         entity.HasKey(x => x.Id);
-        
-        entity .Property(b => b.ReservationId)
-            .HasField("_reservationId");
     }
 }
 

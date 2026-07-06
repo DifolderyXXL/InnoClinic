@@ -1,3 +1,5 @@
+using AppointmentsAPI.Consumers;
+using AppointmentsAPI.Controllers;
 using AppointmentsAPI.Data;
 using MassTransit;
 using MicroserviceApiKernel;
@@ -12,6 +14,8 @@ builder.AddMicroserviceDefaults("/api/appointments");
 
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+
 builder.Services.AddDbContext<AppointmentDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("appointmentsApiDb")));
 
@@ -25,6 +29,8 @@ builder.Services.AddMassTransit(x =>
             r.UsePostgres();
         });
 
+    x.AddConsumer<AppointmentStateChangedConsumer>();
+    
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));

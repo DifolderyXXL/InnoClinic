@@ -1,4 +1,6 @@
 
+using Microsoft.Extensions.Configuration;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
@@ -27,12 +29,17 @@ var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
        .WithExternalHttpEndpoints();
 
 
-var postgres = builder.AddPostgres("postgres");
+var postgresPassword = builder.AddParameter("postgres-password", secret: true);
+var postgres = builder.AddPostgres("postgres")
+       .WithHostPort(5432)
+       .WithPassword(postgresPassword)
+       .WithDataVolume();;
 var postgresdb = postgres.AddDatabase("appointmentsApiDb");
 
 var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("AppointmentsAPI")
        .WithReference(identityServer)
        .WithReference(postgresdb)
+       .WithReference(rabbitmqServicesApi)
        .WithExternalHttpEndpoints()
        .WaitFor(postgresdb);
 

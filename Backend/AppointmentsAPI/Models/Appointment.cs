@@ -15,6 +15,8 @@ public class Appointment
         set => _reservationId = value;
     }
 
+    public long? ReservationIdUnsafe => _reservationId;
+
     public DateOnly Date { get; set; }
     public int StartSlotIndex { get; set; }
     public int SlotCount { get; set; }

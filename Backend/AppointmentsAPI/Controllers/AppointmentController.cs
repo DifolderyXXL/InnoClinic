@@ -5,10 +5,10 @@ using AppointmentsAPI.Models;
 using Contracts.AppointmentContracts;
 using MassTransit;
 using MicroserviceApiKernel;
-using MicroserviceApiKernel.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using AppointmentState = AppointmentsAPI.Models.AppointmentState;
 
 namespace AppointmentsAPI.Controllers;
@@ -19,18 +19,21 @@ public record DeclineCommand(string Reason);
 
 [Route("api/[controller]")]
 [ApiController]
-public class AppointmentController : ControllerBase
+public class AppointmentController(
+    IPublishEndpoint publishEndpoint, 
+    IAppointmentService appointmentService,
+    IServiceProvider provider) : ControllerBase
 {
+    private async ValueTask<UserClaimParserResult?> GetUserClaim() => await UserClaimParser.Parse(HttpContext);
+    
     [HttpPost]
     [Route("/book")]
     [Authorize(Policy = RolePolicy.Client)]
     public async Task<IActionResult> BookAppointment(
-        [ModelBinder<UserClaimsInfoModelBinder>] UserClaimParserResult? user,
         [FromBody] BookAppointmentCommand command,
-        IAppointmentService appointmentService,
-        IPublishEndpoint publishEndpoint,
         CancellationToken ct)
     {
+        var user = await GetUserClaim();
         if (user == null)
         {
             return Problem(statusCode: StatusCodes.Status500InternalServerError);
@@ -43,6 +46,7 @@ public class AppointmentController : ControllerBase
         
         var appointment = new Appointment
         {
+            PatientAccountId = patientId,
             State = AppointmentState.Created,
             DoctorId = command.DoctorId,
             Date = command.Date,
@@ -69,7 +73,6 @@ public class AppointmentController : ControllerBase
     [Authorize(Policy = RolePolicy.Receptionist)]
     public async Task<IActionResult> ApproveAppointment(
         [FromRoute] Guid id,
-        IPublishEndpoint publishEndpoint,
         CancellationToken ct)
     {
         await publishEndpoint.Publish(new AppointmentApproved(id), ct);
@@ -83,48 +86,52 @@ public class AppointmentController : ControllerBase
     public async Task<IActionResult> DeclineAppointment(
         [FromRoute] Guid id,
         [FromBody] DeclineCommand command,
-        IPublishEndpoint publishEndpoint,
         CancellationToken ct)
     {
         await publishEndpoint.Publish(new AppointmentDeclined(id, command.Reason), ct);
 
         return Accepted();
     }
-}
-
-public interface IAppointmentService
-{
-    public Task<Result<Guid>> AddAppointment(Appointment appointment, CancellationToken ct);
-    public Task<Result> UpdateState(Guid appointmentId, AppointmentState state, CancellationToken ct);
-}
-
-public class AppointmentService(AppointmentDbContext context) : IAppointmentService
-{
-    public async Task<Result<Guid>> AddAppointment(Appointment appointment, CancellationToken ct)
+    
+    [HttpGet]
+    [Route("/appointments")]
+    [Authorize(Policy = RolePolicy.Receptionist)]
+    public async Task<IActionResult> GetAppointments(
+        AppointmentState? state,
+        CancellationToken ct)
     {
-        await context.Appointments.AddAsync(appointment, ct);
-        await context.SaveChangesAsync(ct);
+        var context = provider.GetRequiredService<AppointmentDbContext>();
 
-        return appointment.Id;
-    }
+        var query = context.Appointments.AsNoTracking();
 
-    public async Task<Result> UpdateState(Guid appointmentId, AppointmentState state, CancellationToken ct)
-    {
-        var appointment = await context.Appointments.FindAsync([appointmentId], ct);
-
-        if (appointment == null)
+        if (state != null)
         {
-            return AppointmentErrors.AppointmentNotFound();
+            query = query.Where(x => x.State == state);
         }
-        
-        appointment.State = state;
-        
-        await context.SaveChangesAsync(ct);
-        return Result.Success();
+
+        var result = await query.Select(a => new AppointmentDto
+        {
+            Id = a.Id,
+            PatientAccountId = a.PatientAccountId,
+            DoctorId = a.DoctorId,
+            Date = a.Date,
+            StartSlotIndex = a.StartSlotIndex,
+            SlotCount = a.SlotCount,
+            State = a.State.ToString(),
+            ReservationId = a.ReservationIdUnsafe
+        }).ToListAsync(ct);
+        return Ok(result);
     }
 }
 
-public static class AppointmentErrors
+public class AppointmentDto
 {
-    public static Error AppointmentNotFound() => Error.Create(ErrorType.NotFound);
+    public Guid Id { get; init; }
+    public Guid PatientAccountId { get; init; }
+    public long DoctorId { get; init; }
+    public long? ReservationId { get; init; }
+    public DateOnly Date { get; init; }
+    public int StartSlotIndex { get; init; }
+    public int SlotCount { get; init; }
+    public string State { get; init; }
 }

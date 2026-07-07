@@ -5,7 +5,7 @@ using ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddMicroserviceDefaults("/api/offices");
+builder.AddMicroserviceDefaults("/offices");
 
 
 builder.AddMongoDBClient(connectionName: "officesdb");

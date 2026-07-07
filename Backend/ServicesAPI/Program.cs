@@ -10,7 +10,7 @@ using ServicesAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddMicroserviceDefaults("/api/services", typeof(Program).Assembly);
+builder.AddMicroserviceDefaults("/services", typeof(Program).Assembly);
 
 builder.Services.AddDbContext<ServicesDbContext>(options => 
     options.UseNpgsql(builder.Configuration.GetConnectionString("servicesApiDb")).UseLazyLoadingProxies());

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using AppointmentsAPI.Data;
 using AppointmentsAPI.Models;
+using Asp.Versioning;
 using Contracts.AppointmentContracts;
 using MassTransit;
 using MicroserviceApiKernel;
@@ -13,11 +14,12 @@ using AppointmentState = AppointmentsAPI.Models.AppointmentState;
 namespace AppointmentsAPI.Controllers;
 
 public record BookAppointmentCommand(long DoctorId, long OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
-
 public record DeclineCommand(string Reason);
 
-[Route("api/[controller]")]
+
+[Route("api/v{v:apiVersion}/[controller]")]
 [ApiController]
+[ApiVersion(1)]
 public class AppointmentController(
     IPublishEndpoint publishEndpoint, 
     IAppointmentService appointmentService,
@@ -26,7 +28,7 @@ public class AppointmentController(
     private async ValueTask<UserClaimParserResult?> GetUserClaim() => await UserClaimParser.Parse(HttpContext);
     
     [HttpPost]
-    [Route("/book")]
+    [Route("book")]
     [Authorize(Policy = RolePolicy.Client)]
     public async Task<IActionResult> BookAppointment(
         [FromBody] BookAppointmentCommand command,
@@ -66,7 +68,7 @@ public class AppointmentController(
     }
     
     [HttpPost]
-    [Route("/approve-book/{id:guid}")]
+    [Route("approve-book/{id:guid}")]
     [Authorize(Policy = RolePolicy.Receptionist)]
     public async Task<IActionResult> ApproveAppointment(
         [FromRoute] Guid id,
@@ -79,7 +81,7 @@ public class AppointmentController(
     }
 
     [HttpPost]
-    [Route("/decline-book/{id:guid}")]
+    [Route("decline-book/{id:guid}")]
     [Authorize(Policy = RolePolicy.Receptionist)]
     public async Task<IActionResult> DeclineAppointment(
         [FromRoute] Guid id,
@@ -93,7 +95,6 @@ public class AppointmentController(
     }
     
     [HttpGet]
-    [Route("/appointments")]
     [Authorize(Policy = RolePolicy.Receptionist)]
     public async Task<IActionResult> GetAppointments(
         [FromQuery] AppointmentState? state,
@@ -128,16 +129,4 @@ public class AppointmentController(
         
         return Ok(new{ Items = items, Total = total, Page = page, PageSize = pageSize });
     }
-}
-
-public class AppointmentDto
-{
-    public Guid Id { get; init; }
-    public Guid PatientAccountId { get; init; }
-    public long DoctorId { get; init; }
-    public long? ReservationId { get; init; }
-    public DateOnly Date { get; init; }
-    public int StartSlotIndex { get; init; }
-    public long ServiceId { get; init; }
-    public string State { get; init; }
 }

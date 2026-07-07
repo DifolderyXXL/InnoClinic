@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net.Sockets;
 using System.Reflection;
+using Asp.Versioning;
 
 namespace MicroserviceApiKernel.Extensions;
 
@@ -27,10 +28,34 @@ public static class EndpointExtension
 
     public static void MapEndpoints(this WebApplication app)
     {
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .HasApiVersion(new ApiVersion(2, 0))
+            .ReportApiVersions()
+            .Build();
+        
+        var v1Group = app.MapGroup("api/v{version:apiVersion}")
+            .WithApiVersionSet(versionSet)
+            .HasApiVersion(1, 0);
+        var v2Group = app.MapGroup("api/v{version:apiVersion}")
+            .WithApiVersionSet(versionSet)
+            .HasApiVersion(2, 0);
+        
         var endpoints = app.Services.GetServices<IEndpoint>();
         foreach (var endpoint in endpoints)
         {
-            endpoint.MapEndpoint(app);
+            if (endpoint.Version == 2.0)
+            {
+                endpoint.MapEndpoint(v2Group);
+            }
+            else if (endpoint.Version == 1.0)
+            {
+                endpoint.MapEndpoint(v1Group);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.HttpLogging;
 using Yarp.ReverseProxy.Forwarder;
 using Microsoft.AspNetCore.Authentication;
 using System.Text.Json.Nodes;
+using MicroserviceApiKernel.Extensions;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,12 +27,7 @@ builder.Services.AddServiceDiscovery();
 
 builder.Services.AddBff()
     .AddRemoteApis();
-builder.Services.AddOpenApi(options =>
-        {
-            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-        }
-    );
-
+builder.Services.AddOpenApi();
 
 
 Configuration config = new();
@@ -101,7 +97,13 @@ app.MapSwaggerUI(setupAction: options =>
     foreach (var definition in defenitions)
     {
         var host = app.Configuration.DiscoverAny(definition.Name);
-        options.SwaggerEndpoint(host + "/openapi/v1.json", definition.Name + "v1");
+        foreach (var version in definition.SupportedVersions)
+        {
+            options.SwaggerEndpoint(
+                $"{host}/openapi/{version}.json", 
+                $"{definition.Name} {version}"
+            );
+        }
     }
 
     options.ConfigObject.AdditionalItems["withCredentials"] = true;
@@ -112,8 +114,13 @@ app.MapSwaggerUI(setupAction: options =>
 
 foreach (var definition in defenitions)
 {
-    app.MapAspireBffService(builder.Configuration, definition.Name, definition.Path)
-        .WithAccessToken(RequiredTokenType.User);
+    foreach (var version in definition.SupportedVersions)
+    {
+        //var fullLocalPath = $"/api/{version}";
+
+        app.MapAspireBffService(builder.Configuration, definition.Name, definition.Path)
+            .WithAccessToken(RequiredTokenType.User);
+    }
 }
 
 
@@ -124,6 +131,14 @@ var realViteAddress = app.Configuration.DiscoverAny("vite-frontend") ?? throw ne
 // =========================================================================
 app.MapGet("/{*rest}", async (IHttpForwarder forwarder, HttpContext context) =>
 {
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync("{\"error\": \"API endpoint not found or incorrect version specified.\"}");
+        return;
+    }
+    
     await ViteDevServerProxy.ForwardRequestAsync(forwarder, context, realViteAddress);
 });
 
@@ -133,4 +148,5 @@ public class MicroserviceDefenition
 {
     public string Name { get; set; }
     public string Path { get; set; }
+    public string[] SupportedVersions { get; set; }
 }

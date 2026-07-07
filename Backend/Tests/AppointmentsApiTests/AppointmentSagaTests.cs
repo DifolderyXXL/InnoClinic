@@ -79,7 +79,7 @@ public class AppointmentSagaTests
         var slotCount = 2;
         var reservationId = -2;
         
-        await harness.Bus.Publish(new AppointmentSubmitted(appointmentId, patientId, doctorId, date, startSlot, slotCount));
+        await harness.Bus.Publish(new AppointmentSubmitted(appointmentId, patientId, doctorId,   date, startSlot, slotCount));
         var sagaHarness = harness.GetSagaStateMachineHarness<AppointmentStateMachine, AppointmentState>();
         
         await harness.Bus.Publish(new TimeWindowReserved(appointmentId, reservationId));
@@ -116,7 +116,7 @@ public class AppointmentSagaTests
         var slotCount = 2;
         var reservationId = -2;
         
-        await harness.Bus.Publish(new AppointmentSubmitted(appointmentId, patientId, doctorId, date, startSlot, slotCount));
+        await harness.Bus.Publish(new AppointmentSubmitted(appointmentId, patientId, doctorId,  date, startSlot, slotCount));
         var sagaHarness = harness.GetSagaStateMachineHarness<AppointmentStateMachine, AppointmentState>();
         
         await harness.Bus.Publish(new TimeWindowReserved(appointmentId, reservationId));

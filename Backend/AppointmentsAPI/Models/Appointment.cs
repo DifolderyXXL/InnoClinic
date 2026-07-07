@@ -12,6 +12,8 @@ public class Appointment
     public DateOnly Date { get; set; }
     public int StartSlotIndex { get; set; }
     public long ServiceId { get; set; }
+    public long OfficeId { get; set; }
+    public long SpecializationId { get; set; }
     
     public AppointmentState State { get; set; }
 }

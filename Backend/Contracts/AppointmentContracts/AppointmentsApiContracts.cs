@@ -3,7 +3,13 @@ namespace Contracts.AppointmentContracts;
 
 
 // Consumer
-public record AppointmentSubmitted(Guid AppointmentId, Guid PatientAccountId, long DoctorId, DateOnly Date, int StartSlotIndex, long ServiceId);
+public record AppointmentSubmitted(
+    Guid AppointmentId,
+    Guid PatientAccountId,
+    long DoctorId,
+    DateOnly Date,
+    int StartSlotIndex,
+    long ServiceId);
 public record TimeWindowReserved(Guid AppointmentId, long ReservationId);
 public record ReservationFailed(Guid AppointmentId);
 public record AppointmentApproved(Guid AppointmentId);

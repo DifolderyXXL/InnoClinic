@@ -12,7 +12,7 @@ using AppointmentState = AppointmentsAPI.Models.AppointmentState;
 
 namespace AppointmentsAPI.Controllers;
 
-public record BookAppointmentCommand(long DoctorId, DateOnly Date, int StartSlotIndex, long ServiceId);
+public record BookAppointmentCommand(long DoctorId, long OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
 
 public record DeclineCommand(string Reason);
 
@@ -45,7 +45,9 @@ public class AppointmentController(
             DoctorId = command.DoctorId,
             Date = command.Date,
             StartSlotIndex = command.StartSlotIndex,
-            ServiceId = command.ServiceId
+            ServiceId = command.ServiceId,
+            OfficeId = command.OfficeId,
+            SpecializationId = command.SpecializationId
         };
         var result = await appointmentService.AddAppointment(appointment, ct);
         if (result.IsError) return BadRequest();

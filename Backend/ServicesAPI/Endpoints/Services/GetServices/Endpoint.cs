@@ -9,7 +9,7 @@ public class GetServicesEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/api/services", async (
+        builder.MapGet("/services", async (
             [FromQuery] long? categoryId,
             [FromQuery] long? specializationId,
             IQueryHandler<GetServicesQuery, GetServicesResponse> handler,

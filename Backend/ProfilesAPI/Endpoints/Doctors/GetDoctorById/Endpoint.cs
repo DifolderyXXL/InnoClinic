@@ -8,7 +8,7 @@ public class GetDoctorByIdEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/api/doctor/{id:long}", async (
+        builder.MapGet("/doctor/{id:long}", async (
             long id,
             IQueryHandler<GetDoctorByIdQuery, GetDoctorByIdResponse> handler,
             CancellationToken ct) =>

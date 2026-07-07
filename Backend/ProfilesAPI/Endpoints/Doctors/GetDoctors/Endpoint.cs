@@ -8,7 +8,7 @@ public class Endpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/api/doctors", async (IQueryHandler<GetDoctorsQuery, GetDoctorsResponse> handler, CancellationToken ct) =>
+        builder.MapGet("/doctors", async (IQueryHandler<GetDoctorsQuery, GetDoctorsResponse> handler, CancellationToken ct) =>
         {
             var result = await handler.Handle(new(), ct);
 

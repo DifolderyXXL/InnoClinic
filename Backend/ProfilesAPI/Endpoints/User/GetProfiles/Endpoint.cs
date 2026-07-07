@@ -13,7 +13,7 @@ public class Endpoint : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/api/get-profiles", async (
+        builder.MapGet("/get-profiles", async (
             UserClaimInfo user,
             IQueryHandler<GetUserProfileQuery, GetUserProfileQueryResponse> handler,
             ProfilesDbContext context,

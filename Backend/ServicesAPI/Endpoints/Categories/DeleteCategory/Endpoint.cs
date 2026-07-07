@@ -8,7 +8,7 @@ public class DeleteCategoryEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapDelete("/api/category/{id:long}", async (
+        builder.MapDelete("/category/{id:long}", async (
             long id,
             ICommandHandler<DeleteCategoryCommand> handler,
             CancellationToken ct) =>

@@ -13,7 +13,7 @@ public class Create : IEndpoint
     public record DoctorRequest(DateOnly DateOfBirth, long OfficeId);
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/api/create/account", async (
+        builder.MapPost("/create/account", async (
             [FromBody] AccountRequest request,
             UserClaimInfo user,
             ProfilesDbContext context,
@@ -41,7 +41,7 @@ public class Create : IEndpoint
             return Results.Created();
         }).RequireAuthorization(RolePolicy.Client);
 
-        builder.MapPost("/api/create/patient", async (
+        builder.MapPost("/create/patient", async (
             PatientRequest request,
             UserClaimInfo user,
             ProfilesDbContext context,

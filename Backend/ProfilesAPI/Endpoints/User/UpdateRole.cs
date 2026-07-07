@@ -9,7 +9,7 @@ public class UpdateRole : IEndpoint
     
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPut("/api/role", async ([FromBody] Request request, IHttpClientFactory factory, CancellationToken ct) =>
+        builder.MapPut("/role", async ([FromBody] Request request, IHttpClientFactory factory, CancellationToken ct) =>
         {
             var context = factory.CreateClient("identityclient");
             HttpResponseMessage? response = request.Role switch

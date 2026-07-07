@@ -12,7 +12,7 @@ public class GetCategoriesEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/api/categories", async (
+        builder.MapGet("/categories", async (
             IQueryHandler<GetCategoriesQuery, GetCategoriesResponse> handler,
             CancellationToken ct
         ) =>

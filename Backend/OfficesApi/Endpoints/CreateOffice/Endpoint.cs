@@ -11,7 +11,7 @@ public class Endpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/api/create", async (
+        builder.MapPost("/create", async (
             [FromBody] CreateOfficeCommand request,
             ICommandHandler<CreateOfficeCommand> handler,
             CancellationToken ct) =>

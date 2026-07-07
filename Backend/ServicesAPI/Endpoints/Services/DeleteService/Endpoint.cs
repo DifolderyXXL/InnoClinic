@@ -8,7 +8,7 @@ public class DeleteServiceEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapDelete("/api/service/{id:long}", async (
+        builder.MapDelete("/service/{id:long}", async (
             long id,
             ICommandHandler<DeleteServiceCommand> handler,
             CancellationToken ct) =>

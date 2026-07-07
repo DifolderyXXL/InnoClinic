@@ -15,7 +15,7 @@ public class UpdateDoctorProfileEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPut("/api/doctor/{id:long}", async (
+        builder.MapPut("/doctor/{id:long}", async (
             long id,
             UpdateDoctorProfileCommand request,
             ICommandHandler<UpdateDoctorProfileCommand> handler,
@@ -24,7 +24,7 @@ public class UpdateDoctorProfileEndpoint : IEndpoint
             var result = await handler.Handle(request with { Id = id }, ct);
         }).RequireAuthorization(RolePolicy.Receptionist);
 
-        builder.MapPut("/api/my-doctor", async (
+        builder.MapPut("/my-doctor", async (
             UpdateDoctorProfileCommand request,
             UserClaimInfo user,
             ProfilesDbContext context,

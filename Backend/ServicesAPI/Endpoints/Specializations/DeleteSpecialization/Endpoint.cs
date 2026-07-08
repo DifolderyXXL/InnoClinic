@@ -8,7 +8,7 @@ public class DeleteSpecializationEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapDelete("/specialization/{id:long}", async (
+        builder.MapDelete("/specializations/{id:long}", async (
             long id,
             ICommandHandler<DeleteSpecializationCommand> handler,
             CancellationToken ct) =>

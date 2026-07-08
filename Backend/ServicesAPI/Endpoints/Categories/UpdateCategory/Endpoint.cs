@@ -8,7 +8,7 @@ public class UpdateCategoryEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPut("/category/{id:long}", async (
+        builder.MapPut("/categories/{id:long}", async (
             long id,
             UpdateCategoryCommand request,
             ICommandHandler<UpdateCategoryCommand> handler,

@@ -8,7 +8,7 @@ public class UpdateServiceEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPut("/service/{id:long}", async (
+        builder.MapPut("/services/{id:long}", async (
             long id,
             UpdateServiceCommand request,
             ICommandHandler<UpdateServiceCommand> handler,

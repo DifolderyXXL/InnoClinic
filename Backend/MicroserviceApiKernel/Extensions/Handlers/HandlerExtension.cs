@@ -1,65 +1,10 @@
-﻿using FluentValidation;
-using FluentValidation.Results;
+using System.Reflection;
+using FluentValidation;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Net.Sockets;
-using System.Reflection;
-using Asp.Versioning;
 
 namespace MicroserviceApiKernel.Extensions;
-
-public static class EndpointExtension
-{
-    public static IServiceCollection AddEndpoints(this IServiceCollection builder, Assembly assembly)
-    {
-
-        var descriptors = assembly.GetTypes().Where(t => typeof(IEndpoint).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
-            .Select(x => ServiceDescriptor.Describe(typeof(IEndpoint), x, ServiceLifetime.Transient));
-
-        builder.TryAddEnumerable(descriptors);
-
-        return builder;
-    }
-
-    public static void MapEndpoints(this WebApplication app)
-    {
-        var versionSet = app.NewApiVersionSet()
-            .HasApiVersion(new ApiVersion(1, 0))
-            .HasApiVersion(new ApiVersion(2, 0))
-            .ReportApiVersions()
-            .Build();
-        
-        var v1Group = app.MapGroup("api/v{version:apiVersion}")
-            .WithApiVersionSet(versionSet)
-            .HasApiVersion(1, 0);
-        var v2Group = app.MapGroup("api/v{version:apiVersion}")
-            .WithApiVersionSet(versionSet)
-            .HasApiVersion(2, 0);
-        
-        var endpoints = app.Services.GetServices<IEndpoint>();
-        foreach (var endpoint in endpoints)
-        {
-            if (endpoint.Version == 2.0)
-            {
-                endpoint.MapEndpoint(v2Group);
-            }
-            else if (endpoint.Version == 1.0)
-            {
-                endpoint.MapEndpoint(v1Group);
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
-    }
-}
-
 
 public static class HandlerExtension
 {
@@ -73,11 +18,11 @@ public static class HandlerExtension
         builder.Scan(scan =>
             scan.FromAssemblies(assembly)
                 .AddClasses(classes => classes.AssignableTo(typeof(IQueryHandler<,>)))
-                    .AsImplementedInterfaces()
+                .AsImplementedInterfaces()
                 .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<,>)))
-                    .AsImplementedInterfaces()
+                .AsImplementedInterfaces()
                 .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<>)))
-                    .AsImplementedInterfaces()
+                .AsImplementedInterfaces()
         );
 
         builder.TryDecorate(typeof(ICommandHandler<>), typeof(ValidationCommandHandlerDecorator<>));
@@ -126,29 +71,5 @@ public class ValidationQueryHandlerDecorator<TQuery, TResponse>(IQueryHandler<TQ
         if (error != null) return error;
 
         return await handler.Handle(query, ct);
-    }
-}
-
-public static class ValidationHelper
-{
-    public static Error CreateError(IValidator validator, ValidationResult result)
-    {
-        return new Error($"[{validator.GetType().FullName}] Validatoin failed", "", ErrorType.Validation, result.ToDictionary());
-    }
-
-    public static async Task<Error?> Validate<TCommand>(IServiceProvider serviceProvider, TCommand command, CancellationToken ct)
-    {
-        var validators = serviceProvider.GetServices<IValidator<TCommand>>();
-
-        foreach (var validator in validators)
-        {
-            var result = await validator.ValidateAsync(command, ct);
-            if (!result.IsValid)
-            {
-                return CreateError(validator, result);
-            }
-        }
-
-        return null;
     }
 }

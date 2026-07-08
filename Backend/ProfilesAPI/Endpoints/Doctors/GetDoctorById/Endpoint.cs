@@ -8,14 +8,14 @@ public class GetDoctorByIdEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/doctor/{id:long}", async (
+        builder.MapGet("/doctors/{id:long}", async (
             long id,
             IQueryHandler<GetDoctorByIdQuery, GetDoctorByIdResponse> handler,
             CancellationToken ct) =>
         {
             var result = await handler.Handle(new(id), ct);
 
-            return result.MapToTypedResult(x => TypedResults.Ok(x));
+            return result.MapToTypedResult(TypedResults.Ok);
         }).RequireAuthorization(RolePolicy.Client);
     }
 }

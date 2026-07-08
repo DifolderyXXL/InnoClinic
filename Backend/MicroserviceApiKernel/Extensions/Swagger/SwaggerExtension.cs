@@ -2,7 +2,6 @@ using System;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,58 +10,6 @@ using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace MicroserviceApiKernel.Extensions;
-internal sealed class OidcSecuritySchemeTransformer : IOpenApiDocumentTransformer
-{
-    public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
-    {
-        document.Components ??= new OpenApiComponents();
-        
-        document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
-        {
-            ["oauth2"] = SecuritySchemeHelper.GetOauth2SecurityScheme()
-        };
-
-        document.Security = new List<OpenApiSecurityRequirement>
-        {
-            SecuritySchemeHelper.GetOauth2SecurityRequirement(document)
-        };
-
-        return Task.CompletedTask;
-    }
-}
-
-public static class SecuritySchemeHelper
-{
-    public static OpenApiSecurityScheme GetOauth2SecurityScheme()
-        => new OpenApiSecurityScheme
-        {
-            Type = SecuritySchemeType.OAuth2,
-            Flows = new OpenApiOAuthFlows
-            {
-                AuthorizationCode = new OpenApiOAuthFlow
-                {
-                    AuthorizationUrl = new Uri("https://localhost:6001/connect/authorize"),
-                    TokenUrl = new Uri("https://localhost:6001/connect/token"),
-                    Scopes = new Dictionary<string, string>
-                    {
-                        { "api", "Api" },
-                        { "openid", "Access the OpenID Connect user profile" },
-                        { "email", "Access the user's email address" },
-                        { "profile", "Access the user's profile" }
-                    }
-                }
-            }
-        };
-
-    public static OpenApiSecurityRequirement GetOauth2SecurityRequirement(OpenApiDocument document)
-        => new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecuritySchemeReference("oauth2", document),
-                new List<string> { "api", "profile", "email", "openid" }
-            }
-        };
-}
 
 public static class SwaggerExtension
 {

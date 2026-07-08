@@ -8,7 +8,7 @@ public class CreateCategoryEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/create/category", async (
+        builder.MapPost("/categories", async (
             CreateCategoryCommand request,
             ICommandHandler<CreateCategoryCommand> handler,
             CancellationToken ct

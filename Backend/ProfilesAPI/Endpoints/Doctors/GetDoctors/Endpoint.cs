@@ -12,7 +12,7 @@ public class Endpoint : IEndpoint
         {
             var result = await handler.Handle(new(), ct);
 
-            return result.MapToTypedResult(x => TypedResults.Ok(x));
+            return result.MapToTypedResult(TypedResults.Ok);
         }).RequireAuthorization(RolePolicy.Client);
     }
 }

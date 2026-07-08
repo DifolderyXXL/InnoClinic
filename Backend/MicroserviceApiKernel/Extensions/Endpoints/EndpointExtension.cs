@@ -54,7 +54,7 @@ public static class EndpointExtension
             }
             else
             {
-                throw new NotImplementedException();
+                throw new Exception("Api Version is not valid.");
             }
         }
     }

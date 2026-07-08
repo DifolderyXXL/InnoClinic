@@ -2,15 +2,15 @@ using MicroserviceApiKernel;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;
 
-namespace ProfilesAPI.Endpoints.Doctors.GetDoctors;
+namespace ProfilesAPI.Endpoints.Accounts.GetAccounts;
 
 public class Endpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/doctors", async (
-            [AsParameters] GetDoctorsQuery query,
-            IQueryHandler<GetDoctorsQuery, GetDoctorsResponse> handler,
+        builder.MapGet("/accounts", async (
+            [AsParameters] GetAccountsQuery query,
+            IQueryHandler<GetAccountsQuery, GetAccountsResponse> handler,
             CancellationToken ct) =>
         {
             var result = await handler.Handle(query, ct);

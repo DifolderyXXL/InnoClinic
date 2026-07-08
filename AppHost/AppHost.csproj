@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.4.6" />
 	<PackageReference Include="Aspire.Hosting.SqlServer" Version="*" />
     <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.4.3" />
     <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.5.2" />
@@ -18,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AuthorizationAPI\AuthorizationAPI.csproj" />
+    <ProjectReference Include="..\Backend\AppointmentsAPI\AppointmentsAPI.csproj" />
     <ProjectReference Include="..\Backend\Deunde.IdentityServer\Deunde.IdentityServer.csproj" />
     <ProjectReference Include="..\Backend\OfficesApi\OfficesApi.csproj" />
     <ProjectReference Include="..\Backend\ProfilesAPI\ProfilesAPI.csproj" />

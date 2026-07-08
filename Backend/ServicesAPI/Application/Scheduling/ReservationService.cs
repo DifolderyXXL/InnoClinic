@@ -2,16 +2,24 @@ using ServicesAPI.Models;
 
 namespace ServicesAPI.Application.Scheduling;
 
-public class ScheduleService(IReservedTimeWindowStore store, IScheduleSlotsProvider provider) : IScheduleService
+public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsProvider provider) : IReservationService
 {
-    public async Task<bool> TrySchedule(ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct)
+    public async Task<ScheduleResult> TryReserve(ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct)
     {
-        return await store.TryAdd(
-            new ReservedTimeWindow
-            {
-                StartSlotIndex = scheduleTimeWindow.TimeSlotStart, SlotCount = scheduleTimeWindow.TimeSlotSize,
-                Date = scheduleTimeWindow.Date
-            }, ct);
+        var reservation = new ReservedTimeWindow
+        {
+            StartSlotIndex = scheduleTimeWindow.TimeSlotStart, SlotCount = scheduleTimeWindow.TimeSlotSize,
+            Date = scheduleTimeWindow.Date,
+            IsConfirmed = false
+        };
+        
+        var result = await store.TryAdd(reservation, ct);
+        return new ScheduleResult(result, result ? reservation.Id : null);
+    }
+
+    public async Task<bool> TryConfirmReservation(long reservationId, CancellationToken ct)
+    {
+        return await store.TryConfirm(reservationId, ct);
     }
 
     public async Task<IEnumerable<ScheduleTimeWindow>> GetAvailablePositionsOnDay(DateOnly date, CancellationToken ct)
@@ -36,6 +44,11 @@ public class ScheduleService(IReservedTimeWindowStore store, IScheduleSlotsProvi
         List<ScheduleTimeWindow> allAvailableGaps = [startGap, ..middleGaps, endGap];
 
         return allAvailableGaps.Where(w => w.TimeSlotSize > 0).ToList();
+    }
+
+    public async Task CancelReservation(long reservationId, CancellationToken ct)
+    {
+        await store.TryRemove(reservationId, ct);
     }
 
     private static ScheduleTimeWindow GetTimeSlotBetween(ReservedTimeWindow left, ReservedTimeWindow right)

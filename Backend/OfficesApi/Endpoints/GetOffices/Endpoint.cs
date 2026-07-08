@@ -14,14 +14,14 @@ public class GetOfficesEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/api/offices", async (IQueryHandler<GetOfficesQuery, GetOfficesResponse> handler, CancellationToken ct) =>
+        builder.MapGet("/offices", async (IQueryHandler<GetOfficesQuery, GetOfficesResponse> handler, CancellationToken ct) =>
         {
             var result = await handler.Handle(new(), ct);
 
             return result.MapToTypedResult(x => TypedResults.Ok(x));
         }).RequireAuthorization(RolePolicy.Client);
 
-        builder.MapGet("/api/office/{id}", async (string id, OfficesDbContext context, CancellationToken ct) =>
+        builder.MapGet("/offices/{id}", async (string id, OfficesDbContext context, CancellationToken ct) =>
         {
             var officeResult = await context.GetOffice(id, ct);
 

@@ -14,20 +14,12 @@ using System.Security.Claims;
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
-builder.Services.AddHandlers(typeof(Program).Assembly);
+builder.AddMicroserviceDefaults("/profiles", typeof(Program).Assembly);
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.AddOpenApiReversedThroughProxy("/api/profiles");
-
-builder.AddSwaggerDefaults();
-builder.AddAuthorizationDefaultsWithAspire();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContextPool<ProfilesDbContext>(options => options.UseSqlite(connectionString).UseLazyLoadingProxies());
 
-builder.Services.AddEndpoints(typeof(Program).Assembly);
-builder.Services.AddApiAuthorizationPolicies();
 
 builder.Services.AddClientCredentialsTokenManagement()
     .AddClient("identityclient", client =>

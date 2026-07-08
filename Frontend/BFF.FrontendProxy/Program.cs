@@ -4,12 +4,9 @@ using Duende.Bff.AccessTokenManagement;
 using Duende.Bff.Yarp;
 using Microsoft.AspNetCore.HttpLogging;
 using Yarp.ReverseProxy.Forwarder;
-using System.Net;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi;
 using System.Text.Json.Nodes;
+using MicroserviceApiKernel.Extensions;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,12 +27,7 @@ builder.Services.AddServiceDiscovery();
 
 builder.Services.AddBff()
     .AddRemoteApis();
-builder.Services.AddOpenApi(options =>
-        {
-            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-        }
-    );
-
+builder.Services.AddOpenApi();
 
 
 Configuration config = new();
@@ -97,15 +89,22 @@ app.MapGet("/login", async (HttpContext context) =>
         RedirectUri = "/swagger/index.html"
     });
 });
-var profiles = app.Configuration.DiscoverAny("ProfilesAPI");
-var offices = app.Configuration.DiscoverAny("OfficesAPI");
-var services = app.Configuration.DiscoverAny("ServicesAPI");
+
+var defenitions = app.Configuration.GetSection("BFF:Microservices").Get<List<MicroserviceDefenition>>() ?? [];
+
 app.MapSwaggerUI(setupAction: options =>
 {
-    options.SwaggerEndpoint(profiles + "/openapi/v1.json", "Profiles API v1");
-    options.SwaggerEndpoint(offices + "/openapi/v1.json", "Offices API v1");
-    options.SwaggerEndpoint(services + "/openapi/v1.json", "Services API v1");
-
+    foreach (var definition in defenitions)
+    {
+        var host = app.Configuration.DiscoverAny(definition.Name);
+        foreach (var version in definition.SupportedVersions)
+        {
+            options.SwaggerEndpoint(
+                $"{host}/openapi/{version}.json", 
+                $"{definition.Name} {version}"
+            );
+        }
+    }
 
     options.ConfigObject.AdditionalItems["withCredentials"] = true;
     options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';return request;}");
@@ -113,28 +112,18 @@ app.MapSwaggerUI(setupAction: options =>
 .AllowAnonymous();
 
 
-app.MapAspireBffService(builder.Configuration, "ProfilesAPI", "/api/profiles")
-    .WithAccessToken(RequiredTokenType.User);
+foreach (var definition in defenitions)
+{
+    foreach (var version in definition.SupportedVersions)
+    {
+        //var fullLocalPath = $"/api/{version}";
 
-app.MapAspireBffService(builder.Configuration, "OfficesAPI", "/api/offices")
-    .WithAccessToken(RequiredTokenType.User);
+        app.MapAspireBffService(builder.Configuration, definition.Name, definition.Path)
+            .WithAccessToken(RequiredTokenType.User);
+    }
+}
 
-app.MapAspireBffService(builder.Configuration, "ServicesAPI", "/api/services")
-    .WithAccessToken(RequiredTokenType.User);
 
-// if (config.Apis.Any())
-// {
-//     foreach (var api in config.Apis)
-//     {
-//         var discovered = builder.Configuration.DiscoverAny(new Uri(api.RemoteUrl!).Host)
-//             ?? api.RemoteUrl!;
-
-//         var remoteUri = new Uri(discovered);
-
-//         app.MapRemoteBffApiEndpoint(api.PathMatch, remoteUri)
-//             .WithAccessToken(api.RequiredToken);
-//     }
-// }
 app.UseWebSockets();
 var realViteAddress = app.Configuration.DiscoverAny("vite-frontend") ?? throw new Exception("Frontend address is not defined.");
 // =========================================================================
@@ -142,71 +131,22 @@ var realViteAddress = app.Configuration.DiscoverAny("vite-frontend") ?? throw ne
 // =========================================================================
 app.MapGet("/{*rest}", async (IHttpForwarder forwarder, HttpContext context) =>
 {
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync("{\"error\": \"API endpoint not found or incorrect version specified.\"}");
+        return;
+    }
+    
     await ViteDevServerProxy.ForwardRequestAsync(forwarder, context, realViteAddress);
 });
 
 app.Run();
 
-internal static class ViteDevServerProxy
+public class MicroserviceDefenition
 {
-    private static readonly HttpMessageInvoker ViteProxyClient = new(
-        new SocketsHttpHandler()
-        {
-            UseProxy = false,
-            AllowAutoRedirect = false,
-            AutomaticDecompression = DecompressionMethods.All,
-            UseCookies = false,
-            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current),
-            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
-        }
-    );
-
-    public static async Task ForwardRequestAsync(IHttpForwarder forwarder, HttpContext context, string destinationPrefix)
-    {
-        var requestConfig = new ForwarderRequestConfig
-        {
-            Version = HttpVersion.Version11,
-            VersionPolicy = HttpVersionPolicy.RequestVersionExact
-        };
-
-        if (context.Request.Path == "/")
-        {
-            context.Request.Path = "/index.html";
-        }
-
-        await forwarder.SendAsync(
-            context,
-            destinationPrefix,
-            ViteProxyClient,
-            requestConfig,
-            HttpTransformer.Default
-        );
-    }
-}
-
-
-internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider)
-    : IOpenApiDocumentTransformer
-{
-    public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context,
-        CancellationToken cancellationToken)
-    {
-        var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
-        if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
-        {
-            var requirements = new Dictionary<string, OpenApiSecurityScheme>
-            {
-                ["Bearer"] = new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer", // "bearer" refers to the header name here
-                    In = ParameterLocation.Header,
-                    BearerFormat = "Json Web Token"
-                }
-            };
-            document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes = (IDictionary<string, IOpenApiSecurityScheme>?)requirements;
-        }
-    }
+    public string Name { get; set; }
+    public string Path { get; set; }
+    public string[] SupportedVersions { get; set; }
 }

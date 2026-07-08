@@ -13,7 +13,7 @@ public class GetSpecializationsEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/api/specializations", async (
+        builder.MapGet("/specializations", async (
             [FromQuery] bool? onlyActive,
             IQueryHandler<GetSpecializationsQuery, GetSpecializationsResponse> handler,
             CancellationToken ct

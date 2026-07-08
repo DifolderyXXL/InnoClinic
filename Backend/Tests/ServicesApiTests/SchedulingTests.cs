@@ -35,7 +35,7 @@ public class SchedulingTests
 
         await repository.TryAdd(new() { Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
         
-        var service = new ScheduleService(repository, option.Object);
+        var service = new ReservationService(repository, option.Object);
 
         
         // Act
@@ -70,7 +70,7 @@ public class SchedulingTests
         await repository.TryAdd(new() { Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
         await repository.TryAdd(new() { Date = day, StartSlotIndex = targetPoint2, SlotCount = targetPointSize }, default);
         
-        var service = new ScheduleService(repository, option.Object);
+        var service = new ReservationService(repository, option.Object);
 
         
         // Act
@@ -99,7 +99,7 @@ public class SchedulingTests
         await using var context = CreateInMemoryDbContext();
         var repository = new ReservedTimeWindowStore(context, null);
 
-        var service = new ScheduleService(repository, option.Object);
+        var service = new ReservationService(repository, option.Object);
         
         // Act
         var positions = await service.GetAvailablePositionsOnDay(day, default);

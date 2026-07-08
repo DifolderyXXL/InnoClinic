@@ -9,7 +9,7 @@ public class Endpoint : IEndpoint
     public record Request(long? PhotoId, string City, string Street, string HouseNumber, string? OfficeNumber, string RegistryPhoneNumber, string IsActive);
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPut("/api/office/{id}", async (string id, Request request, ICommandHandler<UpdateOfficeCommand> handler, CancellationToken ct) =>
+        builder.MapPut("/offices/{id}", async (string id, Request request, ICommandHandler<UpdateOfficeCommand> handler, CancellationToken ct) =>
         {
             var result = await handler.Handle(new UpdateOfficeCommand(
                 OfficeId: id,

@@ -11,7 +11,7 @@ public class Endpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/api/create", async (
+        builder.MapPost("/offices", async (
             [FromBody] CreateOfficeCommand request,
             ICommandHandler<CreateOfficeCommand> handler,
             CancellationToken ct) =>
@@ -19,7 +19,7 @@ public class Endpoint : IEndpoint
             var result = await handler.Handle(
                 new(request.PhotoId, request.City, request.Street, request.HouseNumber, request.OfficeNumber, request.RegistryPhoneNumber, request.IsActive), ct);
 
-            return result.MapToTypedResult(() => TypedResults.Created());
+            return result.MapToTypedResult(TypedResults.Created);
         }).RequireAuthorization(RolePolicy.Receptionist);
     }
 }

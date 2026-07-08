@@ -1,4 +1,6 @@
 
+using Microsoft.Extensions.Configuration;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
@@ -11,6 +13,7 @@ var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                     );
 
 
+
 var identityServer = builder.AddProject<Projects.Deunde_IdentityServer>("IdentityServer")
        .WithHttpsEndpoint(port: 6001)
        .WithExternalHttpEndpoints();
@@ -20,12 +23,27 @@ var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI")
        .WithReference(rabbitmqServicesApi)
        .WithExternalHttpEndpoints();
 
+
+var postgresPassword = builder.AddParameter("postgres-password", secret: true);
+var postgres = builder.AddPostgres("postgres")
+       .WithHostPort(5432)
+       .WithPassword(postgresPassword)
+       .WithDataVolume();
+var postgresdb = postgres.AddDatabase("appointmentsApiDb");
+var servicesApiDb = postgres.AddDatabase("servicesApiDb");
+
 var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
        .WithReference(identityServer)
+       .WithReference(servicesApiDb)
        .WithReference(rabbitmqServicesApi)
        .WithExternalHttpEndpoints();
 
-
+var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("AppointmentsAPI")
+       .WithReference(identityServer)
+       .WithReference(postgresdb)
+       .WithReference(rabbitmqServicesApi)
+       .WithExternalHttpEndpoints()
+       .WaitFor(postgresdb);
 
 
 
@@ -48,6 +66,7 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithReference(officesAPI)
        .WithReference(profilesAPI)
        .WithReference(servicesAPI)
+       .WithReference(appointmentsAPI)
        .WithExternalHttpEndpoints();
 
 var frontend = builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")

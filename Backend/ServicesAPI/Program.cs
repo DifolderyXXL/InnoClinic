@@ -2,32 +2,54 @@ using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ServiceDefaults;
+using ServicesAPI.Application.Scheduling;
+using ServicesAPI.Consumers;
 using ServicesAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
-builder.Services.AddHandlers(typeof(Program).Assembly);
+builder.AddMicroserviceDefaults("/services", typeof(Program).Assembly);
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.AddOpenApiReversedThroughProxy("/api/services");
-builder.AddSwaggerDefaults();
-builder.AddAuthorizationDefaultsWithAspire();
+builder.Services.AddDbContext<ServicesDbContext>(options => 
+    options.UseNpgsql(builder.Configuration.GetConnectionString("servicesApiDb")).UseLazyLoadingProxies());
 
-builder.Services.AddEndpoints(typeof(Program).Assembly);
-builder.Services.AddApiAuthorizationPolicies();
+builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IReservedTimeWindowStore, ReservedTimeWindowStore>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
+builder.Services.Configure<ReservationOptions>(
+    builder.Configuration.GetSection(ReservationOptions.SectionName));
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContextPool<ServicesDbContext>(options => options.UseSqlite(connectionString).UseLazyLoadingProxies());
-
+builder.Services.Configure<ScheduleOptions>(
+    builder.Configuration.GetSection(ScheduleOptions.SectionName));
+builder.Services.AddScoped<IScheduleSlotsProvider>(
+    x=>x.GetRequiredService<IOptions<ScheduleOptions>>().Value);
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddEntityFrameworkOutbox<ServicesDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+    x.AddConfigureEndpointsCallback((context, name, cfg) => 
+    { 
+        cfg.UseEntityFrameworkOutbox<ServicesDbContext>(context); 
+    });
+
+    x.AddConsumer<ProcessReservationConsumer>();
+    x.AddConsumer<ProcessReservationConfirmationConsumer>();
+    
+    x.AddConsumer<CancelReservationConsumer>();
+    x.AddConsumer<ReservationExpiredConsumer>();
+    
+    
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
+        cfg.UseDelayedMessageScheduler();
         cfg.ConfigureEndpoints(context);
     });
 });
@@ -43,7 +65,6 @@ if (app.Environment.IsDevelopment())
 
     app.MapSwaggerDefaults();
 }
-
 
 app.UseCors(PolicyConstants.FRONTEND_BFF_CORS_POLICY);
 

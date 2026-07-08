@@ -18,6 +18,6 @@ public class ServiceTypeConfiguration : IEntityTypeConfiguration<Service>
 
         builder.HasOne(x => x.Specialization)
             .WithMany(c => c.Services)
-            .HasForeignKey(x => x.CategoryId);
+            .HasForeignKey(x => x.SpecializationId);
     }
 }

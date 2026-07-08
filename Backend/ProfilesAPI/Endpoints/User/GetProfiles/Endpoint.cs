@@ -13,10 +13,9 @@ public class Endpoint : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/api/get-profiles", async (
+        builder.MapGet("/profiles/me", async (
             UserClaimInfo user,
             IQueryHandler<GetUserProfileQuery, GetUserProfileQueryResponse> handler,
-            ProfilesDbContext context,
             CancellationToken ct) =>
         {
             var guid = Guid.Parse(user.Id);

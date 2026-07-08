@@ -5,22 +5,12 @@ using ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddMongoDBClient(connectionName: "officesdb");
+builder.AddMicroserviceDefaults("/offices");
 
-builder.Services.AddHandlers(typeof(Program).Assembly);
+
+builder.AddMongoDBClient(connectionName: "officesdb");
 builder.Services.AddScoped<OfficesDbContext>();
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.AddOpenApiReversedThroughProxy("/api/offices");
-
-builder.AddSwaggerDefaults();
-builder.Services.AddEndpoints(typeof(Program).Assembly);
-builder.AddServiceDefaults();
-
-builder.AddAuthorizationDefaultsWithAspire();
-
-builder.Services.AddApiAuthorizationPolicies();
 
 var app = builder.Build();
 

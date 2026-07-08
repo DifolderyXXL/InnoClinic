@@ -8,7 +8,7 @@ public class CreateServiceEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/api/create/service", async (
+        builder.MapPost("/services", async (
             CreateServiceCommand request,
             ICommandHandler<CreateServiceCommand> handler,
             CancellationToken ct) =>

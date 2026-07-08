@@ -4,10 +4,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>61c0c637-b243-4d03-af71-f68616b1165a</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
       <PackageReference Include="Mapster.EFCore" Version="10.0.10" />
       <PackageReference Include="MassTransit" Version="8.5.10" />
+      <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.10" />
+      <PackageReference Include="Aspire.Npgsql" Version="13.4.6" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
       <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.10" />
     <ProjectReference Include="..\..\ServiceDefaults\ServiceDefaults.csproj" />
     <ProjectReference Include="..\Contracts\Contracts.csproj" />

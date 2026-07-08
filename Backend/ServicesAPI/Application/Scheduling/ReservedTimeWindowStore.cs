@@ -16,32 +16,51 @@ public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<Reserved
 
     public async Task<bool> TryAdd(ReservedTimeWindow reservation, CancellationToken ct)
     {
-        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        var hasOverlap = await context.ReservedTimeWindows.AnyAsync(x =>
+            x.Date == reservation.Date
+            && x.StartSlotIndex < (reservation.StartSlotIndex + reservation.SlotCount)
+            && (x.StartSlotIndex + x.SlotCount) > reservation.StartSlotIndex, ct);
 
+        if (hasOverlap)
+        {
+            return false;
+        }
+
+        await context.ReservedTimeWindows.AddAsync(reservation, ct);
+        await context.SaveChangesAsync(ct);
+
+        return true;
+    }
+
+    public async Task<bool> TryConfirm(long reservationId, CancellationToken ct)
+    {
         try
         {
-            var hasOverlap = await context.ReservedTimeWindows.AnyAsync(x =>
-                x.Date == reservation.Date
-                && x.StartSlotIndex < (reservation.StartSlotIndex + reservation.SlotCount)
-                && (x.StartSlotIndex + x.SlotCount) > reservation.StartSlotIndex, ct);
-
-            if (hasOverlap)
-            {
-                await transaction.RollbackAsync(ct);
-                return false;
-            }
-
-            await context.ReservedTimeWindows.AddAsync(reservation, ct);
-            await context.SaveChangesAsync(ct);
+            int rowsAffected = await context.ReservedTimeWindows.Where(x => x.Id == reservationId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.IsConfirmed, true), ct);
             
-            await transaction.CommitAsync(ct);
-            return true;
+            return rowsAffected > 0;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            await transaction.RollbackAsync(ct);
+            logger?.LogError(ex, "Error on confirming reservation {@ReservationId}", reservationId);
+            return false;
+        }
+    }
+
+    public async Task<bool> TryRemove(long reservationId, CancellationToken ct)
+    {
+        try
+        {
+            int rowsAffected = await context.ReservedTimeWindows
+                .Where(r => r.Id == reservationId && !r.IsConfirmed)
+                .ExecuteDeleteAsync(ct);
             
-            logger?.LogError(ex, "Error on reserving time window {@Reservation}", reservation);
+            return rowsAffected > 0;
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Error on confirming reservation {@ReservationId}", reservationId);
             return false;
         }
     }

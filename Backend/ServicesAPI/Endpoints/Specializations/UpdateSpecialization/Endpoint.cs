@@ -8,7 +8,7 @@ public class UpdateSpecializationEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPut("/api/specialization/{id:long}", async (
+        builder.MapPut("/specializations/{id:long}", async (
             long id,
             UpdateSpecializationCommand request,
             ICommandHandler<UpdateSpecializationCommand> handler,

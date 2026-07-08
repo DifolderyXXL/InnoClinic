@@ -1,0 +1,80 @@
+using AppointmentsAPI.Consumers;
+using AppointmentsAPI.Controllers;
+using AppointmentsAPI.Data;
+using Asp.Versioning;
+using MassTransit;
+using MicroserviceApiKernel;
+using MicroserviceApiKernel.Extensions;
+using Microsoft.EntityFrameworkCore;
+using ServiceDefaults;
+
+var builder = WebApplication.CreateBuilder(args);
+
+
+builder.AddMicroserviceDefaults("/appointments");
+
+builder.Services.AddControllers();
+
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+
+builder.Services.AddDbContext<AppointmentDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("appointmentsApiDb")));
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddSagaStateMachine<AppointmentStateMachine, AppointmentState, AppointmentSagaDefinition>()
+        .EntityFrameworkRepository(r =>
+        {
+            r.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+            r.ExistingDbContext<AppointmentDbContext>();
+            r.UsePostgres();
+        });
+    x.AddEntityFrameworkOutbox<AppointmentDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
+    x.AddConsumer<AppointmentStateChangedConsumer>();
+    x.AddConsumer<AppointmentTimeWindowReservedSyncConsumer>();
+    
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+
+    app.MapSwaggerDefaults();
+}
+
+app.UseCors(PolicyConstants.FRONTEND_BFF_CORS_POLICY);
+app.UseHttpsRedirection();
+
+app.UseAuthorizationDefaultsWithAspire();
+
+app.MapEndpoints();
+app.MapDefaultControllerRoute();
+
+app.Run();
+
+public class AppointmentSagaDefinition : SagaDefinition<AppointmentState>
+{
+    protected override void ConfigureSaga(
+        IReceiveEndpointConfigurator endpointConfigurator, 
+        ISagaConfigurator<AppointmentState> sagaConfigurator, 
+        IRegistrationContext context)
+    {
+        endpointConfigurator.UseMessageRetry(r => r.Interval(5, TimeSpan.FromMilliseconds(100)));
+
+        endpointConfigurator.UseEntityFrameworkOutbox<AppointmentDbContext>(context);
+    }
+}

@@ -35,8 +35,6 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Endpoints\Doctors\GetDoctorById\" />
-    <Folder Include="Endpoints\Doctors\UpdateDoctorProfile\" />
-    <Folder Include="Endpoints\Patient\" />
     <Folder Include="Models\" />
   </ItemGroup>
 

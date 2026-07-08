@@ -16,7 +16,7 @@ public class UpdateRoles : IEndpoint
     }
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPut("/api/role", async ([FromBody] Request request, ICommandHandler<ChangeUserRoleCommand> handler, CancellationToken ct) =>
+        builder.MapPut("/role", async ([FromBody] Request request, ICommandHandler<ChangeUserRoleCommand> handler, CancellationToken ct) =>
         {
             var result = await handler.Handle(new(request.UserId, request.Roles), ct);
 

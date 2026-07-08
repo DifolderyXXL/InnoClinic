@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,7 @@ public static class SwaggerExtension
     {
         builder.Services.AddOpenApi(options =>
         {
+            options.AddDocumentTransformer<OidcSecuritySchemeTransformer>();
             options.AddDocumentTransformer((document, context, cancellationToken) =>
             {
                 document.Servers.Clear();
@@ -47,32 +49,8 @@ public static class SwaggerExtension
         {
             options.CustomSchemaIds(i => i.FullName?.Replace('+', '_'));
 
-            options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-            {
-                Type = SecuritySchemeType.OAuth2,
-                Flows = new OpenApiOAuthFlows
-                {
-                    AuthorizationCode = new OpenApiOAuthFlow
-                    {
-                        AuthorizationUrl = new Uri("https://localhost:6001/connect/authorize"),
-                        TokenUrl = new Uri("https://localhost:6001/connect/token"),
-                        Scopes = new Dictionary<string, string>
-                        {
-                            { "api", "Api" },
-                            { "openid", "Access the OpenID Connect user profile" },
-                            { "email", "Access the user's email address" },
-                            { "profile", "Access the user's profile" }
-                        }
-                    }
-                }
-            });
-            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecuritySchemeReference("oauth2", document),
-                    new List<string> { "api", "profile", "email", "openid" }
-                }
-            });
+            options.AddSecurityDefinition("oauth2", SecuritySchemeHelper.GetOauth2SecurityScheme());
+            options.AddSecurityRequirement(SecuritySchemeHelper.GetOauth2SecurityRequirement);
 
             setupAction?.Invoke(options);
         });

@@ -8,7 +8,7 @@ public class CreateSpecializationEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/api/create/specialization", async (
+        builder.MapPost("/specializations", async (
             CreateSpecializationCommand request,
             ICommandHandler<CreateSpecializationCommand> handler,
             CancellationToken ct

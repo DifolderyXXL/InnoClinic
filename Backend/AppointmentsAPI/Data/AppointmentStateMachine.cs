@@ -10,7 +10,7 @@ public class AppointmentState : SagaStateMachineInstance
     public string CurrentState { get; set; }
     
     public Guid PatientAccountId { get; set; }
-    public long DoctorId { get; set; }
+    public Guid DoctorAccountId { get; set; }
     
     public long ReservationId { get; set; }
     public DateOnly Date { get; set; }
@@ -98,7 +98,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                 {
                     context.Saga.CorrelationId = context.Message.AppointmentId;
                     context.Saga.PatientAccountId = context.Message.PatientAccountId;
-                    context.Saga.DoctorId = context.Message.DoctorId;
+                    context.Saga.DoctorAccountId = context.Message.DoctorAccountId;
                     context.Saga.Date = context.Message.Date;
                     context.Saga.StartSlotIndex = context.Message.StartSlotIndex;
                     context.Saga.ServiceId = context.Message.ServiceId;

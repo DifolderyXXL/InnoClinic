@@ -15,7 +15,7 @@ using AppointmentState = AppointmentsAPI.Models.AppointmentState;
 
 namespace AppointmentsAPI.Controllers;
 
-public record BookAppointmentCommand(long DoctorId, long OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
+public record BookAppointmentCommand(Guid DoctorAccountId, long OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
 public record DeclineCommand(string Reason);
 
 
@@ -46,7 +46,7 @@ public class AppointmentsController(
         {
             PatientAccountId = patientId,
             State = AppointmentState.Created,
-            DoctorId = command.DoctorId,
+            DoctorAccountId = command.DoctorAccountId,
             Date = command.Date,
             StartSlotIndex = command.StartSlotIndex,
             ServiceId = command.ServiceId,
@@ -60,7 +60,7 @@ public class AppointmentsController(
             new AppointmentSubmitted(
                 result.Value,
                 patientId,
-                command.DoctorId,
+                command.DoctorAccountId,
                 command.Date,
                 command.StartSlotIndex,
                 command.ServiceId), ct);
@@ -118,7 +118,7 @@ public class AppointmentsController(
             {
                 Id = a.Id,
                 PatientAccountId = a.PatientAccountId,
-                DoctorId = a.DoctorId,
+                DoctorAccountId = a.DoctorAccountId,
                 Date = a.Date,
                 StartSlotIndex = a.StartSlotIndex,
                 ServiceId = a.ServiceId,
@@ -152,7 +152,7 @@ public class AppointmentsController(
         }
 
         var items = await query
-            .Where(x => x.Doctor.AccountId == doctorId)
+            .Where(x => x.DoctorAccountId == doctorId)
             .OrderBy(x => x.Id)
             .ToPagedResponseAsync(
                 pagination, 

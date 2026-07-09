@@ -6,7 +6,7 @@ namespace Contracts.AppointmentContracts;
 public record AppointmentSubmitted(
     Guid AppointmentId,
     Guid PatientAccountId,
-    long DoctorId,
+    Guid DoctorAccountId,
     DateOnly Date,
     int StartSlotIndex,
     long ServiceId);

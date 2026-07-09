@@ -5,8 +5,8 @@ public class Appointment
     public Guid Id { get; set; }
     
     public Guid PatientAccountId { get; set; }
-    public long DoctorId { get; set; }
-    public Doctor Doctor { get; set; } = null!;
+    public Guid DoctorAccountId { get; set; }
+
 
     public long? ReservationId { get; set; } 
 

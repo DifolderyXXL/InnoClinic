@@ -138,6 +138,12 @@ public class AppointmentsController(
         [FromQuery] PaginationParameters pagination,
         CancellationToken ct = default)
     {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var doctorId))
+        {
+            return Unauthorized();
+        }
+        
         var query = context.Appointments.AsNoTracking();
 
         if (state != null)
@@ -146,6 +152,7 @@ public class AppointmentsController(
         }
 
         var items = await query
+            .Where(x => x.Doctor.AccountId == doctorId)
             .OrderBy(x => x.Id)
             .ToPagedResponseAsync(
                 pagination, 

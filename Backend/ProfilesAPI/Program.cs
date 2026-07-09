@@ -31,7 +31,7 @@ builder.Services.AddClientCredentialsTokenManagement()
         client.Scope = Duende.AccessTokenManagement.Scope.Parse("identity");
     });
 
-builder.Services.AddClientCredentialsHttpClient("client", ClientCredentialsClientName.Parse("client"), client =>
+builder.Services.AddClientCredentialsHttpClient("identityclient", ClientCredentialsClientName.Parse("identityclient"), client =>
 {
     client.BaseAddress = new Uri("https://localhost:6001/api");
 });

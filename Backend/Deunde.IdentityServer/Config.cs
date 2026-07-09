@@ -1,3 +1,4 @@
+using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 
 namespace Deunde.IdentityServer;
@@ -22,6 +23,10 @@ public static class Config
     ];
 
     public static IEnumerable<ApiResource> ApiResources => [
+        new ApiResource("identity")
+        {
+            Scopes = { "identity" }
+        },
         new ApiResource("api")
         {
             Scopes = { "api" },

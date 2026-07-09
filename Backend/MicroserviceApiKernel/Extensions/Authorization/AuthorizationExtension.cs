@@ -87,6 +87,7 @@ public static class AuthorizationExtension
         services.AddAuthorizationBuilder()
             .AddPolicy(RolePolicy.IdentityServer, policy =>
                 policy
+                    .AddAuthenticationSchemes("LocalM2M")
                     .AddRequirements(
                         new ScopeRequirement("identity"))
                     );

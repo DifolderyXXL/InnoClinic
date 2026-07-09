@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MicroserviceApiKernel.Extensions.Queryable;
 
 
-public record struct PaginationParameters(int Page = 1, int PageSize = 50);
+public record PaginationParameters(int Page = 1, int PageSize = 50);
 public static class PaginationExtension
 {
     extension<TSource>(IQueryable<TSource> source)

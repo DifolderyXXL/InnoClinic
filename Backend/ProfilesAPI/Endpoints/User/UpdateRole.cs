@@ -30,7 +30,7 @@ public class UpdateRole : IEndpoint
 
     private async Task<HttpResponseMessage> SendUpdateRole(HttpClient context, string userId, params string[] roles)
     {
-        var response = await context.PutAsJsonAsync("role", new { UserId = userId, Roles = roles });
+        var response = await context.PutAsJsonAsync("api/v1/role", new { UserId = userId, Roles = roles });
         return response;
     }
 }

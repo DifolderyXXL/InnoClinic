@@ -1,4 +1,5 @@
 using AppointmentsAPI.Consumers;
+using AppointmentsAPI.Consumers.Doctors;
 using AppointmentsAPI.Controllers;
 using AppointmentsAPI.Data;
 using Asp.Versioning;
@@ -35,6 +36,10 @@ builder.Services.AddMassTransit(x =>
         o.UseBusOutbox();
     });
 
+    x.AddConsumer<DoctorCreatedEventConsumer>();
+    x.AddConsumer<DoctorUpdatedEventConsumer>();
+    x.AddConsumer<DoctorDeletedEventConsumer>();
+    
     x.AddConsumer<AppointmentStateChangedConsumer>();
     x.AddConsumer<AppointmentTimeWindowReservedSyncConsumer>();
     

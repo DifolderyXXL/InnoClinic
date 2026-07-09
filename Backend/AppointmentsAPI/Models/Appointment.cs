@@ -6,6 +6,7 @@ public class Appointment
     
     public Guid PatientAccountId { get; set; }
     public long DoctorId { get; set; }
+    public Doctor Doctor { get; set; } = null!;
 
     public long? ReservationId { get; set; } 
 
@@ -16,14 +17,4 @@ public class Appointment
     public long SpecializationId { get; set; }
     
     public AppointmentState State { get; set; }
-}
-
-public enum AppointmentState
-{
-    Created,
-    PendingReservation,
-    PendingApproval,
-    Approved,
-    Failed,
-    Confirmed
 }

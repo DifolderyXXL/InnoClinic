@@ -51,6 +51,18 @@ public class PatientEntityTypeConfiguration : IEntityTypeConfiguration<Patient>
 {
     public void Configure(EntityTypeBuilder<Patient> builder)
     {
-        builder.HasIndex(x => x.Id);
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public class DoctorEntityTypeConfiguration : IEntityTypeConfiguration<Doctor>
+{
+    public void Configure(EntityTypeBuilder<Doctor> builder)
+    {
+        builder.HasKey(x => x.Id);
+
+        builder.HasOne(x => x.Specialization)
+            .WithMany()
+            .HasForeignKey(x => x.SpecializationId);
     }
 }

@@ -10,7 +10,26 @@ public class GetUserProfilesQueryHandler(ProfilesDbContext context) : IQueryHand
 {
     public async Task<Result<GetUserProfileQueryResponse>> Handle(GetUserProfileQuery query, CancellationToken ct)
     {
-        var account = await context.Accounts
+        var accountQuery = context.Accounts.AsQueryable();
+
+        if (query.Roles.Contains(ConstantRoles.Patient))
+        {
+            accountQuery = accountQuery.Include(x => x.Patient);
+        }
+        
+        if (query.Roles.Contains(ConstantRoles.Doctor))
+        {
+            accountQuery = accountQuery
+                .Include(x => x.Doctor)
+                    .ThenInclude(d => d.Specialization);;
+        }
+
+        if (query.Roles.Contains(ConstantRoles.Receptionist))
+        {
+            accountQuery = accountQuery.Include(x => x.Receptionist);
+        }
+        
+        var account = await accountQuery
                .AsNoTracking()
                .FirstOrDefaultAsync(x => x.Id == query.UserId, ct);
 
@@ -19,9 +38,9 @@ public class GetUserProfilesQueryHandler(ProfilesDbContext context) : IQueryHand
         var baseAccount = account.ToDto();
 
         var response = new GetUserProfileQueryResponse(
-                account.Patient.ToDto(baseAccount),
-                query.Roles.Any(x => x == ConstantRoles.Doctor) ? account.Doctor.ToDto(baseAccount) : null,
-                query.Roles.Any(x => x == ConstantRoles.Receptionist) ? account.Receptionist.ToDto(baseAccount) : null
+            account.Patient?.ToDto(baseAccount),
+            account.Doctor?.ToDto(baseAccount),
+            account.Receptionist?.ToDto(baseAccount)
                 );
 
         return response;

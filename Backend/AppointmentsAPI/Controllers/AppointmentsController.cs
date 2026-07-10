@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.Linq.Expressions;
 using AppointmentsAPI.Data;
 using AppointmentsAPI.Models;
 using Asp.Versioning;
 using Contracts.AppointmentContracts;
 using MassTransit;
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.Extensions.Queryable;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -13,14 +15,14 @@ using AppointmentState = AppointmentsAPI.Models.AppointmentState;
 
 namespace AppointmentsAPI.Controllers;
 
-public record BookAppointmentCommand(long DoctorId, long OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
+public record BookAppointmentCommand(Guid DoctorAccountId, long OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
 public record DeclineCommand(string Reason);
 
 
 [Route("api/v{v:apiVersion}/[controller]")]
 [ApiController]
 [ApiVersion(1)]
-public class AppointmentController(
+public class AppointmentsController(
     IPublishEndpoint publishEndpoint, 
     IAppointmentService appointmentService,
     AppointmentDbContext context) : ControllerBase
@@ -44,7 +46,7 @@ public class AppointmentController(
         {
             PatientAccountId = patientId,
             State = AppointmentState.Created,
-            DoctorId = command.DoctorId,
+            DoctorAccountId = command.DoctorAccountId,
             Date = command.Date,
             StartSlotIndex = command.StartSlotIndex,
             ServiceId = command.ServiceId,
@@ -58,7 +60,7 @@ public class AppointmentController(
             new AppointmentSubmitted(
                 result.Value,
                 patientId,
-                command.DoctorId,
+                command.DoctorAccountId,
                 command.Date,
                 command.StartSlotIndex,
                 command.ServiceId), ct);
@@ -98,8 +100,7 @@ public class AppointmentController(
     [Authorize(Policy = RolePolicy.Receptionist)]
     public async Task<IActionResult> GetAppointments(
         [FromQuery] AppointmentState? state,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50,
+        [FromQuery] PaginationParameters pagination,
         CancellationToken ct = default)
     {
         var query = context.Appointments.AsNoTracking();
@@ -112,13 +113,12 @@ public class AppointmentController(
         var total = await query.CountAsync(ct);
         var items = await query
             .OrderBy(x => x.Id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
+            .Pagination(pagination)
             .Select(a => new AppointmentDto
             {
                 Id = a.Id,
                 PatientAccountId = a.PatientAccountId,
-                DoctorId = a.DoctorId,
+                DoctorAccountId = a.DoctorAccountId,
                 Date = a.Date,
                 StartSlotIndex = a.StartSlotIndex,
                 ServiceId = a.ServiceId,
@@ -127,6 +127,40 @@ public class AppointmentController(
             })
             .ToListAsync(ct);
         
-        return Ok(new{ Items = items, Total = total, Page = page, PageSize = pageSize });
+        return Ok(new{ Items = items, Total = total, Page = pagination.Page, PageSize = pagination.PageSize });
+    }
+    
+    [HttpGet("me")]
+    [Authorize(Policy = RolePolicy.Doctor)]
+    [ProducesResponseType(typeof(PagedResponse<AppointmentDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetDoctorAppointments(
+        [FromQuery] AppointmentState? state,
+        [FromQuery] PaginationParameters pagination,
+        CancellationToken ct = default)
+    {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var doctorId))
+        {
+            return Unauthorized();
+        }
+        
+        var query = context.Appointments.AsNoTracking();
+
+        if (state != null)
+        {
+            query = query.Where(x => x.State == state);
+        }
+
+        var items = await query
+            .Where(x => x.DoctorAccountId == doctorId)
+            .OrderBy(x => x.Id)
+            .ToPagedResponseAsync(
+                pagination, 
+                AppointmentDtoHelper.ProjectToDto,
+                ct);
+        
+        return Ok(items);
     }
 }
+
+

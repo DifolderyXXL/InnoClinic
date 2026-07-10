@@ -10,7 +10,6 @@ public class AppointmentDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<AppointmentState> AppointmentStates => Set<AppointmentState>();
 
-    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

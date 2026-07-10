@@ -15,7 +15,11 @@ namespace ProfilesAPI.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("Proxies:ChangeTracking", false)
+                .HasAnnotation("Proxies:CheckEquality", false)
+                .HasAnnotation("Proxies:LazyLoading", true);
 
             modelBuilder.Entity("ProfilesAPI.Models.Account", b =>
                 {
@@ -85,6 +89,9 @@ namespace ProfilesAPI.Migrations
                     b.Property<long>("SpecializationId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId")
@@ -111,8 +118,6 @@ namespace ProfilesAPI.Migrations
 
                     b.HasIndex("AccountId")
                         .IsUnique();
-
-                    b.HasIndex("Id");
 
                     b.ToTable("Patients");
                 });

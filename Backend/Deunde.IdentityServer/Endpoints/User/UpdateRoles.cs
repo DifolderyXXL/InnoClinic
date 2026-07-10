@@ -11,8 +11,8 @@ public class UpdateRoles : IEndpoint
 {
     class Request
     {
-        public string UserId;
-        public string[] Roles;
+        public string UserId { get; set; }
+        public string[] Roles { get; set; }
     }
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

@@ -2,7 +2,7 @@ namespace ProfilesAPI.Endpoints.Doctors;
 
 public record DoctorDto
 {
-    public long Id { get; init; }
+    public Guid AccountId { get; init; }
 
     public string AccountFirstName { get; init; }
     public string AccountLastName { get; init; }

@@ -201,8 +201,14 @@ namespace ServicesAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
+
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsConfirmed")
                         .HasColumnType("boolean");

@@ -81,6 +81,8 @@ public class ProcessReservationConsumer(
         var slotCount = timeStepResult.Value;
         
         var result = await reservationService.TryReserve(
+            context.Message.DoctorId,
+            context.Message.AppointmentId,
             new(context.Message.Date, context.Message.StartSlotIndex, (int)slotCount),
             context.CancellationToken);
 

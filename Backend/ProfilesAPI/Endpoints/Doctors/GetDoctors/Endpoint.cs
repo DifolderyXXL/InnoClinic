@@ -8,9 +8,12 @@ public class Endpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/doctors", async (IQueryHandler<GetDoctorsQuery, GetDoctorsResponse> handler, CancellationToken ct) =>
+        builder.MapGet("/doctors", async (
+            [AsParameters] GetDoctorsQuery query,
+            IQueryHandler<GetDoctorsQuery, GetDoctorsResponse> handler,
+            CancellationToken ct) =>
         {
-            var result = await handler.Handle(new(), ct);
+            var result = await handler.Handle(query, ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
         }).RequireAuthorization(RolePolicy.Client);

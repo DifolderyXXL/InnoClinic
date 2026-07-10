@@ -22,4 +22,9 @@ public class ScheduleOptions : IScheduleSlotsProvider
         var timeSlotDecimalAmount = (WorkScheduleEndTime - WorkScheduleBeginTime) / TimeSlotLength;
         return (int)Math.Floor(timeSlotDecimalAmount);
     }
+
+    public TimeSpan GetSlotTime(int slot)
+    {
+        return WorkScheduleBeginTime + slot * TimeSlotLength;
+    }
 }

@@ -4,13 +4,12 @@ using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;
 using MicroserviceApiKernel.Results;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProfilesAPI.CustomBindAsync;
 using ProfilesAPI.Data;
 using ProfilesAPI.Endpoints.Accounts.Create;
 
-namespace ProfilesAPI.Endpoints.Patient.Create;
+namespace ProfilesAPI.Endpoints.Patients.Create;
 
 public record PatientRequest(DateOnly DateOfBirth);
 public class CreatePatientEndpoint : IEndpoint

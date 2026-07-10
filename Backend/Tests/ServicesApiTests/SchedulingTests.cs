@@ -27,19 +27,20 @@ public class SchedulingTests
         int slotsAmount = 100;
         int targetPoint = 50;
         int targetPointSize = 10;
+        var doctorId = Guid.NewGuid();
         var option = new Mock<IScheduleSlotsProvider>();
         option.Setup(x => x.GetSlotsAmount()).Returns(slotsAmount);
         
         await using var context = CreateInMemoryDbContext();
         var repository = new ReservedTimeWindowStore(context, null);
 
-        await repository.TryAdd(new() { Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
+        await repository.TryAdd(new() { DoctorId = doctorId, Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
         
         var service = new ReservationService(repository, option.Object);
 
         
         // Act
-        var positions = await service.GetAvailablePositionsOnDay(day, default);
+        var positions = await service.GetAvailablePositionsOnDay(doctorId, day, default);
 
 
         // Assert
@@ -61,20 +62,21 @@ public class SchedulingTests
         int targetPoint = 50;
         int targetPoint2 = 60;
         int targetPointSize = 10;
+        var doctorId = Guid.NewGuid();
         var option = new Mock<IScheduleSlotsProvider>();
         option.Setup(x => x.GetSlotsAmount()).Returns(slotsAmount);
         
         await using var context = CreateInMemoryDbContext();
         var repository = new ReservedTimeWindowStore(context, null);
 
-        await repository.TryAdd(new() { Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
-        await repository.TryAdd(new() { Date = day, StartSlotIndex = targetPoint2, SlotCount = targetPointSize }, default);
+        await repository.TryAdd(new() {DoctorId = doctorId, Date = day, StartSlotIndex = targetPoint, SlotCount = targetPointSize }, default);
+        await repository.TryAdd(new() {DoctorId = doctorId,  Date = day, StartSlotIndex = targetPoint2, SlotCount = targetPointSize }, default);
         
         var service = new ReservationService(repository, option.Object);
 
         
         // Act
-        var positions = await service.GetAvailablePositionsOnDay(day, default);
+        var positions = await service.GetAvailablePositionsOnDay(doctorId, day, default);
 
 
         // Assert
@@ -93,6 +95,7 @@ public class SchedulingTests
         DateOnly day = DateOnly.MinValue;
         
         int slotsAmount = 100;
+        var doctorId = Guid.NewGuid();
         var option = new Mock<IScheduleSlotsProvider>();
         option.Setup(x => x.GetSlotsAmount()).Returns(slotsAmount);
         
@@ -102,7 +105,7 @@ public class SchedulingTests
         var service = new ReservationService(repository, option.Object);
         
         // Act
-        var positions = await service.GetAvailablePositionsOnDay(day, default);
+        var positions = await service.GetAvailablePositionsOnDay(doctorId, day, default);
 
 
         // Assert

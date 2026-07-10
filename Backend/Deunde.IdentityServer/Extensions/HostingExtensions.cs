@@ -14,6 +14,7 @@ using Deunde.IdentityServer.Data;
 using Deunde.IdentityServer.Services;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Deunde.IdentityServer.Extensions;
 
@@ -62,6 +63,11 @@ internal static class HostingExtensions
 
         builder.Services.AddRazorPages()
             .AddRazorRuntimeCompilation();
+
+        
+        builder.Services.AddApiVersioning();
+        builder.Services.AddEndpoints(typeof(HostingExtensions).Assembly);
+
 
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -151,9 +157,27 @@ internal static class HostingExtensions
                 options.Scope.Add("email");
             });
 
+        builder.Services.AddAuthentication()
+            .AddJwtBearer("LocalM2M", options =>
+            {
+                options.Authority = "https://localhost:6001";
+                options.RequireHttpsMetadata = true;
+                
+                options.MapInboundClaims = false;
+        
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = "https://localhost:6001",
+                    
+                    ValidateAudience = false 
+                };
+            });
 
         builder.Services.AddScoped<IUserRoleManager, UserRoleManager>();
         builder.Services.AddScoped<IUserCreateManager, UserCreateManager>();
+        
+        builder.Services.AddSingleton<IAuthorizationHandler, ScopeRequirementHandler>();
 
         // this adds the necessary config for the simple admin/config pages
         {
@@ -233,6 +257,7 @@ internal static class HostingExtensions
         app.MapRazorPages()
             .RequireAuthorization();
 
+        app.MapEndpoints();
         return app;
     }
 

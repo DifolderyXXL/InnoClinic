@@ -26,7 +26,7 @@ public class AppointmentSagaTests
 
         var appointmentId = Guid.NewGuid();
         var patientId = Guid.NewGuid();
-        var doctorId = 123;
+        var doctorId = Guid.NewGuid();
         var date = DateOnly.MinValue;
         var startSlot = 0;
         var slotCount = 2;
@@ -73,7 +73,7 @@ public class AppointmentSagaTests
 
         var appointmentId = Guid.NewGuid();
         var patientId = Guid.NewGuid();
-        var doctorId = 123;
+        var doctorId = Guid.NewGuid();
         var date = DateOnly.MinValue;
         var startSlot = 0;
         var slotCount = 2;
@@ -110,7 +110,7 @@ public class AppointmentSagaTests
 
         var appointmentId = Guid.NewGuid();
         var patientId = Guid.NewGuid();
-        var doctorId = 123;
+        var doctorId = Guid.NewGuid();
         var date = DateOnly.MinValue;
         var startSlot = 0;
         var slotCount = 2;

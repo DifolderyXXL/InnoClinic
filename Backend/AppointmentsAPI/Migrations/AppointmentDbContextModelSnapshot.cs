@@ -36,8 +36,8 @@ namespace AppointmentsAPI.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<long>("DoctorId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("DoctorAccountId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("PatientAccountId")
                         .HasColumnType("uuid");
@@ -65,7 +65,10 @@ namespace AppointmentsAPI.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<long>("DoctorId")
+                    b.Property<Guid>("DoctorAccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("OfficeId")
                         .HasColumnType("bigint");
 
                     b.Property<Guid>("PatientAccountId")
@@ -75,6 +78,9 @@ namespace AppointmentsAPI.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<long>("ServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SpecializationId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("StartSlotIndex")

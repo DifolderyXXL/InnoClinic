@@ -3,28 +3,17 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace MicroserviceApiKernel;
 
-public class RoleRequirement : IAuthorizationRequirement
-{
-    public RoleRequirement(string role)
-    {
-        Role = role;
-    }
-
-    public string Role { get; }
-}
+public record RoleRequirement(string[] AllowedRoles, string[] AllowedClaimTypes) : IAuthorizationRequirement;
 
 public class RoleRequirementHandler : AuthorizationHandler<RoleRequirement>
 {
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, RoleRequirement requirement)
     {
-        var roleClaims = context.User.Claims.Where(c =>
-            c.Type == "role" ||
-            c.Type == System.Security.Claims.ClaimTypes.Role);
+        var userClaims = context.User.Claims
+            .Where(c => requirement.AllowedClaimTypes.Contains(c.Type, StringComparer.OrdinalIgnoreCase))
+            .Select(c => c.Value);
 
-        var hasMatchingRole = roleClaims.Any(c =>
-            string.Equals(c.Value, requirement.Role, StringComparison.OrdinalIgnoreCase));
-
-        if (hasMatchingRole)
+        if (requirement.AllowedRoles.Any(role => userClaims.Contains(role, StringComparer .OrdinalIgnoreCase)))
         {
             context.Succeed(requirement);
         }

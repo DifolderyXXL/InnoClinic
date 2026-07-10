@@ -7,6 +7,8 @@ public class Doctor
     public virtual Account Account { get; set; }
 
     public DateOnly DateOfBirth { get; set; }
+    
+    public long SpecializationId { get; set; }
     public virtual Specialization Specialization { get; set; }
     public long OfficeId { get; set; }
     public long CareerStartYear { get; set; }

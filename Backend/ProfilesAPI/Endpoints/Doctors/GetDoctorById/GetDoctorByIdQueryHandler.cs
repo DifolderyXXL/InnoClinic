@@ -6,7 +6,7 @@ using ProfilesAPI.Data;
 
 namespace ProfilesAPI.Endpoints.Doctors.GetDoctorById;
 
-public record GetDoctorByIdQuery(long Id) : IQuery<GetDoctorByIdResponse>;
+public record GetDoctorByIdQuery(Guid Id) : IQuery<GetDoctorByIdResponse>;
 
 public record GetDoctorByIdResponse(DoctorDto DoctorDto);
 
@@ -15,9 +15,9 @@ public class GetDoctorByIdQueryHandler(ProfilesDbContext context) : IQueryHandle
     public async Task<Result<GetDoctorByIdResponse>> Handle(GetDoctorByIdQuery query, CancellationToken ct)
     {
         var result = await context.Doctors
-            .Where(x => x.Id == query.Id)
+            .Where(x => x.AccountId == query.Id)
             .ProjectToType<DoctorDto>()
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken: ct);
 
         if (result == null)
             return DoctorErrors.DoctorNotFound();

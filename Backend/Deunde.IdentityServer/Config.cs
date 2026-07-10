@@ -1,3 +1,4 @@
+using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 
 namespace Deunde.IdentityServer;
@@ -22,6 +23,10 @@ public static class Config
     ];
 
     public static IEnumerable<ApiResource> ApiResources => [
+        new ApiResource("identity")
+        {
+            Scopes = { "identity" }
+        },
         new ApiResource("api")
         {
             Scopes = { "api" },
@@ -61,9 +66,9 @@ public static class Config
             RequireClientSecret = false,
             AllowedScopes = { "openid", "profile", "email", "api", "offline_access" },
 
-            RedirectUris = { "https://localhost:7113/swagger/oauth2-redirect.html", "https://localhost:7113/swagger/oauth2-silent.html" },
-            PostLogoutRedirectUris = { "https://localhost:7113/swagger/index.html" },
-            AllowedCorsOrigins = { "https://localhost:7113", "https://localhost:7076" }
+            RedirectUris = { "https://localhost:5001/swagger/oauth2-redirect.html", "https://localhost:5001/swagger/oauth2-silent.html" },
+            PostLogoutRedirectUris = { "https://localhost:5001/swagger/index.html" },
+            AllowedCorsOrigins = { "https://localhost:5001", "https://localhost:7076" }
         },
     ];
 }

@@ -1,7 +1,6 @@
 using AppointmentsAPI.Consumers;
 using AppointmentsAPI.Controllers;
 using AppointmentsAPI.Data;
-using Asp.Versioning;
 using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
@@ -34,7 +33,7 @@ builder.Services.AddMassTransit(x =>
         o.UsePostgres();
         o.UseBusOutbox();
     });
-
+    
     x.AddConsumer<AppointmentStateChangedConsumer>();
     x.AddConsumer<AppointmentTimeWindowReservedSyncConsumer>();
     

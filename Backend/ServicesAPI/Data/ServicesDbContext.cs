@@ -18,6 +18,8 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options) : Db
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        
+        modelBuilder.HasPostgresExtension("btree_gist");
 
         modelBuilder.ApplyConfiguration(new ServiceTypeConfiguration());
         modelBuilder.ApplyConfiguration(new ServiceCategoryTypeConfiguration());

@@ -14,23 +14,9 @@ public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<Reserved
             .ToListAsync(cancellationToken: ct);
     
 
-    public async Task<bool> TryAdd(ReservedTimeWindow reservation, CancellationToken ct)
+    public async Task Add(ReservedTimeWindow reservation, CancellationToken ct)
     {
-        var hasOverlap = await context.ReservedTimeWindows.AnyAsync(x =>
-            x.Date == reservation.Date
-            && x.DoctorId == reservation.DoctorId
-            && x.StartSlotIndex < (reservation.StartSlotIndex + reservation.SlotCount)
-            && (x.StartSlotIndex + x.SlotCount) > reservation.StartSlotIndex, ct);
-
-        if (hasOverlap)
-        {
-            return false;
-        }
-
         await context.ReservedTimeWindows.AddAsync(reservation, ct);
-        await context.SaveChangesAsync(ct);
-
-        return true;
     }
 
     public async Task<bool> TryConfirm(long reservationId, CancellationToken ct)
@@ -56,7 +42,7 @@ public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<Reserved
             var query = context.ReservedTimeWindows
                 .Where(r => r.Id == reservationId);
 
-            if (force)
+            if (!force)
             {
                 query = query.Where(r => !r.IsConfirmed);
             }

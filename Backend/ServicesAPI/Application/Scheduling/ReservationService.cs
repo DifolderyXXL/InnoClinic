@@ -4,7 +4,7 @@ namespace ServicesAPI.Application.Scheduling;
 
 public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsProvider provider) : IReservationService
 {
-    public async Task<ScheduleResult> TryReserve(Guid doctorId, Guid appointmentId, ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct)
+    public async Task<ReservedTimeWindow> TryReserve(Guid doctorId, Guid appointmentId, ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct)
     {
         var reservation = new ReservedTimeWindow
         {
@@ -16,8 +16,8 @@ public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsPr
             IsConfirmed = false
         };
         
-        var result = await store.TryAdd(reservation, ct);
-        return new ScheduleResult(result, result ? reservation.Id : null);
+        await store.Add(reservation, ct);
+        return reservation;
     }
 
     public async Task<bool> TryConfirmReservation(long reservationId, CancellationToken ct)
@@ -30,23 +30,8 @@ public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsPr
         var reserved = (await store.GetReservedWindows(doctorId, date, ct)).ToList();
         
         var slotAmount = provider.GetSlotsAmount();
-        if (reserved.Count == 0)
-        {
-            return [new ScheduleTimeWindow(date, 0, slotAmount)];
-        }
         
-        var reservedSorted = reserved.OrderBy(x => x.StartSlotIndex).ToList();
-
-        var middleGaps = reservedSorted.Zip(reservedSorted.Skip(1), GetTimeSlotBetween);
-        var firstReservation = reservedSorted.First();
-        var lastReservation = reservedSorted.Last();
-
-        var startGap = ScheduleTimeWindow.TimeWindowFromBegin(date, firstReservation.StartSlotIndex);
-        var endGap = ScheduleTimeWindow.TimeWindowToEnd(date, lastReservation.EndSlotIndex, slotAmount);
-        
-        List<ScheduleTimeWindow> allAvailableGaps = [startGap, ..middleGaps, endGap];
-
-        return allAvailableGaps.Where(w => w.TimeSlotSize > 0).ToList();
+        return ScheduleCalculator.CalculateAvailableGaps(date, reserved, slotAmount);
     }
 
     public async Task CancelReservation(long reservationId, CancellationToken ct)

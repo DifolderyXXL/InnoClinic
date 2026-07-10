@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServicesAPI.Data;
@@ -11,9 +12,11 @@ using ServicesAPI.Data;
 namespace ServicesAPI.Migrations
 {
     [DbContext(typeof(ServicesDbContext))]
-    partial class ServicesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260710211104_OverlappintConstraints")]
+    partial class OverlappintConstraints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,7 +26,6 @@ namespace ServicesAPI.Migrations
                 .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "btree_gist");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
@@ -225,6 +227,8 @@ namespace ServicesAPI.Migrations
                     b.HasIndex("DoctorId", "Date");
 
                     b.ToTable("ReservedTimeWindows");
+
+                    b.HasAnnotation("Npgsql:PostgresExtension:btree_gist", ",,");
                 });
 
             modelBuilder.Entity("ServicesAPI.Models.Service", b =>

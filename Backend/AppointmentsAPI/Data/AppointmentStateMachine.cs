@@ -107,6 +107,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                 .PublishAsync(context => context.Init<ProcessReservation>(new ProcessReservation
                 (
                     context.Saga.AppointmentId,
+                    context.Saga.DoctorAccountId,
                     context.Saga.Date,
                     context.Saga.StartSlotIndex,
                     context.Saga.ServiceId

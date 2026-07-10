@@ -4,11 +4,14 @@ namespace ServicesAPI.Application.Scheduling;
 
 public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsProvider provider) : IReservationService
 {
-    public async Task<ScheduleResult> TryReserve(ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct)
+    public async Task<ScheduleResult> TryReserve(Guid doctorId, Guid appointmentId, ScheduleTimeWindow scheduleTimeWindow, CancellationToken ct)
     {
         var reservation = new ReservedTimeWindow
         {
-            StartSlotIndex = scheduleTimeWindow.TimeSlotStart, SlotCount = scheduleTimeWindow.TimeSlotSize,
+            DoctorId = doctorId,
+            AppointmentId = appointmentId,
+            StartSlotIndex = scheduleTimeWindow.TimeSlotStart, 
+            SlotCount = scheduleTimeWindow.TimeSlotSize,
             Date = scheduleTimeWindow.Date,
             IsConfirmed = false
         };
@@ -22,9 +25,9 @@ public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsPr
         return await store.TryConfirm(reservationId, ct);
     }
 
-    public async Task<IEnumerable<ScheduleTimeWindow>> GetAvailablePositionsOnDay(DateOnly date, CancellationToken ct)
+    public async Task<IEnumerable<ScheduleTimeWindow>> GetAvailablePositionsOnDay(Guid doctorId, DateOnly date, CancellationToken ct)
     {
-        var reserved = (await store.GetReservedWindows(date, ct)).ToList();
+        var reserved = (await store.GetReservedWindows(doctorId, date, ct)).ToList();
         
         var slotAmount = provider.GetSlotsAmount();
         if (reserved.Count == 0)
@@ -48,7 +51,7 @@ public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsPr
 
     public async Task CancelReservation(long reservationId, CancellationToken ct)
     {
-        await store.TryRemove(reservationId, ct);
+        await store.TryRemove(reservationId, true, ct);
     }
 
     private static ScheduleTimeWindow GetTimeSlotBetween(ReservedTimeWindow left, ReservedTimeWindow right)

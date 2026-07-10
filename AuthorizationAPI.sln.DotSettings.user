@@ -21,6 +21,7 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7cd3a4be_002Da6ed_002D43a8_002Daac3_002Dcf8f4f305a6e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test1 #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::97130D18-8E29-41D9-AC80-381DDAE24DE2::net10.0::AppointmentsApiTests.AppointmentSagaTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::22568667-C3F4-4AC1-BDE3-B791F34DF48C::net10.0::ServicesApiTests.SchedulingTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	

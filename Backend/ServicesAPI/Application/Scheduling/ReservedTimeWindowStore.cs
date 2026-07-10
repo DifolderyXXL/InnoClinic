@@ -7,10 +7,10 @@ namespace ServicesAPI.Application.Scheduling;
 
 public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<ReservedTimeWindowStore>? logger) : IReservedTimeWindowStore
 {
-    public async Task<List<ReservedTimeWindow>> GetReservedWindows(DateOnly date, CancellationToken ct)
+    public async Task<List<ReservedTimeWindow>> GetReservedWindows(Guid doctorId, DateOnly date, CancellationToken ct)
         => await context.ReservedTimeWindows
             .AsNoTracking()
-            .Where(x => x.Date == date)
+            .Where(x => x.Date == date && x.DoctorId == doctorId)
             .ToListAsync(cancellationToken: ct);
     
 
@@ -18,6 +18,7 @@ public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<Reserved
     {
         var hasOverlap = await context.ReservedTimeWindows.AnyAsync(x =>
             x.Date == reservation.Date
+            && x.DoctorId == reservation.DoctorId
             && x.StartSlotIndex < (reservation.StartSlotIndex + reservation.SlotCount)
             && (x.StartSlotIndex + x.SlotCount) > reservation.StartSlotIndex, ct);
 
@@ -48,19 +49,26 @@ public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<Reserved
         }
     }
 
-    public async Task<bool> TryRemove(long reservationId, CancellationToken ct)
+    public async Task<bool> TryRemove(long reservationId, bool force, CancellationToken ct)
     {
         try
         {
-            int rowsAffected = await context.ReservedTimeWindows
-                .Where(r => r.Id == reservationId && !r.IsConfirmed)
+            var query = context.ReservedTimeWindows
+                .Where(r => r.Id == reservationId);
+
+            if (force)
+            {
+                query = query.Where(r => !r.IsConfirmed);
+            }
+            
+            int rowsAffected = await query
                 .ExecuteDeleteAsync(ct);
             
             return rowsAffected > 0;
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Error on confirming reservation {@ReservationId}", reservationId);
+            logger?.LogError(ex, "Error on removing reservation {@ReservationId}", reservationId);
             return false;
         }
     }

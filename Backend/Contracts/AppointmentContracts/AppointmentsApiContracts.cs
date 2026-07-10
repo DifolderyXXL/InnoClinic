@@ -23,15 +23,17 @@ public class ProcessReservation
 {
     public ProcessReservation() { }
 
-    public ProcessReservation(Guid appointmentId, DateOnly date, int startSlotIndex, long serviceId)
+    public ProcessReservation(Guid appointmentId, Guid doctorId, DateOnly date, int startSlotIndex, long serviceId)
     {
         AppointmentId = appointmentId;
+        DoctorId = doctorId;
         Date = date;
         StartSlotIndex = startSlotIndex;
         ServiceId = serviceId;
     }
 
     public Guid AppointmentId { get; init; }
+    public Guid DoctorId { get; init;  }
     public DateOnly Date { get; init; }
     public int StartSlotIndex { get; init; }
     public long ServiceId { get; init; }

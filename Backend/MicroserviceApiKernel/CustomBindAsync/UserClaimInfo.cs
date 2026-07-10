@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace ProfilesAPI.CustomBindAsync;
 

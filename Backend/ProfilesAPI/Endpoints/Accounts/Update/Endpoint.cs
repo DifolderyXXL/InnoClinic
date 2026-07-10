@@ -4,6 +4,7 @@ using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;
 using MicroserviceApiKernel.Results;
 using Microsoft.EntityFrameworkCore;
+using ProfilesAPI.CustomBindAsync;
 using ProfilesAPI.Data;
 using ProfilesAPI.Endpoints.Accounts.Create;
 
@@ -16,17 +17,19 @@ public class UpdateAccountEndpoint : IEndpoint
         builder.MapPut("/accounts/me", async (
             UpdateAccountCommand command,
             ICommandHandler<UpdateAccountCommand> handler,
+            UserClaimInfo user,
             CancellationToken ct) =>
         {
-            var result = await handler.Handle(command, ct);
-            return result.MapToTypedResult(TypedResults.Created);
+            var guid = Guid.Parse(user.Id);
+            var result = await handler.Handle(command with {Id = guid}, ct);
+            return result.MapToTypedResult(TypedResults.Ok);
         }).RequireAuthorization();
     }
 }
 
-public record UpdateAccountCommand(Guid Id, string? FirstName, string? LastName, string? MiddleName, string? PhoneNumber) : ICommand;
+public record UpdateAccountCommand(Guid Id, string? FirstName, string? LastName, string? MiddleName, string? PhoneNumber, bool? PhotoChanged) : ICommand;
 
-public class UpdateAccountCommandHandle(ProfilesDbContext context) : ICommandHandler<UpdateAccountCommand>
+public class UpdateAccountCommandHandle(ProfilesDbContext context, IHttpClientFactory factory, ILogger<UpdateAccountCommandHandle> logger) : ICommandHandler<UpdateAccountCommand>
 {
     public async Task<Result> Handle(UpdateAccountCommand command, CancellationToken ct)
     {
@@ -38,7 +41,25 @@ public class UpdateAccountCommandHandle(ProfilesDbContext context) : ICommandHan
         if (command.MiddleName != null) account.MiddleName = command.MiddleName;
         if (command.PhoneNumber != null) account.PhoneNumber = command.PhoneNumber;
 
+        var oldPhotoId = account.PhotoId;
+        var newPhotoId = command.PhotoChanged.GetValueOrDefault() ? Guid.NewGuid() : account.PhotoId;
+        account.PhotoId = newPhotoId;
         await context.SaveChangesAsync(ct);
+
+        if (command.PhotoChanged.GetValueOrDefault() && oldPhotoId != newPhotoId)
+        {
+            var client = factory.CreateClient("documentsclient");
+            try
+            {
+                var result = await client.PostAsync($"api/v1/Photos/users/{account.Id}/avatar/confirm?photoId={newPhotoId}&oldPhotoId={oldPhotoId}", null, ct);
+                
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Photo is not confirmed");
+            }
+        }
+        
         return Result.Success();
     }
 }

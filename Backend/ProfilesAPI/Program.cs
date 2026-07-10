@@ -36,6 +36,11 @@ builder.Services.AddClientCredentialsHttpClient("identityclient", ClientCredenti
     client.BaseAddress = new Uri("https://localhost:6001/api");
 });
 
+builder.Services.AddClientCredentialsHttpClient("documentsclient", ClientCredentialsClientName.Parse("identityclient"), client =>
+{
+    client.BaseAddress = new Uri("http://documentsapi/");
+});
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.SameSite = SameSiteMode.None;

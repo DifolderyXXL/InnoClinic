@@ -83,7 +83,23 @@ public static class AuthorizationExtension
     }
 
     public static void AddIdentityAuthorizationPolicies(this IServiceCollection services)
-    {
+    {        
+        services.AddAuthentication()
+            .AddJwtBearer("LocalM2M", options =>
+            {
+                options.Authority = "https://localhost:6001";
+                options.RequireHttpsMetadata = true;
+                
+                options.MapInboundClaims = false;
+        
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = "https://localhost:6001",
+                    
+                    ValidateAudience = false 
+                };
+            });
         services.AddAuthorizationBuilder()
             .AddPolicy(RolePolicy.IdentityServer, policy =>
                 policy

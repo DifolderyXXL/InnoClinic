@@ -1,8 +1,20 @@
-
 using Microsoft.Extensions.Configuration;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+var blobs = builder.AddAzureStorage("storage")
+       .RunAsEmulator(azurite =>
+       {
+              azurite.WithLifetime(ContainerLifetime.Persistent);
+              azurite.WithDataVolume();
+              azurite.WithBlobPort(10000)
+                     .WithQueuePort(10001)
+                     .WithTablePort(10002);
+       })
+       .AddBlobs("documentsBlob");
+
+
+       
 var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                   .WithImage("masstransit/rabbitmq", "latest")
                   .WithLifetime(ContainerLifetime.Persistent)
@@ -12,15 +24,19 @@ var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                         displayText: "RabbitMQ Dashboard"
                     );
 
-
-
 var identityServer = builder.AddProject<Projects.Deunde_IdentityServer>("IdentityServer")
        .WithHttpsEndpoint(port: 6001)
+       .WithExternalHttpEndpoints();
+
+var documentsApi = builder.AddProject<Projects.DocumentsAPI>("DocumentsAPI")
+       .WithReference(identityServer)
+       .WithReference(blobs)
        .WithExternalHttpEndpoints();
 
 var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI")
        .WithReference(identityServer)
        .WithReference(rabbitmqServicesApi)
+       .WithReference(documentsApi)
        .WithExternalHttpEndpoints();
 
 
@@ -67,6 +83,7 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithReference(profilesAPI)
        .WithReference(servicesAPI)
        .WithReference(appointmentsAPI)
+       .WithReference(documentsApi)
        .WithExternalHttpEndpoints();
 
 var frontend = builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")

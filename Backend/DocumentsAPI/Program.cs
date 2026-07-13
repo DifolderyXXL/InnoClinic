@@ -1,4 +1,6 @@
+using DocumentsAPI.Consumers;
 using DocumentsAPI.Infrastructure;
+using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
 using ServiceDefaults;
@@ -14,6 +16,22 @@ builder.Services.AddScoped<IProfilePhotoStorage, BlobProfilePhotoStorage>();
 builder.AddMicroserviceDefaults("/documents");
 builder.Services.AddIdentityAuthorizationPolicies();
 builder.Services.AddControllers();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.SetKebabCaseEndpointNameFormatter();
+
+    x.AddConsumer<ConfirmProfilePhotoConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+
 
 var app = builder.Build();
 

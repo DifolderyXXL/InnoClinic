@@ -5,7 +5,6 @@ var builder = DistributedApplication.CreateBuilder(args);
 var blobs = builder.AddAzureStorage("storage")
        .RunAsEmulator(azurite =>
        {
-              azurite.WithLifetime(ContainerLifetime.Persistent);
               azurite.WithDataVolume();
               azurite.WithBlobPort(10000)
                      .WithQueuePort(10001)
@@ -31,13 +30,21 @@ var identityServer = builder.AddProject<Projects.Deunde_IdentityServer>("Identit
 var documentsApi = builder.AddProject<Projects.DocumentsAPI>("DocumentsAPI")
        .WithReference(identityServer)
        .WithReference(blobs)
+       .WithReference(rabbitmqServicesApi)
        .WithExternalHttpEndpoints();
+
+var sqlServer = builder.AddSqlServer("sqlServer")
+       .WithHostPort(58379)
+       .WithLifetime(ContainerLifetime.Persistent);
+var profilesDb = sqlServer.AddDatabase("profilesSqlServer");
 
 var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI")
        .WithReference(identityServer)
        .WithReference(rabbitmqServicesApi)
        .WithReference(documentsApi)
-       .WithExternalHttpEndpoints();
+       .WithReference(profilesDb)
+       .WithExternalHttpEndpoints()
+       .WaitFor(profilesDb);
 
 
 var postgresPassword = builder.AddParameter("postgres-password", secret: true);

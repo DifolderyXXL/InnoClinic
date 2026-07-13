@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DocumentsAPI.Controllers;
 
+public record PhotoCreatedResponse(Guid PhotoId);
 public class PhotosController(PhotoRepository context) : BaseApiController
 {
     [HttpGet("users/avatar/{photoId:guid}")]
@@ -39,6 +40,7 @@ public class PhotosController(PhotoRepository context) : BaseApiController
     
     [HttpPost("users/avatar")]
     [Authorize(Policy = RolePolicy.Client)]
+    [Produces<PhotoCreatedResponse>]
     public async Task<IActionResult> UploadProfilePhoto(
         IFormFile file,
         [FromServices] IValidator<IFormFile> validator,
@@ -58,33 +60,9 @@ public class PhotosController(PhotoRepository context) : BaseApiController
         }
         
         await using var stream = file.OpenReadStream();
-        await tempPhotoStorage.UploadAsync(userId, stream, TimeSpan.FromHours(1), ct);
+        var guid = await tempPhotoStorage.UploadAsync(userId, stream, TimeSpan.FromHours(1), ct);
         
-        return Ok();
-    }
-    
-    [HttpPost("users/{userId:guid}/avatar/confirm")]
-    [Authorize(Policy = RolePolicy.IdentityServer)]
-    public async Task<IActionResult> ConfirmProfilePhoto(
-        Guid userId,
-        [FromQuery] Guid photoId,
-        [FromQuery] Guid oldPhotoId,
-        [FromServices] IProfilePhotoStorage photoStorage,
-        [FromServices] ILogger<PhotosController> logger,
-        CancellationToken ct)
-    {
-        logger.LogWarning("SUCCESS");
-        if (photoId == Guid.Empty) return BadRequest();
-
-        await photoStorage.DeletePhotoAsync(userId, oldPhotoId, ct);
-        var isConfirmed = await photoStorage.ConfirmPhotoAsync(userId, photoId, ct);
-
-        if (!isConfirmed)
-        {
-            return NotFound();
-        }
-        
-        return Ok(new{ photoId });
+        return Ok(new PhotoCreatedResponse(guid));
     }
 }
 

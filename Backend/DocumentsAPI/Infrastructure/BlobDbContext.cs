@@ -19,17 +19,3 @@ public class BlobDbContext(BlobServiceClient client)
         await TempProfilePhotoContainerClient.CreateIfNotExistsAsync(cancellationToken: ct);
     }
 }
-
-
-public class PhotoRepository(BlobDbContext context)
-{
-    private string GetPhotoName(Guid userId, Guid id) => $"{userId}/{id}.jpg";
-    private string GetPhotoName(Guid userId) => $"temp-{userId}.jpg";
-    
-    public BlobClient GetProfilePhotoClient(Guid userId, Guid id)
-        => context.ActiveProfilePhotoContainerClient.GetBlobClient(GetPhotoName(userId,id));
-    
-    public BlobClient TempProfilePhotoContainerClient(Guid userId)
-        => context.TempProfilePhotoContainerClient.GetBlobClient(GetPhotoName(userId));
-}
-

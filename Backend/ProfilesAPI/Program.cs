@@ -16,9 +16,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddMicroserviceDefaults("/profiles", typeof(Program).Assembly);
 
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContextPool<ProfilesDbContext>(options => options.UseSqlite(connectionString).UseLazyLoadingProxies());
+builder.Services.AddDbContext<ProfilesDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("profilesSqlServer")));
 
 
 builder.Services.AddClientCredentialsTokenManagement()
@@ -28,7 +27,7 @@ builder.Services.AddClientCredentialsTokenManagement()
 
         client.ClientId = ClientId.Parse("m2m");
         client.ClientSecret = ClientSecret.Parse("secret");
-        client.Scope = Duende.AccessTokenManagement.Scope.Parse("identity");
+        client.Scope = Scope.Parse("identity");
     });
 
 builder.Services.AddClientCredentialsHttpClient("identityclient", ClientCredentialsClientName.Parse("identityclient"), client =>
@@ -36,28 +35,30 @@ builder.Services.AddClientCredentialsHttpClient("identityclient", ClientCredenti
     client.BaseAddress = new Uri("https://localhost:6001/api");
 });
 
-builder.Services.AddClientCredentialsHttpClient("documentsclient", ClientCredentialsClientName.Parse("identityclient"), client =>
-{
-    client.BaseAddress = new Uri("http://documentsapi/");
-});
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.Cookie.SameSite = SameSiteMode.None;
-
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 builder.Services.AddMassTransit(x =>
 {
     x.SetKebabCaseEndpointNameFormatter();
-
+    
     x.AddConsumer<SpecializationUpdatedEventConsumer>();
     x.AddConsumer<SpecializationCreatedEventConsumer>();
     x.AddConsumer<SpecializationDeletedEventConsumer>();
     
     x.AddDelayedMessageScheduler();
-
+    
+    x.AddEntityFrameworkOutbox<ProfilesDbContext>(o =>
+    {
+        o.UseSqlServer();
+        o.UseBusOutbox();
+    });
+    
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));

@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
+using Contracts.DocumentsContracts;
 using FluentValidation;
+using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;
@@ -29,9 +31,11 @@ public class UpdateAccountEndpoint : IEndpoint
 }
 
 public record UpdateAccountCommand([property: JsonIgnore]Guid Id, 
-    string? FirstName, string? LastName, string? MiddleName, string? PhoneNumber, bool? PhotoChanged) : ICommand;
+    string? FirstName, string? LastName, string? MiddleName, string? PhoneNumber, Guid? PhotoId) : ICommand;
 
-public class UpdateAccountCommandHandle(ProfilesDbContext context, IHttpClientFactory factory, ILogger<UpdateAccountCommandHandle> logger) : ICommandHandler<UpdateAccountCommand>
+public class UpdateAccountCommandHandle(
+    ProfilesDbContext context,
+    IPublishEndpoint publishEndpoint) : ICommandHandler<UpdateAccountCommand>
 {
     public async Task<Result> Handle(UpdateAccountCommand command, CancellationToken ct)
     {
@@ -42,25 +46,15 @@ public class UpdateAccountCommandHandle(ProfilesDbContext context, IHttpClientFa
         if (command.LastName != null) account.LastName = command.LastName;
         if (command.MiddleName != null) account.MiddleName = command.MiddleName;
         if (command.PhoneNumber != null) account.PhoneNumber = command.PhoneNumber;
-
-        var oldPhotoId = account.PhotoId;
-        var newPhotoId = command.PhotoChanged.GetValueOrDefault() ? Guid.NewGuid() : account.PhotoId;
-        account.PhotoId = newPhotoId;
-        await context.SaveChangesAsync(ct);
-
-        if (command.PhotoChanged.GetValueOrDefault() && oldPhotoId != newPhotoId)
+        if (command.PhotoId != null)
         {
-            var client = factory.CreateClient("documentsclient");
-            try
-            {
-                var result = await client.PostAsync($"api/v1/Photos/users/{account.Id}/avatar/confirm?photoId={newPhotoId}&oldPhotoId={oldPhotoId}", null, ct);
-                
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Photo is not confirmed");
-            }
+            var oldId = account.PhotoId;
+            account.PhotoId = command.PhotoId;
+
+            await publishEndpoint.Publish(new ConfirmProfilePhoto(account.Id, command.PhotoId.Value, oldId), ct);
         }
+        
+        await context.SaveChangesAsync(ct);
         
         return Result.Success();
     }

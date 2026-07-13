@@ -4,12 +4,16 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>293ec4fa-c8d6-4d3d-a9f7-0dd1adfd036e</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MassTransit" Version="8.5.10" />
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.10" />
         <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="*" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\Contracts\Contracts.csproj" />
       <ProjectReference Include="..\MicroserviceApiKernel\MicroserviceApiKernel.csproj" />
     </ItemGroup>
 

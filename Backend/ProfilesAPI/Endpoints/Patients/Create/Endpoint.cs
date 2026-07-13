@@ -57,8 +57,3 @@ public class CreatePatientCommandValidator : AbstractValidator<CreatePatientComm
         // RuleFor(x => x.Property).NotEmpty();
     }
 }
-public static class PatientErrors
-{
-    public static Error AlreadyExists() => Error.Create(ErrorType.Conflict);
-    public static Error NotFound() => Error.Create(ErrorType.NotFound);
-}

@@ -39,6 +39,7 @@ public static class AuthorizationExtension
                 ValidateAudience = true,
                 ValidateLifetime = true,
             };
+            
         });
 
         builder.Services.AddSingleton<IAuthorizationHandler, RoleRequirementHandler>();

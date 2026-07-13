@@ -9,18 +9,34 @@ using Microsoft.AspNetCore.Mvc;
 namespace DocumentsAPI.Controllers;
 
 public record PhotoCreatedResponse(Guid PhotoId);
-public class PhotosController(PhotoRepository context) : BaseApiController
+public class PhotosController : BaseApiController
 {
+    [HttpGet("offices/{officeId}/avatar/{photoId:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPublicPhoto(
+        [FromRoute] string officeId,
+        [FromRoute] Guid photoId,
+        [FromServices] IPublicPhotoStorage context,
+        CancellationToken ct)
+    {
+        var client = context.Repository.GetPhotoClient(officeId, photoId);
+
+        if (!await client.ExistsAsync(ct)) return NotFound();
+
+        return Ok(new { url = client.Uri.ToString() });
+    }
+    
     [HttpGet("users/avatar/{photoId:guid}")]
     [Authorize(Policy = RolePolicy.Client)]
     public async Task<IActionResult> GetProfilePhoto(
         [FromRoute] Guid photoId,
+        [FromServices] IUserPhotoStorage context,
         CancellationToken ct)
     {
         var user = await GetUserClaim();
         if (user == null || !Guid.TryParse(user.Id, out var guid)) return Unauthorized();
         
-        var client = context.GetProfilePhotoClient(guid, photoId);
+        var client = context.Repository.GetPhotoClient(guid.ToString(), photoId);
 
         if (!await client.ExistsAsync(ct)) return NotFound();
 
@@ -44,7 +60,7 @@ public class PhotosController(PhotoRepository context) : BaseApiController
     public async Task<IActionResult> UploadProfilePhoto(
         IFormFile file,
         [FromServices] IValidator<IFormFile> validator,
-        [FromServices] ITempPhotoStorage tempPhotoStorage,
+        [FromServices] IPhotoStorage tempPhotoStorage,
         CancellationToken ct)
     {
         var validationResult = await validator.ValidateAsync(file, ct);
@@ -60,9 +76,57 @@ public class PhotosController(PhotoRepository context) : BaseApiController
         }
         
         await using var stream = file.OpenReadStream();
-        var guid = await tempPhotoStorage.UploadAsync(userId, stream, TimeSpan.FromHours(1), ct);
+        var guid = await tempPhotoStorage.UploadTempAsync(userId.ToString(), stream, TimeSpan.FromHours(1), ct);
         
         return Ok(new PhotoCreatedResponse(guid));
+    }
+    
+    [HttpPost("offices/{officeId}/avatar")]
+    [Authorize(Policy = RolePolicy.Receptionist)]
+    [Produces<PhotoCreatedResponse>]
+    public async Task<IActionResult> UploadOfficePhoto(
+        IFormFile file,
+        [FromRoute] string officeId,
+        [FromServices] IValidator<IFormFile> validator,
+        [FromServices] IPublicPhotoStorage tempPhotoStorage,
+        CancellationToken ct)
+    {
+        var validationResult = await validator.ValidateAsync(file, ct);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
+        }
+        
+        await using var stream = file.OpenReadStream();
+        var guid = await tempPhotoStorage.UploadTempAsync(officeId, stream, TimeSpan.FromHours(1), ct);
+        
+        return Ok(new PhotoCreatedResponse(guid));
+    }
+    
+    [HttpPost("offices/{officeId}/avatar/confirm")]
+    [Authorize(Policy = RolePolicy.IdentityServer)]
+    public async Task<IActionResult> ConfirmProfilePhoto(
+        string officeId,
+        [FromQuery] Guid photoId,
+        [FromQuery] Guid? oldPhotoId,
+        [FromServices] IPublicPhotoStorage photoStorage,
+        [FromServices] ILogger<PhotosController> logger,
+        CancellationToken ct)
+    {
+        if (photoId == Guid.Empty) return BadRequest();
+
+        if (oldPhotoId != null)
+        {
+            await photoStorage.DeletePhotoAsync(officeId, oldPhotoId.Value, ct);
+        }
+        
+        var isConfirmed = await photoStorage.ConfirmPhotoAsync(officeId, photoId, ct);
+        if (!isConfirmed)
+        {
+            return NotFound();
+        }
+        
+        return Ok(new{ photoId });
     }
 }
 

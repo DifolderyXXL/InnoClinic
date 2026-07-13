@@ -78,6 +78,7 @@ var mongodb = mongo.AddDatabase("officesdb");
 var officesAPI = builder.AddProject<Projects.OfficesApi>("OfficesAPI")
        .WithReference(identityServer)
        .WithReference(mongodb)
+       .WithReference(documentsApi)
        .WaitFor(mongodb)
        .WithExternalHttpEndpoints();
 

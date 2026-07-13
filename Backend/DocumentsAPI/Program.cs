@@ -9,9 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddAzureBlobServiceClient("documentsBlob");
 builder.Services.AddScoped<BlobDbContext>();
-builder.Services.AddScoped<PhotoRepository>();
-builder.Services.AddScoped<ITempPhotoStorage, BlobTempPhotoStorage>();
-builder.Services.AddScoped<IProfilePhotoStorage, BlobProfilePhotoStorage>();
+
+
+builder.Services.AddScoped<ProfilePhotoRepository>();
+builder.Services.AddScoped<PublicPhotoRepository>();
+
+builder.Services.AddScoped<IUserPhotoStorage, UserPhotoStorage>();
+builder.Services.AddScoped<IPublicPhotoStorage, PublicPhotoStorage>();
+
+
 
 builder.AddMicroserviceDefaults("/documents");
 builder.Services.AddIdentityAuthorizationPolicies();

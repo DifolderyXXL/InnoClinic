@@ -1,7 +1,7 @@
 namespace OfficesApi.Endpoints.GetOffices;
 
 public record OfficeDto(string Id,
-    long? PhotoId,
+    Guid? PhotoId,
     string City,
     string Street,
     string HouseNumber,

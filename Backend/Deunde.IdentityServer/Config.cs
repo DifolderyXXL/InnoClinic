@@ -56,6 +56,16 @@ public static class Config
         },
         new Client
         {
+            ClientId = "postman-admin",
+            ClientSecrets = { new Secret("secret".Sha256()) },
+            AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+            AllowOfflineAccess = true,
+            AlwaysIncludeUserClaimsInIdToken = true,
+            UpdateAccessTokenClaimsOnRefresh = true,
+            AllowedScopes = { "openid", "profile", "email", "api", "offline_access" }
+        },
+        new Client
+        {
             ClientId = "swagger-interactive",
             ClientSecrets = { new Secret("secret".Sha256()) },
             AllowedGrantTypes = GrantTypes.Code,

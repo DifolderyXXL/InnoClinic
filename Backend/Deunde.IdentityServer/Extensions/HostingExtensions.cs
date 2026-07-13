@@ -199,6 +199,7 @@ internal static class HostingExtensions
         app.UseSerilogRequestLogging();
 
         await app.ConfigureDefaultRoles();
+        SeedData.EnsureSeedAdmins(app);
 
         if (app.Environment.IsDevelopment())
         {

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using FluentValidation;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.CQRS;
@@ -27,7 +28,8 @@ public class UpdateAccountEndpoint : IEndpoint
     }
 }
 
-public record UpdateAccountCommand(Guid Id, string? FirstName, string? LastName, string? MiddleName, string? PhoneNumber, bool? PhotoChanged) : ICommand;
+public record UpdateAccountCommand([property: JsonIgnore]Guid Id, 
+    string? FirstName, string? LastName, string? MiddleName, string? PhoneNumber, bool? PhotoChanged) : ICommand;
 
 public class UpdateAccountCommandHandle(ProfilesDbContext context, IHttpClientFactory factory, ILogger<UpdateAccountCommandHandle> logger) : ICommandHandler<UpdateAccountCommand>
 {

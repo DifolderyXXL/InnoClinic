@@ -38,7 +38,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<OfficesDbContext>();
-    await context.InitializeAsync(default);
+    await context.InitializeAsync(CancellationToken.None);
 }
 
 // Configure the HTTP request pipeline.

@@ -11,33 +11,33 @@ namespace OfficesApi.Infrastructure;
 public class OfficesDbContext(IMongoDatabase database)
 {
     public const string OfficesTableName = "offices";
+    
+    private readonly IMongoCollection<Office> _collection = database.GetCollection<Office>(OfficesTableName);
     public async Task InitializeAsync(CancellationToken ct)
     {
-        var collectionNames = await database.ListCollectionNames(null, ct).ToListAsync(ct);
+        var collectionNames = await (await database.ListCollectionNamesAsync(null, ct)).ToListAsync(ct);
 
         if (!collectionNames.Contains(OfficesTableName))
         {
             await database.CreateCollectionAsync(OfficesTableName, cancellationToken: ct);
         }
 
-        var collection = database.GetCollection<Office>(OfficesTableName);
-        var indexModel = new CreateIndexModel<Office>(Builders<Office>.IndexKeys
-            .Ascending(m => m.City));
+        var cityIndex = new CreateIndexModel<Office>(
+            Builders<Office>.IndexKeys.Ascending(m => m.City));
 
-        var indexKeysDefinition = Builders<Office>.IndexKeys
-            .Ascending(r => r.City)
-            .Ascending(r => r.Street)
-            .Ascending(r => r.HouseNumber);
+        var uniqueAddressIndex = new CreateIndexModel<Office>(
+            Builders<Office>.IndexKeys
+                .Ascending(r => r.City)
+                .Ascending(r => r.Street)
+                .Ascending(r => r.HouseNumber),
+            new CreateIndexOptions
+            {
+                Unique = true,
+                Name = "UX_Office_City_Street_HouseNumber"
+            });
 
-        var indexOptions = new CreateIndexOptions
-        {
-            Unique = true,
-            Name = "UX_Office_City_Street_HouseNumber"
-        };
-
-        await collection.Indexes.CreateManyAsync(
-            [indexModel,
-            new CreateIndexModel<Office>(indexKeysDefinition, indexOptions)]
+        await _collection.Indexes.CreateManyAsync(
+            [cityIndex, uniqueAddressIndex]
             , cancellationToken: ct);
     }
 
@@ -68,11 +68,9 @@ public class OfficesDbContext(IMongoDatabase database)
 
     public async Task<Result> UpdateOffice(Office office, CancellationToken ct)
     {
-        var collection = database.GetCollection<Office>(OfficesTableName);
-
         try
         {
-            var result = await collection.ReplaceOneAsync(x => x.Id == office.Id, office, cancellationToken: ct);
+            var result = await _collection.ReplaceOneAsync(x => x.Id == office.Id, office, cancellationToken: ct);
 
             if (result.MatchedCount == 0)
             {
@@ -113,40 +111,22 @@ public class OfficesDbContext(IMongoDatabase database)
 
     public async Task<Result<Office>> GetOffice(string officeId, CancellationToken ct)
     {
-        var collection = database.GetCollection<Office>(OfficesTableName);
-
-        try
-        {
-            var id = ObjectId.Parse(officeId);
-
-            return await collection.Find(x => x.Id == id).FirstOrDefaultAsync(ct);
-        }
-        catch (Exception)
+        if (!ObjectId.TryParse(officeId, out var id))
         {
             return OfficeErrors.NotFound();
         }
+
+        var office = await _collection.Find(x => x.Id == id).FirstOrDefaultAsync(ct);
+        
+        return office != null 
+            ? Result.Success(office) 
+            : OfficeErrors.NotFound();
     }
     public async Task<List<Office>> GetAll(PaginationParameters pagination, CancellationToken ct)
     {
-        var collection = database.GetCollection<Office>(OfficesTableName);
-
-        try
-        {
-            var filter = Builders<Office>.Filter.Empty;
-            
-            return await collection.Find(filter)
-                .Skip(pagination.Skip)
-                .Limit(pagination.PageSize)
-                .ToListAsync(ct);
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        return await _collection.Find(Builders<Office>.Filter.Empty)
+            .Skip(pagination.Skip)
+            .Limit(pagination.PageSize)
+            .ToListAsync(ct);
     }
-}
-public enum PageDirection
-{
-    Up,
-    Down,
 }

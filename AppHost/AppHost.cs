@@ -6,6 +6,7 @@ var blobs = builder.AddAzureStorage("storage")
        .RunAsEmulator(azurite =>
        {
               azurite.WithDataVolume();
+              azurite.WithLifetime(ContainerLifetime.Persistent);
               azurite.WithBlobPort(10000)
                      .WithQueuePort(10001)
                      .WithTablePort(10002);
@@ -35,6 +36,7 @@ var documentsApi = builder.AddProject<Projects.DocumentsAPI>("DocumentsAPI")
 
 var sqlServer = builder.AddSqlServer("sqlServer")
        .WithHostPort(58379)
+       .WithDataVolume()
        .WithLifetime(ContainerLifetime.Persistent);
 var profilesDb = sqlServer.AddDatabase("profilesSqlServer");
 
@@ -71,7 +73,8 @@ var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("Appointments
 
 
 var mongo = builder.AddMongoDB("mongo", 53460)
-                   .WithLifetime(ContainerLifetime.Persistent);
+       .WithDataVolume()
+       .WithLifetime(ContainerLifetime.Persistent);
 
 var mongodb = mongo.AddDatabase("officesdb");
 

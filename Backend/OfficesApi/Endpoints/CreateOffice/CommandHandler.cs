@@ -7,10 +7,12 @@ using OfficesApi.Services;
 namespace OfficesApi.Endpoints.CreateOffice;
 
 
-public record CreateOfficeCommand(Guid? PhotoId, string City, string Street, string HouseNumber, string? OfficeNumber, string RegistryPhoneNumber, bool IsActive) : ICommand;
-public class CreateOfficeCommandHandler(OfficesDbContext officesRepository, IDocumentsClient documentsClient) : ICommandHandler<CreateOfficeCommand>
+public record CreateOfficeCommand(Guid? PhotoId, string City, string Street, string HouseNumber, string? OfficeNumber, string RegistryPhoneNumber, bool IsActive) : ICommand<CreateOfficeResponse>;
+
+public record CreateOfficeResponse(string OfficeId);
+public class CreateOfficeCommandHandler(OfficesDbContext officesRepository, IDocumentsClient documentsClient) : ICommandHandler<CreateOfficeCommand, CreateOfficeResponse>
 {
-    public async Task<Result> Handle(CreateOfficeCommand command, CancellationToken ct)
+    public async Task<Result<CreateOfficeResponse>> Handle(CreateOfficeCommand command, CancellationToken ct)
     {
         var office = new Office
         {
@@ -24,7 +26,11 @@ public class CreateOfficeCommandHandler(OfficesDbContext officesRepository, IDoc
             IsActive = command.IsActive
         };
 
-        await officesRepository.Insert(office, ct);
+        var result = await officesRepository.Insert(office, ct);
+        if (result.IsError)
+        {
+            return result.Error!;
+        }
 
 
         if (command.PhotoId != null)
@@ -32,6 +38,6 @@ public class CreateOfficeCommandHandler(OfficesDbContext officesRepository, IDoc
             await documentsClient.ConfirmOfficePhotoAsync(office.Id.ToString(), command.PhotoId.Value, null, ct);
         }
         
-        return Result.Success();
+        return new CreateOfficeResponse(result.Value!);
     }
 }

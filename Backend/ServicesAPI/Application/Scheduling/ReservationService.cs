@@ -38,11 +38,4 @@ public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsPr
     {
         await store.TryRemove(reservationId, true, ct);
     }
-
-    private static ScheduleTimeWindow GetTimeSlotBetween(ReservedTimeWindow left, ReservedTimeWindow right)
-    {
-        var prevEnd = left.EndSlotIndex;
-        var space = new ScheduleTimeWindow(left.Date, prevEnd, right.StartSlotIndex - prevEnd);
-        return space;
-    }
 }

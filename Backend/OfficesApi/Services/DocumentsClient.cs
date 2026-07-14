@@ -17,7 +17,7 @@ public class DocumentsClient : IDocumentsClient
 
     public async Task ConfirmOfficePhotoAsync(string officeId, Guid photoId, Guid? oldPhotoId, CancellationToken ct)
     {
-        var route = $"offices/{officeId}/avatar/confirm?photoId={photoId}";
+        var route = $"Photos/offices/{officeId}/avatar/confirm?photoId={photoId}";
         if (oldPhotoId != null) route += $"&oldPhotoId={oldPhotoId.Value}";
             
         var response = await _httpClient.PostAsync(route, null, ct);

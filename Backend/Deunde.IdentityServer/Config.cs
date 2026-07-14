@@ -58,7 +58,7 @@ public static class Config
         {
             ClientId = "postman-admin",
             ClientSecrets = { new Secret("secret".Sha256()) },
-            AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+            AllowedGrantTypes = [GrantType.ResourceOwnerPassword, GrantType.RefreshToken],
             AllowOfflineAccess = true,
             AlwaysIncludeUserClaimsInIdToken = true,
             UpdateAccessTokenClaimsOnRefresh = true,

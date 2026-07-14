@@ -1,6 +1,9 @@
 using Duende.AccessTokenManagement;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using OfficesApi.Infrastructure;
 using OfficesApi.Services;
 using ServiceDefaults;
@@ -10,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddMicroserviceDefaults("/offices");
 
 
+BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 builder.AddMongoDBClient(connectionName: "officesdb");
 builder.Services.AddScoped<OfficesDbContext>();
 

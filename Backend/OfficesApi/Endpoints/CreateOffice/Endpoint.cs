@@ -13,7 +13,7 @@ public class Endpoint : IEndpoint
     {
         builder.MapPost("/offices", async (
             [FromBody] CreateOfficeCommand request,
-            ICommandHandler<CreateOfficeCommand> handler,
+            ICommandHandler<CreateOfficeCommand, CreateOfficeResponse> handler,
             CancellationToken ct) =>
         {
             var result = await handler.Handle(

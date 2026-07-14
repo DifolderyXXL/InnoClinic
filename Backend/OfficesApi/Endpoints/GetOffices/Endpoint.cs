@@ -3,6 +3,7 @@ using FluentValidation;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;
+using MicroserviceApiKernel.Extensions.Queryable;
 using MicroserviceApiKernel.Results;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
@@ -14,12 +15,14 @@ public class GetOfficesEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/offices", async (IQueryHandler<GetOfficesQuery, GetOfficesResponse> handler, CancellationToken ct) =>
+        builder.MapGet("/offices", async (
+            [AsParameters] PaginationParameters pagination,
+            IQueryHandler<GetOfficesQuery, GetOfficesResponse> handler, CancellationToken ct) =>
         {
-            var result = await handler.Handle(new(), ct);
+            var result = await handler.Handle(new(pagination), ct);
 
             return result.MapToTypedResult(x => TypedResults.Ok(x));
-        }).RequireAuthorization(RolePolicy.Client);
+        }).AllowAnonymous();
 
         builder.MapGet("/offices/{id}", async (string id, OfficesDbContext context, CancellationToken ct) =>
         {
@@ -46,7 +49,7 @@ public class GetOfficesEndpoint : IEndpoint
                 ));
             }
 
-            return result.MapToTypedResult(x => TypedResults.Ok(x));
-        }).RequireAuthorization(RolePolicy.Client);
+            return result.MapToTypedResult(TypedResults.Ok);
+        }).AllowAnonymous();
     }
 }

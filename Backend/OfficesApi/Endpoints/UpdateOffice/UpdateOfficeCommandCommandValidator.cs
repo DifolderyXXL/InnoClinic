@@ -7,9 +7,10 @@ public class UpdateOfficeCommandCommandValidator : AbstractValidator<UpdateOffic
     public UpdateOfficeCommandCommandValidator()
     {
         RuleFor(x => x.OfficeId).NotEmpty();
-        RuleFor(x => x.City).NotEmpty().MaximumLength(64);
-        RuleFor(x => x.HouseNumber).NotEmpty().MaximumLength(64);
-        RuleFor(x => x.Street).NotEmpty().MaximumLength(64);
-        RuleFor(x => x.RegistryPhoneNumber).NotEmpty().MaximumLength(64);
+        
+        RuleFor(x => x.City).MaximumLength(64);
+        RuleFor(x => x.HouseNumber).MaximumLength(64);
+        RuleFor(x => x.Street).MaximumLength(64);
+        RuleFor(x => x.RegistryPhoneNumber).MaximumLength(64);
     }
 }

@@ -9,7 +9,7 @@ public record BaseAccountDto(
     string FirstName,
     string LastName,
     string? MiddleName,
-    long? PhotoId
+    Guid? PhotoId
 );
 
 public record PatientDto(

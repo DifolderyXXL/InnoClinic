@@ -13,7 +13,7 @@ public partial class Account
     public string? MiddleName { get; set; }
 
 
-    public long? PhotoId { get; set; }
+    public Guid? PhotoId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

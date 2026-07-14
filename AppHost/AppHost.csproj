@@ -15,12 +15,14 @@
     <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.5.2" />
     <PackageReference Include="Aspire.Hosting.MongoDB" Version="*" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="*" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AuthorizationAPI\AuthorizationAPI.csproj" />
     <ProjectReference Include="..\Backend\AppointmentsAPI\AppointmentsAPI.csproj" />
     <ProjectReference Include="..\Backend\Deunde.IdentityServer\Deunde.IdentityServer.csproj" />
+    <ProjectReference Include="..\Backend\DocumentsAPI\DocumentsAPI.csproj" />
     <ProjectReference Include="..\Backend\OfficesApi\OfficesApi.csproj" />
     <ProjectReference Include="..\Backend\ProfilesAPI\ProfilesAPI.csproj" />
     <ProjectReference Include="..\Backend\ServicesAPI\ServicesAPI.csproj" />

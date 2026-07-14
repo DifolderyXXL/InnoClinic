@@ -8,6 +8,6 @@ public class ReservedTimeWindowTypeConfiguration : IEntityTypeConfiguration<Rese
 {
     public void Configure(EntityTypeBuilder<ReservedTimeWindow> builder)
     {
-        builder.HasIndex(x => new { x.Date, x.StartSlotIndex, x.SlotCount });
+        builder.HasIndex(x => new { x.DoctorId, x.Date });
     }
 }

@@ -9,7 +9,7 @@ public record AccountDto
     public string FirstName { get; init; }
     public string LastName { get; init; }
     public string? MiddleName { get; init; }
-    public long? PhotoId { get; init; }
+    public Guid? PhotoId { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }

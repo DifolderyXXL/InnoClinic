@@ -40,6 +40,7 @@ builder.Services.AddMassTransit(x =>
     });
 
     x.AddConsumer<ProcessReservationConsumer>();
+    x.AddConsumer<ProcessReservationFaultConsumer>();
     x.AddConsumer<ProcessReservationConfirmationConsumer>();
     
     x.AddConsumer<CancelReservationConsumer>();

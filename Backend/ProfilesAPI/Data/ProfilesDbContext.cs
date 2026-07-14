@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ProfilesAPI.Models;
@@ -19,6 +20,9 @@ public class ProfilesDbContext(DbContextOptions<ProfilesDbContext> options)
 
         modelBuilder.ApplyConfiguration(new AccountEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new PatientEntityTypeConfiguration());
+        
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }
 

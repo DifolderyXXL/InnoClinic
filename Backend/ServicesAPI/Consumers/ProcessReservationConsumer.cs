@@ -2,6 +2,8 @@ using System.ComponentModel.DataAnnotations;
 using Contracts.AppointmentContracts;
 using FluentValidation;
 using MassTransit;
+using MassTransit.Logging;
+using MassTransit.Transports;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +57,8 @@ public class ProcessReservationConsumer(
     IReservationService reservationService, 
     IValidator<ProcessReservation> validator,
     IScheduleService scheduleService,
+    ServicesDbContext db,
+    ILogger<ProcessReservationConsumer> logger,
     IOptions<ReservationOptions> reservationOptions)
     : IConsumer<ProcessReservation>
 {
@@ -80,22 +84,26 @@ public class ProcessReservationConsumer(
 
         var slotCount = timeStepResult.Value;
         
-        var result = await reservationService.TryReserve(
+        var entity = await reservationService.TryReserve(
             context.Message.DoctorId,
             context.Message.AppointmentId,
             new(context.Message.Date, context.Message.StartSlotIndex, (int)slotCount),
             context.CancellationToken);
-
-        if (result.IsSuccess)
-        {
-            await context.Publish(new TimeWindowReserved(context.Message.AppointmentId, result.ReservationId!.Value));   
-            await context.SchedulePublish(
-                delay: reservationOptions.Value.ReserveTime,
-                message: new ReservationExpired(context.Message.AppointmentId, result.ReservationId!.Value));   
-        }
-        else
-        {
-            await Fail(context);
-        }
+        
+        await context.Publish(new TimeWindowReserved(context.Message.AppointmentId, entity.Id));   
+        await context.SchedulePublish(
+            delay: reservationOptions.Value.ReserveTime,
+            message: new ReservationExpired(context.Message.AppointmentId, entity.Id));   
+        
+        await db.SaveChangesAsync(context.CancellationToken);
+    }
+}
+public class ProcessReservationFaultConsumer : IConsumer<Fault<ProcessReservation>>
+{
+    public async Task Consume(ConsumeContext<Fault<ProcessReservation>> context)
+    {
+        var originalMessage = context.Message.Message;
+        
+        await context.Publish(new ReservationFailed(originalMessage.AppointmentId));
     }
 }

@@ -1,8 +1,20 @@
-
 using Microsoft.Extensions.Configuration;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+var blobs = builder.AddAzureStorage("storage")
+       .RunAsEmulator(azurite =>
+       {
+              azurite.WithDataVolume();
+              azurite.WithLifetime(ContainerLifetime.Persistent);
+              azurite.WithBlobPort(10000)
+                     .WithQueuePort(10001)
+                     .WithTablePort(10002);
+       })
+       .AddBlobs("documentsBlob");
+
+
+       
 var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                   .WithImage("masstransit/rabbitmq", "latest")
                   .WithLifetime(ContainerLifetime.Persistent)
@@ -12,16 +24,29 @@ var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                         displayText: "RabbitMQ Dashboard"
                     );
 
-
-
 var identityServer = builder.AddProject<Projects.Deunde_IdentityServer>("IdentityServer")
        .WithHttpsEndpoint(port: 6001)
        .WithExternalHttpEndpoints();
 
+var documentsApi = builder.AddProject<Projects.DocumentsAPI>("DocumentsAPI")
+       .WithReference(identityServer)
+       .WithReference(blobs)
+       .WithReference(rabbitmqServicesApi)
+       .WithExternalHttpEndpoints();
+
+var sqlServer = builder.AddSqlServer("sqlServer")
+       .WithHostPort(58379)
+       .WithDataVolume()
+       .WithLifetime(ContainerLifetime.Persistent);
+var profilesDb = sqlServer.AddDatabase("profilesSqlServer");
+
 var profilesAPI = builder.AddProject<Projects.ProfilesAPI>("ProfilesAPI")
        .WithReference(identityServer)
        .WithReference(rabbitmqServicesApi)
-       .WithExternalHttpEndpoints();
+       .WithReference(documentsApi)
+       .WithReference(profilesDb)
+       .WithExternalHttpEndpoints()
+       .WaitFor(profilesDb);
 
 
 var postgresPassword = builder.AddParameter("postgres-password", secret: true);
@@ -48,13 +73,15 @@ var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("Appointments
 
 
 var mongo = builder.AddMongoDB("mongo", 53460)
-                   .WithLifetime(ContainerLifetime.Persistent);
+       .WithDataVolume()
+       .WithLifetime(ContainerLifetime.Persistent);
 
 var mongodb = mongo.AddDatabase("officesdb");
 
 var officesAPI = builder.AddProject<Projects.OfficesApi>("OfficesAPI")
        .WithReference(identityServer)
        .WithReference(mongodb)
+       .WithReference(documentsApi)
        .WaitFor(mongodb)
        .WithExternalHttpEndpoints();
 
@@ -67,6 +94,7 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithReference(profilesAPI)
        .WithReference(servicesAPI)
        .WithReference(appointmentsAPI)
+       .WithReference(documentsApi)
        .WithExternalHttpEndpoints();
 
 var frontend = builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")

@@ -1,3 +1,4 @@
+using Deunde.IdentityServer.Services;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,31 @@ public class SeedData
             EnsureSeedData(context);
         }
     }
+    
+    public static void EnsureSeedAdmins(WebApplication app)
+    {
+        using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
+        {
+            var createManager = scope.ServiceProvider.GetRequiredService<IUserCreateManager>();
+            var logger = scope.ServiceProvider.GetService<ILogger<SeedData>>();
+
+            var admins = app.Configuration.GetSection(AdminSeedConfiguration.SectionName)
+                .Get<List<AdminSeedConfiguration>>() ?? [];
+
+            foreach (var admin in admins)
+            {
+                try
+                {
+                    createManager.CreateInternal(admin.Email, admin.Password, admin.Roles);
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogWarning(ex, "Error while seeding {email}", admin.Email);
+                }
+            }
+            
+        }
+    }
 
     private static void EnsureSeedData(ConfigurationDbContext context)
     {
@@ -34,6 +60,14 @@ public class SeedData
         {
             Log.Debug("IdentityResources already populated");
         }
-
     }
+}
+
+public class AdminSeedConfiguration
+{
+    public const string SectionName = "AdminSeed";
+    
+    public string Email { get; set; }
+    public string Password { get; set; }
+    public string[] Roles { get; set; }
 }

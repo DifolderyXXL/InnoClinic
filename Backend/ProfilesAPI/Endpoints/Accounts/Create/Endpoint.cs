@@ -74,9 +74,3 @@ public class CreateAccountCommandValidator : AbstractValidator<CreateAccountComm
         RuleFor(x => x.LastName).NotEmpty();
     }
 }
-
-public static class AccountErrors
-{
-    public static Error AlreadyExists() => Error.Create(ErrorType.Conflict);
-    public static Error NotFound() => Error.Create(ErrorType.NotFound);
-}

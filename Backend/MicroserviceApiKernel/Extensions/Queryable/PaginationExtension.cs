@@ -4,7 +4,10 @@ using Microsoft.EntityFrameworkCore;
 namespace MicroserviceApiKernel.Extensions.Queryable;
 
 
-public record PaginationParameters(int Page = 1, int PageSize = 50);
+public record PaginationParameters(int Page = 1, int PageSize = 50)
+{
+    public int Skip => (Page - 1) * PageSize;
+}
 public static class PaginationExtension
 {
     extension<TSource>(IQueryable<TSource> source)
@@ -16,6 +19,20 @@ public static class PaginationExtension
                 .Take(pageSize);
         }
         public IQueryable<TSource> Pagination(PaginationParameters parameters)
+        {
+            return source.Pagination(parameters.Page, parameters.PageSize);
+        }
+    }
+    
+    extension<TSource>(IEnumerable<TSource> source)
+    {
+        public IEnumerable<TSource> Pagination(int page, int pageSize)
+        {
+            return source
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+        }
+        public IEnumerable<TSource> Pagination(PaginationParameters parameters)
         {
             return source.Pagination(parameters.Page, parameters.PageSize);
         }

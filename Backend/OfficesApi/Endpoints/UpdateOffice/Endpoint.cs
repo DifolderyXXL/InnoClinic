@@ -6,7 +6,7 @@ namespace OfficesApi.Endpoints.UpdateOffice;
 
 public class Endpoint : IEndpoint
 {
-    public record Request(long? PhotoId, string City, string Street, string HouseNumber, string? OfficeNumber, string RegistryPhoneNumber, string IsActive);
+    public record Request(Guid? PhotoId, string? City, string? Street, string? HouseNumber, string? OfficeNumber, string? RegistryPhoneNumber, string? IsActive);
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapPut("/offices/{id}", async (string id, Request request, ICommandHandler<UpdateOfficeCommand> handler, CancellationToken ct) =>

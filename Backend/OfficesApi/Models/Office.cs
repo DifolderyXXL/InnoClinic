@@ -8,7 +8,7 @@ public class Office
 {
     [BsonId]
     public ObjectId Id { get; set; }
-    public long? PhotoId { get; set; }
+    public Guid? PhotoId { get; set; }
 
     public string City { get; set; }
     public string Street { get; set; }

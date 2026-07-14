@@ -1,3 +1,5 @@
+using System.Reflection;
+using MicroserviceApiKernel.Extensions.Queryable;
 using MicroserviceApiKernel.Results;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -39,17 +41,27 @@ public class OfficesDbContext(IMongoDatabase database)
             , cancellationToken: ct);
     }
 
-    public async Task Insert(Office office, CancellationToken ct)
+    public async Task<Result<string>> Insert(Office office, CancellationToken ct)
     {
         var collection = database.GetCollection<Office>(OfficesTableName);
 
         try
         {
             await collection.InsertOneAsync(office, null, ct);
+            
+            return Result.Success(office.Id.ToString());
+        }
+        catch (MongoWriteException ex) when (ex.WriteError?.Code == 11000)
+        {
+            return OfficeErrors.AlreadyExists();
         }
         catch (MongoDuplicateKeyException)
         {
-            throw new InvalidOperationException($"Office with ID {office.Id} already exists.");
+            return OfficeErrors.AlreadyExists();
+        }
+        catch (Exception ex)
+        { 
+            return new Error(ex.Message, ErrorType.Internal);
         }
     }
 
@@ -114,15 +126,18 @@ public class OfficesDbContext(IMongoDatabase database)
             return OfficeErrors.NotFound();
         }
     }
-    public async Task<List<Office>> GetAll(CancellationToken ct)
+    public async Task<List<Office>> GetAll(PaginationParameters pagination, CancellationToken ct)
     {
         var collection = database.GetCollection<Office>(OfficesTableName);
 
         try
         {
             var filter = Builders<Office>.Filter.Empty;
-
-            return await collection.Find(filter).ToListAsync(ct);
+            
+            return await collection.Find(filter)
+                .Skip(pagination.Skip)
+                .Limit(pagination.PageSize)
+                .ToListAsync(ct);
         }
         catch (Exception)
         {

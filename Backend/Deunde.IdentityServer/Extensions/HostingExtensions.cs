@@ -157,23 +157,6 @@ internal static class HostingExtensions
                 options.Scope.Add("email");
             });
 
-        builder.Services.AddAuthentication()
-            .AddJwtBearer("LocalM2M", options =>
-            {
-                options.Authority = "https://localhost:6001";
-                options.RequireHttpsMetadata = true;
-                
-                options.MapInboundClaims = false;
-        
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = "https://localhost:6001",
-                    
-                    ValidateAudience = false 
-                };
-            });
-
         builder.Services.AddScoped<IUserRoleManager, UserRoleManager>();
         builder.Services.AddScoped<IUserCreateManager, UserCreateManager>();
         
@@ -216,6 +199,7 @@ internal static class HostingExtensions
         app.UseSerilogRequestLogging();
 
         await app.ConfigureDefaultRoles();
+        SeedData.EnsureSeedAdmins(app);
 
         if (app.Environment.IsDevelopment())
         {

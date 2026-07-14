@@ -1,9 +1,13 @@
+using System.Text.Json.Serialization;
+using Contracts.DocumentsContracts;
 using FluentValidation;
+using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;
 using MicroserviceApiKernel.Results;
 using Microsoft.EntityFrameworkCore;
+using ProfilesAPI.CustomBindAsync;
 using ProfilesAPI.Data;
 using ProfilesAPI.Endpoints.Accounts.Create;
 
@@ -16,17 +20,22 @@ public class UpdateAccountEndpoint : IEndpoint
         builder.MapPut("/accounts/me", async (
             UpdateAccountCommand command,
             ICommandHandler<UpdateAccountCommand> handler,
+            UserClaimInfo user,
             CancellationToken ct) =>
         {
-            var result = await handler.Handle(command, ct);
-            return result.MapToTypedResult(TypedResults.Created);
+            var guid = Guid.Parse(user.Id);
+            var result = await handler.Handle(command with {Id = guid}, ct);
+            return result.MapToTypedResult(TypedResults.Ok);
         }).RequireAuthorization();
     }
 }
 
-public record UpdateAccountCommand(Guid Id, string? FirstName, string? LastName, string? MiddleName, string? PhoneNumber) : ICommand;
+public record UpdateAccountCommand([property: JsonIgnore]Guid Id, 
+    string? FirstName, string? LastName, string? MiddleName, string? PhoneNumber, Guid? PhotoId) : ICommand;
 
-public class UpdateAccountCommandHandle(ProfilesDbContext context) : ICommandHandler<UpdateAccountCommand>
+public class UpdateAccountCommandHandle(
+    ProfilesDbContext context,
+    IPublishEndpoint publishEndpoint) : ICommandHandler<UpdateAccountCommand>
 {
     public async Task<Result> Handle(UpdateAccountCommand command, CancellationToken ct)
     {
@@ -37,8 +46,16 @@ public class UpdateAccountCommandHandle(ProfilesDbContext context) : ICommandHan
         if (command.LastName != null) account.LastName = command.LastName;
         if (command.MiddleName != null) account.MiddleName = command.MiddleName;
         if (command.PhoneNumber != null) account.PhoneNumber = command.PhoneNumber;
+        if (command.PhotoId != null)
+        {
+            var oldId = account.PhotoId;
+            account.PhotoId = command.PhotoId;
 
+            await publishEndpoint.Publish(new ConfirmProfilePhoto(account.Id, command.PhotoId.Value, oldId), ct);
+        }
+        
         await context.SaveChangesAsync(ct);
+        
         return Result.Success();
     }
 }

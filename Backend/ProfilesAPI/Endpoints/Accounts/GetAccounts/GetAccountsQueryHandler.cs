@@ -1,5 +1,6 @@
 using Mapster;
 using MicroserviceApiKernel.CQRS;
+using MicroserviceApiKernel.Extensions.Queryable;
 using MicroserviceApiKernel.Results;
 using Microsoft.EntityFrameworkCore;
 using ProfilesAPI.Data;
@@ -17,8 +18,7 @@ public class GetAccountsQueryHandler(ProfilesDbContext context) : IQueryHandler<
         var total = await context.Accounts.CountAsync(ct);
         var items = await context.Accounts
             .OrderBy(x => x.Id)
-            .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
+            .Pagination(query.Page, query.PageSize)
             .ProjectToType<AccountDto>()
             .ToListAsync(ct);
 

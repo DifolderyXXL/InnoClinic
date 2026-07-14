@@ -23,6 +23,7 @@ namespace ServicesAPI.Migrations
                 .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "btree_gist");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
@@ -221,7 +222,7 @@ namespace ServicesAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Date", "StartSlotIndex", "SlotCount");
+                    b.HasIndex("DoctorId", "Date");
 
                     b.ToTable("ReservedTimeWindows");
                 });

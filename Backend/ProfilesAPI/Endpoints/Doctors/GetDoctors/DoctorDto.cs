@@ -7,7 +7,7 @@ public record DoctorDto
     public string AccountFirstName { get; init; }
     public string AccountLastName { get; init; }
     public string? AccountMiddleName { get; init; }
-    public long? AccountPhotoId { get; init; }
+    public Guid? AccountPhotoId { get; init; }
 
     public DateOnly DateOfBirth { get; set; }
     public long SpecializationId { get; init; }

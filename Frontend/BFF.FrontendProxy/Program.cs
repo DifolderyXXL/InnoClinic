@@ -44,6 +44,7 @@ builder.Services.AddAuthentication(options =>
         options.Cookie.Name = "bff-local-session";
         options.Cookie.Path = "/";
         options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     })
     .AddOpenIdConnect("oidc", options =>
     {

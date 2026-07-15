@@ -9,7 +9,7 @@ using ProfilesAPI.Endpoints.Accounts.Create;
 
 namespace ProfilesAPI.Endpoints.Accounts.GetMyAccount;
 
-public class GetAccountEndpoint : IEndpoint
+public class GetAccountEndpoint : IAccountEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

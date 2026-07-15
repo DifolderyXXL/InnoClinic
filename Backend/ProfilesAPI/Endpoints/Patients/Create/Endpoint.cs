@@ -12,7 +12,7 @@ using ProfilesAPI.Endpoints.Accounts.Create;
 namespace ProfilesAPI.Endpoints.Patients.Create;
 
 public record PatientRequest(DateOnly DateOfBirth);
-public class CreatePatientEndpoint : IEndpoint
+public class CreatePatientEndpoint : IPatientEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

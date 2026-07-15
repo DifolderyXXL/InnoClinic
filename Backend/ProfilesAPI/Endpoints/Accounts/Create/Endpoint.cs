@@ -10,7 +10,7 @@ using ProfilesAPI.Data;
 
 namespace ProfilesAPI.Endpoints.Accounts.Create;
 
-public class CreateAccountEndpoint : IEndpoint
+public class CreateAccountEndpoint : IAccountEndpoint
 {
     public record AccountRequest(string FirstName, string LastName, string? MiddleName, string? PhoneNumber);
     public void MapEndpoint(IEndpointRouteBuilder builder)

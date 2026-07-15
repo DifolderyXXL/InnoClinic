@@ -8,7 +8,7 @@ using ProfilesAPI.Models;
 
 namespace ProfilesAPI.Endpoints.Doctors.UpdateDoctorProfile;
 
-public class UpdateDoctorProfileEndpoint : IEndpoint
+public class UpdateDoctorProfileEndpoint : IDoctorEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

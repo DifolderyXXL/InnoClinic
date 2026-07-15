@@ -53,9 +53,13 @@ public class MedicalResultsController : BaseApiController
         [FromServices] MedicalResultsDbContext context,
         CancellationToken ct)
     {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var doctorId)) return Unauthorized();
+        
         var medicalResult = new MedicalResult
         {
             UserId = request.UserId,
+            DoctorId = doctorId,
             AppointmentId = appointmentId,
             Complaints = request.Complaints,
             Conclusion = request.Conclusion,

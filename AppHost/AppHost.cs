@@ -69,7 +69,9 @@ var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
        .WithReference(identityServer)
        .WithReference(servicesApiDb)
        .WithReference(rabbitmqServicesApi)
-       .WithExternalHttpEndpoints();
+       .WithExternalHttpEndpoints()
+       .WaitFor(servicesApiDb)
+       .WaitFor(rabbitmqServicesApi);
 
 var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("AppointmentsAPI")
        .WithReference(identityServer)
@@ -77,9 +79,6 @@ var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("Appointments
        .WithReference(rabbitmqServicesApi)
        .WithExternalHttpEndpoints()
        .WaitFor(postgresdb);
-
-
-
 
 
 var officesAPI = builder.AddProject<Projects.OfficesApi>("OfficesAPI")

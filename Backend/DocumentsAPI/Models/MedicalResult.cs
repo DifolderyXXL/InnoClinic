@@ -7,5 +7,6 @@ public class MedicalResult : MedicalResultBody
     [BsonId]
     public Guid AppointmentId { get; set; }
     
+    public Guid DoctorId { get; set; }
     public Guid UserId { get; set; }
 }

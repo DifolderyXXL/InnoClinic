@@ -115,13 +115,8 @@ app.MapSwaggerUI(setupAction: options =>
 
 foreach (var definition in defenitions)
 {
-    foreach (var version in definition.SupportedVersions)
-    {
-        //var fullLocalPath = $"/api/{version}";
-
-        app.MapAspireBffService(builder.Configuration, definition.Name, definition.Path)
-            .WithAccessToken(RequiredTokenType.User);
-    }
+    app.MapAspireBffService(builder.Configuration, definition.Name, definition.Path)
+        .WithAccessToken(RequiredTokenType.User);
 }
 
 

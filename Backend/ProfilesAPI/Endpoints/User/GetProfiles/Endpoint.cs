@@ -32,7 +32,7 @@ public class Endpoint : IEndpoint
 
 public static class ConstantRoles
 {
-    public const string Patient = "Client";
-    public const string Doctor = "Doctor";
-    public const string Receptionist = "Receptionist";
+    public const string Patient = "client";
+    public const string Doctor = "doctor";
+    public const string Receptionist = "receptionist";
 }

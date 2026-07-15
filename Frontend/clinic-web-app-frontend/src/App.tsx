@@ -2,12 +2,14 @@ import "./App.css";
 import { SilentLoginElement } from "./services/silentLoginElement";
 import { useAuth } from "./services/states/userState";
 import { Link } from "react-router-dom";
+import {ProfileMinimalBlock} from "./routes/pages/Shared/ProfileMinimalBlock.tsx";
 
 function App() {
   return (
     <>
-      <UserProfile />
-      <SilentLoginElement />
+        <ProfileMinimalBlock/>
+        <UserProfile />
+        <SilentLoginElement />
     </>
   );
 }
@@ -17,27 +19,9 @@ export default App;
 export const UserProfile: React.FC = () => {
   const { state } = useAuth();
 
-  const simplify = (data: unknown) => {
-    if (Array.isArray(data)) {
-      // Превращаем массив клеймов [ {type: "sub", value: "123"} ] в красивый объект { sub: "123" }
-      const jsonObject = data.reduce(
-        (acc, item) => {
-          if (item.type && item.value !== undefined) {
-            acc[item.type] = item.value;
-          }
-          return acc;
-        },
-        {} as Record<string, unknown>,
-      );
-      return jsonObject;
-    }
-  };
+
 
   const formatDisplayData = (data: unknown) => {
-    if (Array.isArray(data)) {
-      const jsonObject = simplify(data);
-      return JSON.stringify(jsonObject, null, 2);
-    }
     return JSON.stringify(data, null, 2);
   };
 
@@ -49,10 +33,11 @@ export const UserProfile: React.FC = () => {
     return <div className="error-msg"> Unautorized </div>;
   }
 
-  const userClaims = simplify(state.data.claims);
+  const userClaims = state.data.profile;
 
-  const mail = userClaims["email"];
-  const role = userClaims["role"];
+  const mail = state.data.getEmail();
+  const role = state.data.getRoles().join(", ");
+  
 
   return (
     <div
@@ -70,12 +55,12 @@ export const UserProfile: React.FC = () => {
       >
         Debug
       </Link>
-      <Link
-        to="/swagger/index.html"
+      <a 
+        href="/swagger/index.html"
         style={{ padding: "10px", background: "#889a7e", color: "#fff" }}
       >
         Swagger
-      </Link>
+      </a>
 
       <div
         style={{
@@ -94,8 +79,8 @@ export const UserProfile: React.FC = () => {
   );
 };
 interface UserBlockProps {
-  mail: string;
-  role: string;
+  mail: string | object;
+  role: string | object;
 }
 
 function UserBlock({ mail, role }: UserBlockProps) {
@@ -110,7 +95,7 @@ function UserBlock({ mail, role }: UserBlockProps) {
     >
       <div>
         <strong style={{ fontSize: "1.2em" }}>Email: </strong>
-        <span>{mail}</span>
+        <span>{mail.toString()}</span>
       </div>
 
       <div
@@ -119,7 +104,7 @@ function UserBlock({ mail, role }: UserBlockProps) {
 
       <div>
         <strong style={{ fontSize: "1.2em" }}>Role: </strong>
-        <span>{role}</span>
+        <span>{role.toString()}</span>
       </div>
     </div>
   );

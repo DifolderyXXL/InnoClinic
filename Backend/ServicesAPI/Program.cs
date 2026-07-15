@@ -29,14 +29,9 @@ builder.Services.AddScoped<IScheduleSlotsProvider>(
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddEntityFrameworkOutbox<ServicesDbContext>(o =>
+    x.UseOutbox<ServicesDbContext>(o =>
     {
         o.UsePostgres();
-        o.UseBusOutbox();
-    });
-    x.AddConfigureEndpointsCallback((context, name, cfg) => 
-    { 
-        cfg.UseEntityFrameworkOutbox<ServicesDbContext>(context); 
     });
 
     x.AddConsumer<ProcessReservationConsumer>();
@@ -45,7 +40,6 @@ builder.Services.AddMassTransit(x =>
     
     x.AddConsumer<CancelReservationConsumer>();
     x.AddConsumer<ReservationExpiredConsumer>();
-    
     
     x.UsingRabbitMq((context, cfg) =>
     {

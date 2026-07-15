@@ -1,6 +1,10 @@
-export default async function bffFetch(url: string): Promise<Response> {
+export default async function bffFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const mergedHeaders = new Headers(options.headers);
+  mergedHeaders.set("X-CSRF", "1");
+  
   return await fetch(url, {
-    headers: { "X-CSRF": "1" },
-    credentials: "include",
+    ...options,
+    headers: mergedHeaders,
+    credentials: "include"
   });
 }

@@ -1,4 +1,6 @@
+using DocumentsAPI.Application;
 using DocumentsAPI.Consumers;
+using DocumentsAPI.Controllers;
 using DocumentsAPI.Data;
 using DocumentsAPI.Infrastructure;
 using MassTransit;
@@ -7,7 +9,14 @@ using MicroserviceApiKernel.Extensions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using QuestPDF.Infrastructure;
+using RedLockNet;
+using RedLockNet.SERedis;
+using RedLockNet.SERedis.Configuration;
 using ServiceDefaults;
+using StackExchange.Redis;
+
+QuestPDF.Settings.License = LicenseType.Evaluation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,25 +33,21 @@ builder.Services.AddScoped<PublicPhotoRepository>();
 builder.Services.AddScoped<IUserPhotoStorage, UserPhotoStorage>();
 builder.Services.AddScoped<IPublicPhotoStorage, PublicPhotoStorage>();
 
+builder.Services.AddSingleton<IDistributedLockFactory>(sp => 
+{
+    var connection = sp.GetRequiredService<IConnectionMultiplexer>();
+    return RedLockFactory.Create([new RedLockMultiplexer(connection)]);
+});
+
+builder.Services.AddScoped<MedicalResultService>();
+builder.Services.AddScoped<IPdfMedicalResultGenerator, PdfMedicalResultGenerator>();
+
 builder.AddMicroserviceDefaults("/documents");
 builder.Services.AddIdentityAuthorizationPolicies();
 builder.Services.AddControllers();
 
-builder.Services.AddMassTransit(x =>
-{
-    x.SetKebabCaseEndpointNameFormatter();
 
-    x.AddConsumer<ConfirmProfilePhotoConsumer>();
-
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
-
-        cfg.ConfigureEndpoints(context);
-    });
-});
-
-
+builder.AddRedisClient(connectionName: "cache");
 
 var app = builder.Build();
 

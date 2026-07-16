@@ -1,4 +1,6 @@
+using DocumentsAPI.Application;
 using DocumentsAPI.Data;
+using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Models;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.SharedControllers;
@@ -10,10 +12,53 @@ namespace DocumentsAPI.Controllers;
 public class CreateMedicalResultRequest : MedicalResultBody
 {
     public Guid UserId { get; set; }
+    public UserFullName DoctorName { get; set; }
+    public UserFullName PatientName { get; set; }
 }
 
 public class MedicalResultsController : BaseApiController
 {
+    [HttpGet("appointments/{appointmentId:guid}/me/export")]
+    [Authorize(RolePolicy.Client)]
+    public async Task<IActionResult> ExportMedicalResultAsPdf(
+        [FromRoute] Guid appointmentId,
+        [FromServices] MedicalResultsDbContext context,
+        [FromServices] BlobDbContext blobDbContext,
+        [FromServices] MedicalResultService medicalResultService, 
+        CancellationToken ct)
+    {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var guid)) return Unauthorized();
+
+        var result = await context.GetByAppointmentIdAsync(appointmentId, ct);
+        if (result.IsError)
+        {
+            return NotFound();
+        }
+
+        var medicalResult = result.Value!;
+        
+        if (medicalResult.UserId != guid) return NotFound();
+        
+        var request = new MedicalResultPdfData(
+            medicalResult.AppointmentId,
+            medicalResult.DoctorName,
+            medicalResult.PatientName,
+            medicalResult.Complaints,
+            medicalResult.Conclusion,
+            medicalResult.Recommendations,
+            medicalResult.UpdateStamp
+            );
+
+        var pdfResult = await medicalResultService.GetOrCreateMedicalResultPdfAsync(guid, result.Value!.UpdateStamp, request, ct);
+        if (pdfResult.IsSuccess)
+        {
+            return Ok(new { url = pdfResult.Value!.ToString() });
+        }
+
+        return Problem(statusCode: StatusCodes.Status429TooManyRequests);
+    }
+    
     [HttpGet("appointments/{appointmentId:guid}/me")]
     [Authorize(Policy = RolePolicy.Client)]
     public async Task<IActionResult> GetMedicalResult(
@@ -51,6 +96,7 @@ public class MedicalResultsController : BaseApiController
         [FromRoute] Guid appointmentId,
         [FromBody] CreateMedicalResultRequest request,
         [FromServices] MedicalResultsDbContext context,
+        [FromServices] MedicalResultService medicalResultService,
         CancellationToken ct)
     {
         var user = await GetUserClaim();
@@ -60,16 +106,21 @@ public class MedicalResultsController : BaseApiController
         {
             UserId = request.UserId,
             DoctorId = doctorId,
+            UpdateStamp = DateTimeOffset.UtcNow,
+            PatientName = request.PatientName,
+            DoctorName = request.DoctorName,
             AppointmentId = appointmentId,
             Complaints = request.Complaints,
             Conclusion = request.Conclusion,
             Recommendations = request.Recommendations
-        };   
+        };
+
         var result = await context.InsertAsync(medicalResult, ct);
         if (result.IsError)
         {
             return Conflict();
         }
+        
         return Created();
     }
     
@@ -88,7 +139,8 @@ public class MedicalResultsController : BaseApiController
         }
 
         var medicalResult = result.Value!;
-        
+
+        medicalResult.UpdateStamp = DateTimeOffset.UtcNow;
         medicalResult.Complaints = medicalResultBody.Complaints;
         medicalResult.Conclusion = medicalResultBody.Conclusion;
         medicalResult.Recommendations = medicalResultBody.Recommendations;

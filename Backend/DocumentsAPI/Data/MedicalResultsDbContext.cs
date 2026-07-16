@@ -29,6 +29,7 @@ public class MedicalResultsDbContext(IMongoDatabase database)
     
     public async Task<Result> InsertAsync(MedicalResult result, CancellationToken ct)
     {
+
         try
         {
             await _collection.InsertOneAsync(result, null, ct);

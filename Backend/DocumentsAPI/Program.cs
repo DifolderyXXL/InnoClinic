@@ -3,6 +3,7 @@ using DocumentsAPI.Consumers;
 using DocumentsAPI.Controllers;
 using DocumentsAPI.Data;
 using DocumentsAPI.Infrastructure;
+using DocumentsAPI.Options;
 using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
@@ -41,6 +42,9 @@ builder.Services.AddSingleton<IDistributedLockFactory>(sp =>
 
 builder.Services.AddScoped<MedicalResultService>();
 builder.Services.AddScoped<IPdfMedicalResultGenerator, PdfMedicalResultGenerator>();
+
+builder.Services.Configure<PdfGenerationLockOptions>(
+    builder.Configuration.GetSection(PdfGenerationLockOptions.SectionName));
 
 builder.AddMicroserviceDefaults("/documents");
 builder.Services.AddIdentityAuthorizationPolicies();

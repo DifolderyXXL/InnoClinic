@@ -13,7 +13,10 @@ public class CreateMedicalResultRequest : MedicalResultBody
 {
     public Guid UserId { get; set; }
     public UserFullName DoctorName { get; set; }
+    public string Specialization { get; set; }
+    public string ServiceName { get; set; }
     public UserFullName PatientName { get; set; }
+    public DateOnly PatientDateOfBirth { get; set; }
 }
 
 public class MedicalResultsController : BaseApiController
@@ -43,9 +46,13 @@ public class MedicalResultsController : BaseApiController
         var request = new MedicalResultPdfData(
             medicalResult.AppointmentId,
             medicalResult.DoctorName,
+            medicalResult.Specialization,
+            medicalResult.ServiceName,
             medicalResult.PatientName,
+            medicalResult.PatientDateOfBirth,
             medicalResult.Complaints,
             medicalResult.Conclusion,
+            medicalResult.Diagnosis,
             medicalResult.Recommendations,
             medicalResult.UpdateStamp
             );
@@ -108,9 +115,13 @@ public class MedicalResultsController : BaseApiController
             DoctorId = doctorId,
             UpdateStamp = DateTimeOffset.UtcNow,
             PatientName = request.PatientName,
+            PatientDateOfBirth = request.PatientDateOfBirth,
             DoctorName = request.DoctorName,
+            Specialization = request.Specialization,
+            ServiceName = request.ServiceName,
             AppointmentId = appointmentId,
             Complaints = request.Complaints,
+            Diagnosis = request.Diagnosis,
             Conclusion = request.Conclusion,
             Recommendations = request.Recommendations
         };
@@ -143,6 +154,7 @@ public class MedicalResultsController : BaseApiController
         medicalResult.UpdateStamp = DateTimeOffset.UtcNow;
         medicalResult.Complaints = medicalResultBody.Complaints;
         medicalResult.Conclusion = medicalResultBody.Conclusion;
+        medicalResult.Diagnosis = medicalResultBody.Diagnosis;
         medicalResult.Recommendations = medicalResultBody.Recommendations;
 
         var updateResult = await context.UpdateAsync(medicalResult, ct);

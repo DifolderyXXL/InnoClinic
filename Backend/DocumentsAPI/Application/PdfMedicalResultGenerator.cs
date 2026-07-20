@@ -28,9 +28,10 @@ public class PdfMedicalResultGenerator : IPdfMedicalResultGenerator
                         {
                             x.Spacing(20);
 
-                            x.Item().Text($"Doctor {data.Doctor}");
-                            x.Item().Text($"Patient {data.Patient}");
+                            x.Item().Text($"Doctor {data.Doctor} [specialization: {data.Specialization}] [service: {data.ServiceName}]");
+                            x.Item().Text($"Patient {data.Patient} [birth: {data.PatientDateOfBirth}]");
                             x.Item().Text($"Complaints {data.Complaints}");
+                            x.Item().Text($"Diagnosis {data.Diagnosis}");
                             x.Item().Text($"Recommendations {data.Recommendations}");
                             x.Item().Text($"Conclusion {data.Conclusion}");
                         });

@@ -3,10 +3,12 @@ import {ProfileMinimalBlock} from "../routes/pages/Shared/ProfileMinimalBlock.ts
 
 export function Layout() {
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '50vh' }}>
-            <header style={{ padding: '20px', background: '#333', color: '#fff' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <header style={{ padding: '10px', background: '#333', color: '#fff' }}>
                 <h1>InnoClinic</h1>
-                <ProfileMinimalBlock/>
+                <div style={{ display: 'flex', flexDirection: 'row', minWidth: '100vh', justifyContent: 'flex-end'  }}>
+                    <ProfileMinimalBlock/>
+                </div>
             </header>
             <main style={{ flex: 1, padding: '20px' }}>
                 <Outlet />

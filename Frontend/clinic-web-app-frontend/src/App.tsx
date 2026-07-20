@@ -2,12 +2,10 @@ import "./App.css";
 import { SilentLoginElement } from "./services/silentLoginElement";
 import { useAuth } from "./services/states/userState";
 import { Link } from "react-router-dom";
-import {ProfileMinimalBlock} from "./routes/pages/Shared/ProfileMinimalBlock.tsx";
 
 function App() {
   return (
     <>
-        <ProfileMinimalBlock/>
         <UserProfile />
         <SilentLoginElement />
     </>

@@ -1,6 +1,5 @@
 using DocumentsAPI.Application;
 using DocumentsAPI.Data;
-using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Models;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.SharedControllers;
@@ -26,7 +25,6 @@ public class MedicalResultsController : BaseApiController
     public async Task<IActionResult> ExportMedicalResultAsPdf(
         [FromRoute] Guid appointmentId,
         [FromServices] MedicalResultsDbContext context,
-        [FromServices] BlobDbContext blobDbContext,
         [FromServices] MedicalResultService medicalResultService, 
         CancellationToken ct)
     {

@@ -12,7 +12,7 @@ using ProfilesAPI.Models;
 
 namespace ProfilesAPI.Endpoints.Doctors.Create;
 
-public class CreateDoctorEndpoint : IEndpoint
+public class CreateDoctorEndpoint : IDoctorEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

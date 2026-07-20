@@ -1,82 +1,82 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import bffFetch from "../bffFetch";
 import { logoutUrl, userUrl } from "../bffEndpoints";
 import { silentLogin } from "../silentLoginSelector";
+import {type AuthState, type ClaimItem, User} from "./states.ts";
 
-export interface ClaimItem {
-  type: string;
-  value: string | object;
-  valueType?: string | null;
-}
-
-export type User = {
-  claims: ClaimItem[];
-  logoutUrl: string | undefined;
-};
-
-type LoadingState = {
-  status: "loading";
-};
-
-type AuthorizedState = {
-  status: "authorized";
-  data: User;
-};
-
-type UnauthorizedState = {
-  status: "unauthorized";
-  error?: Error;
-};
-
-export type AuthState = LoadingState | AuthorizedState | UnauthorizedState;
-
-type AuthContextType = {
+export type AuthContextType = {
   state: AuthState;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Превращает массив клеймов [ {type: "name", value: "Alex"} ] в объект { name: "Alex" }
+const simplify = (data: ClaimItem[]): Record<string, any> => {
+  return data.reduce((acc, item) => {
+    if (item.type && item.value !== undefined) {
+      acc[item.type] = item.value;
+    }
+    return acc;
+  }, {} as Record<string, any>);
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, setState] = useState<AuthState>({ status: "loading" });
 
+  const setAsLoading = () => {
+    setState({ status: "loading" });
+  };
+
+  const setAsAuthorized = (claims: ClaimItem[]) => {
+    const profile = simplify(claims);
+
+    const logoutUrlClaim = claims.find((c) => c.type === "bff:logout_url");
+    const logoutUrlValue = logoutUrlClaim ? String(logoutUrlClaim.value) : undefined;
+
+    const userInstance = new User(claims, profile, logoutUrlValue);
+    setState({
+      status: "authorized",
+      data: userInstance
+    });
+  };
+
+  const setAsUnauthorized = (error?: Error) => {
+    setState({ status: "unauthorized", error });
+  };
+  
   useEffect(() => {
     async function checkAuth() {
       try {
-        setState({ status: "loading" });
+        setAsLoading();
         const resp = await bffFetch(userUrl);
 
         if (resp.ok) {
           const claims: ClaimItem[] = await resp.json();
-
-          // Ищем динамический logoutUrl в клеймах
-          const logoutUrlClaim = claims.find(
-            (claim) => claim.type === "bff:logout_url",
-          );
-          const logoutUrlValue =
-            logoutUrlClaim == undefined
-              ? undefined
-              : String(logoutUrlClaim.value);
-
-          setState({
-            status: "authorized",
-            data: { claims: claims, logoutUrl: logoutUrlValue },
-          });
-        } else if (resp.status === 401) {
+          
+          setAsAuthorized(claims)
+          return;
+        } 
+        
+        if (resp.status === 401) {
           const silentLoginResult = await silentLogin();
 
           if (silentLoginResult) {
             window.location.reload();
           }
+          else{
+            setAsUnauthorized();
+          }
+          
+          return;
         }
+
+        setAsUnauthorized();
       } catch (e) {
-        let err: Error | undefined;
-        if (e instanceof Error) {
-          err = e;
-        }
-        setState({ status: "unauthorized", error: err });
+        const err = e instanceof Error ? e : new Error(String(e));
+        setAsUnauthorized(err);
         console.error(e);
       }
     }
@@ -84,13 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const logout = async () => {
-    if (state.status == "authorized" && state.data.logoutUrl) {
-      await bffFetch(state.data.logoutUrl);
-    } else {
-      await bffFetch(logoutUrl);
-    }
+    const targetUrl = state.status === "authorized" && state.data.logoutUrl
+        ? state.data.logoutUrl
+        : logoutUrl;
 
-    setState({ status: "unauthorized" });
+    setAsUnauthorized();
+
+    window.location.href = targetUrl;
   };
 
   return (

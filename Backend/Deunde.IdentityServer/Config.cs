@@ -45,7 +45,11 @@ public static class Config
             UpdateAccessTokenClaimsOnRefresh = true,
             RedirectUris = { "https://localhost:5001/signin-oidc" },
             PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
-            AllowedScopes = { "openid", "profile", "email", "api", "offline_access" }
+            AllowedScopes = { "openid", "profile", "email", "api", "offline_access" },
+            
+            RefreshTokenExpiration = TokenExpiration.Absolute,
+            AbsoluteRefreshTokenLifetime = 2592000,
+            AccessTokenLifetime = 3600
         },
         new Client
         {

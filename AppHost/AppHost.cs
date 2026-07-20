@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Configuration;
-
 var builder = DistributedApplication.CreateBuilder(args);
+
+var cache = builder.AddRedis("cache");
 
 var blobs = builder.AddAzureStorage("storage")
        .RunAsEmulator(azurite =>
@@ -24,6 +24,13 @@ var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                         displayText: "RabbitMQ Dashboard"
                     );
 
+var mongo = builder.AddMongoDB("mongo", 53460)
+       .WithDataVolume()
+       .WithLifetime(ContainerLifetime.Persistent);
+
+var mongodb = mongo.AddDatabase("officesdb");
+var documentsdb = mongo.AddDatabase("documentsdb");
+
 var identityServer = builder.AddProject<Projects.Deunde_IdentityServer>("IdentityServer")
        .WithHttpsEndpoint(port: 6001)
        .WithExternalHttpEndpoints();
@@ -32,6 +39,8 @@ var documentsApi = builder.AddProject<Projects.DocumentsAPI>("DocumentsAPI")
        .WithReference(identityServer)
        .WithReference(blobs)
        .WithReference(rabbitmqServicesApi)
+       .WithReference(documentsdb)
+       .WithReference(cache)
        .WithExternalHttpEndpoints();
 
 var sqlServer = builder.AddSqlServer("sqlServer")
@@ -61,7 +70,9 @@ var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
        .WithReference(identityServer)
        .WithReference(servicesApiDb)
        .WithReference(rabbitmqServicesApi)
-       .WithExternalHttpEndpoints();
+       .WithExternalHttpEndpoints()
+       .WaitFor(servicesApiDb)
+       .WaitFor(rabbitmqServicesApi);
 
 var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("AppointmentsAPI")
        .WithReference(identityServer)
@@ -70,13 +81,6 @@ var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("Appointments
        .WithExternalHttpEndpoints()
        .WaitFor(postgresdb);
 
-
-
-var mongo = builder.AddMongoDB("mongo", 53460)
-       .WithDataVolume()
-       .WithLifetime(ContainerLifetime.Persistent);
-
-var mongodb = mongo.AddDatabase("officesdb");
 
 var officesAPI = builder.AddProject<Projects.OfficesApi>("OfficesAPI")
        .WithReference(identityServer)

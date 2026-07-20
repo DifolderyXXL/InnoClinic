@@ -4,7 +4,7 @@ using MicroserviceApiKernel.Extensions;
 
 namespace ProfilesAPI.Endpoints.Receptionists.GetReceptionists;
 
-public class Endpoint : IEndpoint
+public class Endpoint : IReceptionistEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

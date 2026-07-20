@@ -38,15 +38,16 @@ public class GetUserProfilesQueryHandler(ProfilesDbContext context) : IQueryHand
         var baseAccount = account.ToDto();
 
         var response = new GetUserProfileQueryResponse(
-            account.Patient?.ToDto(baseAccount),
-            account.Doctor?.ToDto(baseAccount),
-            account.Receptionist?.ToDto(baseAccount)
+            baseAccount,
+            account.Patient?.ToDto(),
+            account.Doctor?.ToDto(),
+            account.Receptionist?.ToDto()
                 );
 
         return response;
     }
 }
-public record GetUserProfileQueryResponse(PatientDto? Patient, DoctorDto? Doctor, ReceptionistDto? Receptionist);
+public record GetUserProfileQueryResponse(BaseAccountDto Account, PatientDto? Patient, DoctorDto? Doctor, ReceptionistDto? Receptionist);
 public record GetUserProfileQuery(Guid UserId, string[] Roles) : IQuery<GetUserProfileQueryResponse>;
 
 public static class ProfileErrors

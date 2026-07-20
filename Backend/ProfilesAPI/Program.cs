@@ -52,11 +52,10 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<SpecializationDeletedEventConsumer>();
     
     x.AddDelayedMessageScheduler();
-    
-    x.AddEntityFrameworkOutbox<ProfilesDbContext>(o =>
+
+    x.UseOutbox<ProfilesDbContext>(o =>
     {
         o.UseSqlServer();
-        o.UseBusOutbox();
     });
     
     x.UsingRabbitMq((context, cfg) =>

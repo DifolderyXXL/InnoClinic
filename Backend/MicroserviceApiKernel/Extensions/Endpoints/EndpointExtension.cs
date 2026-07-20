@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net.Sockets;
 using System.Reflection;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Http;
 
 namespace MicroserviceApiKernel.Extensions;
 
@@ -44,18 +45,19 @@ public static class EndpointExtension
         var endpoints = app.Services.GetServices<IEndpoint>();
         foreach (var endpoint in endpoints)
         {
-            if (endpoint.Version == 2.0)
+            var versionGroup = endpoint.Version switch
             {
-                endpoint.MapEndpoint(v2Group);
-            }
-            else if (endpoint.Version == 1.0)
-            {
-                endpoint.MapEndpoint(v1Group);
-            }
-            else
-            {
-                throw new Exception("Api Version is not valid.");
-            }
+                2.0 => v2Group,
+                1.0 => v1Group,
+                _ => throw new Exception("Api Version is not valid.")
+            };
+
+            var targetGroup = endpoint.Tags == null
+                ? versionGroup
+                : versionGroup.MapGroup(string.Empty)
+                    .WithTags(endpoint.Tags);
+            
+            endpoint.MapEndpoint(targetGroup);
         }
     }
 }

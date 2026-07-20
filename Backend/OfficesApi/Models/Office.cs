@@ -18,3 +18,4 @@ public class Office
     public string RegistryPhoneNumber { get; set; }
     public bool IsActive { get; set; }
 }
+

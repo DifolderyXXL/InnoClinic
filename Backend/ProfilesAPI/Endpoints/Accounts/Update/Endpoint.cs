@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using Contracts.DocumentsContracts;
 using FluentValidation;
 using MassTransit;
-using MicroserviceApiKernel;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;
 using MicroserviceApiKernel.Results;
@@ -13,7 +12,7 @@ using ProfilesAPI.Endpoints.Accounts.Create;
 
 namespace ProfilesAPI.Endpoints.Accounts.Update;
 
-public class UpdateAccountEndpoint : IEndpoint
+public class UpdateAccountEndpoint : IAccountEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

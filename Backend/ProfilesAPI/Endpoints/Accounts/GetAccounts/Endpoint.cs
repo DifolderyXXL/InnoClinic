@@ -4,7 +4,7 @@ using MicroserviceApiKernel.Extensions;
 
 namespace ProfilesAPI.Endpoints.Accounts.GetAccounts;
 
-public class Endpoint : IEndpoint
+public class Endpoint : IAccountEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

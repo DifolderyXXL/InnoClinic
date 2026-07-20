@@ -14,8 +14,7 @@ public record BaseAccountDto(
 
 public record PatientDto(
     long Id,
-    DateOnly DateOfBirth,
-    BaseAccountDto Account
+    DateOnly DateOfBirth
 );
 
 public record DoctorDto(
@@ -23,14 +22,12 @@ public record DoctorDto(
     DateOnly DateOfBirth,
     long OfficeId,
     long CareerStartYear,
-    string SpecializationName,
-    BaseAccountDto Account
+    string SpecializationName
 );
 
 public record ReceptionistDto(
     long Id,
-    long OfficeId,
-    BaseAccountDto Account
+    long OfficeId
 );
 
 public static class DtoConverters
@@ -50,18 +47,17 @@ public static class DtoConverters
         );
     }
 
-    public static PatientDto? ToDto(this Models.Patient? patient, BaseAccountDto baseAccount)
+    public static PatientDto? ToDto(this Models.Patient? patient)
     {
         if (patient == null) return null;
 
         return new PatientDto(
             patient.Id,
-            patient.DateOfBirth,
-            baseAccount
+            patient.DateOfBirth
         );
     }
 
-    public static DoctorDto? ToDto(this Doctor? doctor, BaseAccountDto baseAccount)
+    public static DoctorDto? ToDto(this Doctor? doctor)
     {
         if (doctor == null) return null;
 
@@ -70,19 +66,17 @@ public static class DtoConverters
             doctor.DateOfBirth,
             doctor.OfficeId,
             doctor.CareerStartYear,
-            doctor.Specialization?.SpecializationName ?? "Unknown",
-            baseAccount
+            doctor.Specialization?.SpecializationName ?? "Unknown"
         );
     }
 
-    public static ReceptionistDto? ToDto(this Receptionist? receptionist, BaseAccountDto baseAccount)
+    public static ReceptionistDto? ToDto(this Receptionist? receptionist)
     {
         if (receptionist == null) return null;
 
         return new ReceptionistDto(
             receptionist.Id,
-            receptionist.OfficeId,
-            baseAccount
+            receptionist.OfficeId
         );
     }
 }

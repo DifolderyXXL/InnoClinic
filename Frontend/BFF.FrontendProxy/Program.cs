@@ -44,6 +44,7 @@ builder.Services.AddAuthentication(options =>
         options.Cookie.Name = "bff-local-session";
         options.Cookie.Path = "/";
         options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     })
     .AddOpenIdConnect("oidc", options =>
     {
@@ -114,13 +115,8 @@ app.MapSwaggerUI(setupAction: options =>
 
 foreach (var definition in defenitions)
 {
-    foreach (var version in definition.SupportedVersions)
-    {
-        //var fullLocalPath = $"/api/{version}";
-
-        app.MapAspireBffService(builder.Configuration, definition.Name, definition.Path)
-            .WithAccessToken(RequiredTokenType.User);
-    }
+    app.MapAspireBffService(builder.Configuration, definition.Name, definition.Path)
+        .WithAccessToken(RequiredTokenType.User);
 }
 
 

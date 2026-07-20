@@ -4,7 +4,7 @@ using MicroserviceApiKernel.Extensions;
 
 namespace ProfilesAPI.Endpoints.Patients.GetPatients;
 
-public class Endpoint : IEndpoint
+public class Endpoint : IPatientEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

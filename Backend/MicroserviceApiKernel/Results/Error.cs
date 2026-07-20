@@ -43,3 +43,14 @@ public class Error
         return new Error($"{className}.{memberName}", type);
     }
 }
+
+public abstract class DomainErrors<T>
+{
+    private static readonly string ClassName = typeof(T).Name;
+
+    public static Error NotFound() => 
+        new Error($"{ClassName}.NotFound", ErrorType.NotFound);
+
+    public static Error AlreadyExists() => 
+        new Error($"{ClassName}.AlreadyExists", ErrorType.Conflict);
+}

@@ -1,6 +1,6 @@
 using Azure.Storage.Blobs;
 
-namespace DocumentsAPI.Infrastructure;
+namespace DocumentsAPI.Infrastructure.Photos;
 
 public class PublicPhotoRepository(BlobDbContext context) : IPhotoRepository
 {

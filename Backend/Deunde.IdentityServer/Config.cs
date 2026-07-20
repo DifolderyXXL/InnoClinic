@@ -62,7 +62,14 @@ public static class Config
         {
             ClientId = "postman-admin",
             ClientSecrets = { new Secret("secret".Sha256()) },
-            AllowedGrantTypes = [GrantType.ResourceOwnerPassword, GrantType.RefreshToken],
+            
+            RefreshTokenExpiration = TokenExpiration.Absolute,
+            AbsoluteRefreshTokenLifetime = 2592000,
+            AccessTokenLifetime = 3600,
+            
+            RefreshTokenUsage = TokenUsage.ReUse,
+            AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+            
             AllowOfflineAccess = true,
             AlwaysIncludeUserClaimsInIdToken = true,
             UpdateAccessTokenClaimsOnRefresh = true,

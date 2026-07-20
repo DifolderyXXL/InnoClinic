@@ -1,11 +1,11 @@
-using MicroserviceApiKernel.Results;
+using DocumentsAPI.Application;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
-namespace DocumentsAPI.Application;
+namespace DocumentsAPI.Infrastructure.Pdf;
 
-public class PdfMedicalResultGenerator : IPdfMedicalResultGenerator
+public class QuestPdfMedicalResultGenerator : IPdfMedicalResultGenerator
 {
     public byte[] Generate(MedicalResultPdfData data)
     {

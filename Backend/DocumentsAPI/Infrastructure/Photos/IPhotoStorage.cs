@@ -1,6 +1,6 @@
 using Azure.Storage.Blobs.Models;
 
-namespace DocumentsAPI.Infrastructure;
+namespace DocumentsAPI.Infrastructure.Photos;
 
 public interface IPhotoStorage
 {

@@ -3,7 +3,7 @@ using DocumentsAPI.Models.Errors;
 using MicroserviceApiKernel.Results;
 using MongoDB.Driver;
 
-namespace DocumentsAPI.Data;
+namespace DocumentsAPI.Infrastructure;
 
 public class MedicalResultsDbContext(IMongoDatabase database)
 {

@@ -1,5 +1,6 @@
 using Azure.Storage.Sas;
 using DocumentsAPI.Infrastructure;
+using DocumentsAPI.Infrastructure.Photos;
 using FluentValidation;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.SharedControllers;
@@ -60,7 +61,7 @@ public class PhotosController : BaseApiController
     public async Task<IActionResult> UploadProfilePhoto(
         IFormFile file,
         [FromServices] IValidator<IFormFile> validator,
-        [FromServices] IPhotoStorage tempPhotoStorage,
+        [FromServices] IUserPhotoStorage tempPhotoStorage,
         CancellationToken ct)
     {
         var validationResult = await validator.ValidateAsync(file, ct);

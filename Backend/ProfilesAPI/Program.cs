@@ -1,4 +1,3 @@
-using Duende.AccessTokenManagement;
 using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
@@ -19,21 +18,7 @@ builder.AddMicroserviceDefaults("/profiles", typeof(Program).Assembly);
 builder.Services.AddDbContext<ProfilesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("profilesSqlServer")));
 
-
-builder.Services.AddClientCredentialsTokenManagement()
-    .AddClient("identityclient", client =>
-    {
-        client.TokenEndpoint = new Uri("https://localhost:6001/connect/token");
-
-        client.ClientId = ClientId.Parse("m2m");
-        client.ClientSecret = ClientSecret.Parse("secret");
-        client.Scope = Scope.Parse("identity");
-    });
-
-builder.Services.AddClientCredentialsHttpClient("identityclient", ClientCredentialsClientName.Parse("identityclient"), client =>
-{
-    client.BaseAddress = new Uri("https://localhost:6001/api");
-});
+builder.AddCredentialsClient("identityclient");
 
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -45,8 +30,6 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddMassTransit(x =>
 {
-    x.SetKebabCaseEndpointNameFormatter();
-    
     x.AddConsumer<SpecializationUpdatedEventConsumer>();
     x.AddConsumer<SpecializationCreatedEventConsumer>();
     x.AddConsumer<SpecializationDeletedEventConsumer>();

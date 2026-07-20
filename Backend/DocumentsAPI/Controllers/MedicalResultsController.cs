@@ -1,5 +1,5 @@
 using DocumentsAPI.Application;
-using DocumentsAPI.Data;
+using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Models;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.SharedControllers;

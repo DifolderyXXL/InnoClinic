@@ -1,3 +1,3 @@
-namespace DocumentsAPI.Infrastructure;
+namespace DocumentsAPI.Infrastructure.Photos;
 
 public interface IUserPhotoStorage : IPhotoStorage;

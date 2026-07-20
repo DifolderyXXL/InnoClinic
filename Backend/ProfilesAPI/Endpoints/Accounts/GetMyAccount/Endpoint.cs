@@ -28,6 +28,6 @@ public class GetAccountEndpoint : IAccountEndpoint
             var result = account == null ? AccountErrors.NotFound() : Result.Success(account);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        });
+        }).RequireAuthorization();
     }
 }

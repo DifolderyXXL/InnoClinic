@@ -1,7 +1,5 @@
-using DocumentsAPI.Application;
+using DocumentsAPI;
 using DocumentsAPI.Consumers;
-using DocumentsAPI.Controllers;
-using DocumentsAPI.Data;
 using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Options;
 using MassTransit;
@@ -11,37 +9,16 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using QuestPDF.Infrastructure;
-using RedLockNet;
-using RedLockNet.SERedis;
-using RedLockNet.SERedis.Configuration;
 using ServiceDefaults;
-using StackExchange.Redis;
 
 QuestPDF.Settings.License = LicenseType.Evaluation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddAzureBlobServiceClient("documentsBlob");
-builder.Services.AddScoped<BlobDbContext>();
 
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 builder.AddMongoDBClient(connectionName: "documentsdb");
-builder.Services.AddScoped<MedicalResultsDbContext>();
-
-builder.Services.AddScoped<ProfilePhotoRepository>();
-builder.Services.AddScoped<PublicPhotoRepository>();
-
-builder.Services.AddScoped<IUserPhotoStorage, UserPhotoStorage>();
-builder.Services.AddScoped<IPublicPhotoStorage, PublicPhotoStorage>();
-
-builder.Services.AddSingleton<IDistributedLockFactory>(sp => 
-{
-    var connection = sp.GetRequiredService<IConnectionMultiplexer>();
-    return RedLockFactory.Create([new RedLockMultiplexer(connection)]);
-});
-
-builder.Services.AddScoped<MedicalResultService>();
-builder.Services.AddScoped<IPdfMedicalResultGenerator, PdfMedicalResultGenerator>();
 
 builder.Services.Configure<PdfGenerationLockOptions>(
     builder.Configuration.GetSection(PdfGenerationLockOptions.SectionName));
@@ -50,8 +27,22 @@ builder.AddMicroserviceDefaults("/documents");
 builder.Services.AddIdentityAuthorizationPolicies();
 builder.Services.AddControllers();
 
+builder.Services.AddServices();
 
 builder.AddRedisClient(connectionName: "cache");
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<ConfirmProfilePhotoConsumer>();
+    
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
 
 var app = builder.Build();
 

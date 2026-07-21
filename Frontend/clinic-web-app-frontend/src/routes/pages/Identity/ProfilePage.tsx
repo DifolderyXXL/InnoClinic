@@ -34,13 +34,10 @@ export function ProfilePage() {
     if (loading) {
         return <div style={{ textAlign: 'center', padding: '40px' }}>Loading profile...</div>;
     }
-
-    if (error) {
-        return <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>{error}</div>;
-    }
     
     return (
         <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center"}}>
+            {error && (<div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>{error}</div>)}
             {
                 profile && profile.account ? <AccountCard {...profile.account} /> : <AccountCreateCard onSuccess={loadData}/>
             }

@@ -47,7 +47,7 @@ public class GetUserProfilesQueryHandler(ProfilesDbContext context) : IQueryHand
         return response;
     }
 }
-public record GetUserProfileQueryResponse(BaseAccountDto Account, PatientDto? Patient, DoctorDto? Doctor, ReceptionistDto? Receptionist);
+public record GetUserProfileQueryResponse(BaseAccountDto Account, OnlyPatientDto? Patient, OnlyDoctorDto? Doctor, OnlyReceptionistDto? Receptionist);
 public record GetUserProfileQuery(Guid UserId, string[] Roles) : IQuery<GetUserProfileQueryResponse>;
 
 public static class ProfileErrors

@@ -12,7 +12,13 @@ export function Layout() {
                     <ProfileMinimalBlock/>
                 </div>
             </header>
-            <main style={{ flex: 1, padding: '20px' }}>
+            <main style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '20px',
+                overflow: 'hidden'
+            }}>
                 <Outlet />
             </main>
             <footer style={{ padding: '10px', background: '#333', color: '#fff', textAlign: 'center' }}>

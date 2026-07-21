@@ -2,14 +2,13 @@ using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
 using MicroserviceApiKernel.CQRS;
 using ProfilesAPI.CustomBindAsync;
-using ProfilesAPI.Data;
 using ProfilesAPI.Endpoints.User.GetProfiles;
 
 namespace ProfilesAPI.Endpoints.User;
 
 public class Endpoint : IEndpoint
 {
-    public record Response(BaseAccountDto Account, PatientDto Patient, DoctorDto Doctor, ReceptionistDto Receptionist);
+    public record Response(BaseAccountDto Account, OnlyPatientDto OnlyPatient, OnlyDoctorDto OnlyDoctor, OnlyReceptionistDto OnlyReceptionist);
 
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {

@@ -1,0 +1,26 @@
+.doctor-card{
+    display: inline-flex;
+    flex-flow: row;   
+    
+    background: #333;
+    padding: 5px;
+    border-radius: 5px;
+}
+.doctor-details{
+    display: flex;
+    flex-flow: column;
+    background: #222;
+}
+
+.doctor-info{
+    display: flex;
+    flex-flow: column;
+
+    gap: 5px;
+}
+
+.doctor-name{
+    display: flex;
+    flex-flow: column;
+    background: #222;
+}

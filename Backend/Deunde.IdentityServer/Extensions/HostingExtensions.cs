@@ -117,12 +117,12 @@ internal static class HostingExtensions
             // //.AddConfigurationStoreCache()
             // //
             // // this adds the operational data from DB (codes, tokens, consents)
-            // .AddOperationalStore(options =>
-            // {
-            //     options.ConfigureDbContext = b =>
-            //         b.UseSqlite(connectionString,
-            //             dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
-            // })
+            .AddOperationalStore(options =>
+            {
+                options.ConfigureDbContext = b =>
+                    b.UseSqlite(connectionString,
+                        dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
+            })
             .AddInMemoryApiResources(Config.ApiResources)
             .AddInMemoryIdentityResources(Config.IdentityResources)
             .AddInMemoryApiScopes(Config.ApiScopes)

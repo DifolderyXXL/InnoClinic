@@ -23,14 +23,15 @@ public class DeleteSpecializationCommandHandler(ServicesDbContext context, IPubl
         try
         {
             context.Specializations.Remove(specialization);
-            await context.SaveChangesAsync(ct);
-            
+
             await publishEndpoint.Publish(new SpecializationDeletedEvent()
             {
                 SpecializationName = specialization.SpecializationName,
                 IsActive = specialization.IsActive,
                 Id = specialization.Id
             }, ct);
+
+            await context.SaveChangesAsync(ct);
         }
         catch (Exception ex)
         {

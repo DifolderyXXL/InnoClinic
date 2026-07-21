@@ -12,12 +12,12 @@ public record BaseAccountDto(
     Guid? PhotoId
 );
 
-public record PatientDto(
+public record OnlyPatientDto(
     long Id,
     DateOnly DateOfBirth
 );
 
-public record DoctorDto(
+public record OnlyDoctorDto(
     long Id,
     DateOnly DateOfBirth,
     long OfficeId,
@@ -25,7 +25,7 @@ public record DoctorDto(
     string SpecializationName
 );
 
-public record ReceptionistDto(
+public record OnlyReceptionistDto(
     long Id,
     long OfficeId
 );
@@ -47,21 +47,21 @@ public static class DtoConverters
         );
     }
 
-    public static PatientDto? ToDto(this Models.Patient? patient)
+    public static OnlyPatientDto? ToDto(this Models.Patient? patient)
     {
         if (patient == null) return null;
 
-        return new PatientDto(
+        return new OnlyPatientDto(
             patient.Id,
             patient.DateOfBirth
         );
     }
 
-    public static DoctorDto? ToDto(this Doctor? doctor)
+    public static OnlyDoctorDto? ToDto(this Doctor? doctor)
     {
         if (doctor == null) return null;
 
-        return new DoctorDto(
+        return new OnlyDoctorDto(
             doctor.Id,
             doctor.DateOfBirth,
             doctor.OfficeId,
@@ -70,11 +70,11 @@ public static class DtoConverters
         );
     }
 
-    public static ReceptionistDto? ToDto(this Receptionist? receptionist)
+    public static OnlyReceptionistDto? ToDto(this Receptionist? receptionist)
     {
         if (receptionist == null) return null;
 
-        return new ReceptionistDto(
+        return new OnlyReceptionistDto(
             receptionist.Id,
             receptionist.OfficeId
         );

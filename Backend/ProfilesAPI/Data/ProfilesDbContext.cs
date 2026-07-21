@@ -20,9 +20,21 @@ public class ProfilesDbContext(DbContextOptions<ProfilesDbContext> options)
 
         modelBuilder.ApplyConfiguration(new AccountEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new PatientEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new SpecializationEntityTypeConfiguration());
         
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
+    }
+}
+
+public class SpecializationEntityTypeConfiguration : IEntityTypeConfiguration<Specialization>
+{
+    public void Configure(EntityTypeBuilder<Specialization> builder)
+    {
+        builder.HasKey(x => x.Id);
+        
+        builder.Property(x => x.Id)
+            .ValueGeneratedNever(); 
     }
 }
 

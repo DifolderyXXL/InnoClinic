@@ -23,8 +23,7 @@ public class DeleteServiceCommandHandler(ServicesDbContext context, IPublishEndp
         try
         {
             context.Services.Remove(service);
-            await context.SaveChangesAsync(ct);
-            
+
             await publishEndpoint.Publish(new ServiceDeletedEvent
             {
                 Id = service.Id,
@@ -34,6 +33,8 @@ public class DeleteServiceCommandHandler(ServicesDbContext context, IPublishEndp
                 SpecializationId = service.SpecializationId,
                 IsActive = service.IsActive,
             }, ct);
+
+            await context.SaveChangesAsync(ct);
         }
         catch (Exception ex)
         {

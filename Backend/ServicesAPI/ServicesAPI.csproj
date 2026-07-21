@@ -25,6 +25,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Endpoints\Services\" />
-    <Folder Include="Endpoints\Specializations\" />
   </ItemGroup>
 </Project>

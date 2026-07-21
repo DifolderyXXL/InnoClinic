@@ -3,6 +3,7 @@ using MassTransit;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using ServicesAPI.Data;
+using ServicesAPI.Endpoints.Services.CreateService;
 
 namespace ServicesAPI.Endpoints.Specializations.UpdateSpecialization;
 
@@ -16,7 +17,7 @@ public class UpdateSpecializationCommandHandler(ServicesDbContext context, IPubl
 
         if (specialization == null)
         {
-            return Result.Failure(new Error("Specialization not found", ErrorType.NotFound));
+            return SpecializationErrors.SpecializationNotFound();
         }
 
         try
@@ -24,14 +25,14 @@ public class UpdateSpecializationCommandHandler(ServicesDbContext context, IPubl
             specialization.SpecializationName = command.SpecializationName;
             specialization.IsActive = command.IsActive;
 
-            await context.SaveChangesAsync(ct);
-
             await publishEndpoint.Publish(new SpecializationUpdatedEvent
             {
                 SpecializationName = specialization.SpecializationName,
                 IsActive = specialization.IsActive,
                 Id = specialization.Id
             }, ct);
+
+            await context.SaveChangesAsync(ct);
         }
         catch (Exception ex)
         {
@@ -41,3 +42,4 @@ public class UpdateSpecializationCommandHandler(ServicesDbContext context, IPubl
         return Result.Success();
     }
 }
+

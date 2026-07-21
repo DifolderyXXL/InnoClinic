@@ -50,7 +50,14 @@ export function DoctorsPage() {
     
     return (
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div style={{  flex: 1,
+                overflowY: 'auto',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '10px',
+                justifyContent: 'flex-start',
+                alignContent: 'flex-start',
+                padding: '10px'  }}>
                 {listItems}
             </div>
             <PageSelector

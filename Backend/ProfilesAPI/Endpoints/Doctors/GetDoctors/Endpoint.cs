@@ -16,6 +16,7 @@ public class Endpoint : IDoctorEndpoint
             var result = await handler.Handle(query, ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Client);
+        }).Produces<GetDoctorsResponse>(StatusCodes.Status200OK)
+            .RequireAuthorization(RolePolicy.Client);
     }
 }

@@ -3,6 +3,7 @@ using MassTransit;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using ServicesAPI.Data;
+using ServicesAPI.Endpoints.Specializations;
 using ServicesAPI.Models;
 
 namespace ServicesAPI.Endpoints.Services.CreateService;
@@ -27,6 +28,8 @@ public class CreateServiceCommandHandler(ServicesDbContext context, IPublishEndp
             return SpecializationErrors.SpecializationNotFound();
         }
 
+        
+        await using var transaction = await context.Database.BeginTransactionAsync(ct);
         try
         {
             var service = new Service
@@ -40,7 +43,7 @@ public class CreateServiceCommandHandler(ServicesDbContext context, IPublishEndp
             await context.Services.AddAsync(service, ct);
 
             await context.SaveChangesAsync(ct);
-            
+
             await publishEndpoint.Publish(new ServiceCreatedEvent
             {
                 Id = service.Id,
@@ -50,9 +53,14 @@ public class CreateServiceCommandHandler(ServicesDbContext context, IPublishEndp
                 SpecializationId = service.SpecializationId,
                 IsActive = service.IsActive,
             }, ct);
+
+            await context.SaveChangesAsync(ct);
+
+            await transaction.CommitAsync(ct);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync(ct);
             return Result.Failure(new Error(ex.Message, ErrorType.Internal));
         }
         return Result.Success();

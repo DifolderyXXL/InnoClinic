@@ -25,14 +25,14 @@ public class UpdateCategoryCommandHandler(ServicesDbContext context, IPublishEnd
             category.CategoryName = command.CategoryName;
             category.TimeSlotSize = command.TimeSlotSize;
 
-            await context.SaveChangesAsync(ct);
-            
             await publishEndpoint.Publish(new CategoryUpdatedEvent
             {
                 Id = category.Id,
                 CategoryName = category.CategoryName,
                 TimeSlotSize = category.TimeSlotSize
             }, ct);
+
+            await context.SaveChangesAsync(ct);
         }
         catch (Exception ex)
         {

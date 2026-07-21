@@ -12,5 +12,6 @@ public class ConfirmProfilePhotoConsumer(IUserPhotoStorage photoStorage) : ICons
         if( context.Message.OldPhoto != null)
             await photoStorage.DeletePhotoAsync(context.Message.UserId.ToString(), context.Message.OldPhoto.Value, context.CancellationToken);
         await photoStorage.ConfirmPhotoAsync(context.Message.UserId.ToString(), context.Message.PhotoId, context.CancellationToken);
+        await photoStorage.SetPublicity(context.Message.UserId.ToString(), context.Message.PhotoId, context.Message.IsPublicUser, context.CancellationToken);
     }
 }

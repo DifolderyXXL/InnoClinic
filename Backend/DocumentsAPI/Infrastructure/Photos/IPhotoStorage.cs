@@ -7,6 +7,7 @@ public interface IPhotoStorage
     public IPhotoRepository Repository { get; }
     Task<bool> DeletePhotoAsync(string userId, Guid photoId, CancellationToken ct);
     Task<bool> ConfirmPhotoAsync(string userId, Guid photoId, CancellationToken ct);
+    Task<bool> SetPublicity(string userId, Guid photoId, bool publicity, CancellationToken ct);
     
     public Task<Guid> UploadTempAsync(string userId, Stream stream, TimeSpan ttl, CancellationToken ct);
 }
@@ -45,7 +46,22 @@ public class BlobPhotoStorage(IPhotoRepository context) : IPhotoStorage
         await tempBlobClient.DeleteIfExistsAsync(cancellationToken: ct);
         return true;
     }
-    
+
+    public async Task<bool> SetPublicity(string userId, Guid photoId, bool publicity, CancellationToken ct)
+    {
+        var blobClient = context.GetPhotoClient(userId, photoId);
+        if (!await blobClient.ExistsAsync(ct))
+            return false;
+        
+        var existingTags = await blobClient.GetTagsAsync(cancellationToken: ct);
+        var tags = existingTags.Value.Tags.ToDictionary(t => t.Key, t => t.Value);
+        
+        tags["public"] = publicity.ToString().ToLowerInvariant(); 
+        
+        await blobClient.SetTagsAsync(tags, cancellationToken: ct);
+        return true;
+    }
+
     public async Task<Guid> UploadTempAsync(string userId, Stream stream, TimeSpan ttl, CancellationToken ct)
     {
         var photoId = Guid.NewGuid();

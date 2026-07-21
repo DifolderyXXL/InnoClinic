@@ -49,8 +49,10 @@ public class UpdateAccountCommandHandle(
         {
             var oldId = account.PhotoId;
             account.PhotoId = command.PhotoId;
+            
+            var isDoctor = await context.Doctors.AnyAsync(x => x.AccountId == account.Id, ct);
 
-            await publishEndpoint.Publish(new ConfirmProfilePhoto(account.Id, command.PhotoId.Value, oldId), ct);
+            await publishEndpoint.Publish(new ConfirmProfilePhoto(account.Id, command.PhotoId.Value, oldId, isDoctor), ct);
         }
         
         await context.SaveChangesAsync(ct);

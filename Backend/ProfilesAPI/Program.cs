@@ -8,6 +8,8 @@ using ProfilesAPI.Data;
 using ServiceDefaults;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using ProfilesAPI.Application;
+using ProfilesAPI.Infrastructure;
 
 
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
@@ -20,6 +22,12 @@ builder.Services.AddDbContext<ProfilesDbContext>(options =>
 
 builder.AddCredentialsClient("identityclient");
 
+
+var gatewayBaseUrl = builder.Configuration.DiscoverHttps("BffProxy") 
+                       ?? throw new InvalidOperationException("BffProxy URL not found.");
+builder.Services.AddSingleton<IPhotoUrlFactory>(
+    new DocumentsPhotoUrlFactory(gatewayBaseUrl)
+);
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

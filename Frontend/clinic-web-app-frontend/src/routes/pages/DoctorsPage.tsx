@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {profilesApi} from "../../services/api/ProfilesApi.ts";
 import {PageSelector} from "./Shared/PageSelector.tsx";
 import "./DoctorsPage.css";
+import {AvatarFromSource} from "./Shared/Avatar.tsx";
 
 
 const pageSize: number = 50;
@@ -44,7 +45,7 @@ export function DoctorsPage() {
     }
 
     const listItems = doctors.map(doctor =>
-        <DoctorViewCard doctor={doctor}/>
+        <DoctorViewCard key={doctor.accountId} doctor={doctor}/>
     );
     
     return (
@@ -66,7 +67,8 @@ export interface DoctorProfile {
     accountFirstName: string;
     accountLastName: string;
     accountMiddleName?: string | null;
-    accountPhotoId?: string | null;   
+    accountPhotoId?: string | null;
+    photoUrl?: string | null;   
     dateOfBirth: string; 
     specializationId: number;
     specializationSpecializationName: string;
@@ -94,9 +96,7 @@ export function DoctorViewCard({doctor}: DoctorViewCardProps){
     
     return (
         <div className="doctor-card">
-            <div className="doctor-avatar">
-                
-            </div>
+            <AvatarFromSource PhotoUrl={doctor.photoUrl} TextIfPhotoNull={fullName[0] ?? "?"}/>
 
             <div className="doctor-info">
                 <div className="doctor-name">

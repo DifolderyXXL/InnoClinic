@@ -10,6 +10,7 @@ public record AccountDto
     public string LastName { get; init; }
     public string? MiddleName { get; init; }
     public Guid? PhotoId { get; init; }
+    public string? PhotoUrl { get; set; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }

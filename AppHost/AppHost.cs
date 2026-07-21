@@ -110,5 +110,6 @@ bff.WithReference(frontend);
 
 identityServer.WithReference(bff);
 
+profilesAPI.WithReference(bff);
 
 builder.Build().Run();

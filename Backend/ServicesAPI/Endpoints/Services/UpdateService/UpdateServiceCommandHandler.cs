@@ -3,6 +3,8 @@ using MassTransit;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using ServicesAPI.Data;
+using ServicesAPI.Endpoints.Services.DeleteService;
+using ServicesAPI.Endpoints.Specializations;
 
 namespace ServicesAPI.Endpoints.Services.UpdateService;
 
@@ -16,7 +18,7 @@ public class UpdateServiceCommandHandler(ServicesDbContext context, IPublishEndp
 
         if (service == null)
         {
-            return Result.Failure(new Error("Service not found", ErrorType.NotFound));
+            return ServiceErrors.ServiceNotFound();
         }
 
         var category = await context.ServiceCategories.FindAsync([command.CategoryId], ct);
@@ -41,8 +43,6 @@ public class UpdateServiceCommandHandler(ServicesDbContext context, IPublishEndp
             service.CategoryId = command.CategoryId;
             service.SpecializationId = command.SpecializationId;
 
-            await context.SaveChangesAsync(ct);
-            
             await publishEndpoint.Publish(new ServiceUpdatedEvent
             {
                 Id = service.Id,
@@ -52,6 +52,8 @@ public class UpdateServiceCommandHandler(ServicesDbContext context, IPublishEndp
                 SpecializationId = service.SpecializationId,
                 IsActive = service.IsActive,
             }, ct);
+
+            await context.SaveChangesAsync(ct);
         }
         catch (Exception ex)
         {

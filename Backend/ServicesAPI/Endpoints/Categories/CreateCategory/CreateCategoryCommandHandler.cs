@@ -13,6 +13,7 @@ public class CreateCategoryCommandHandler(ServicesDbContext context, IPublishEnd
 {
     public async Task<Result> Handle(CreateCategoryCommand command, CancellationToken ct)
     {
+        await using var transaction = await context.Database.BeginTransactionAsync(ct);
         try
         {
             var category = new ServiceCategory
@@ -22,17 +23,23 @@ public class CreateCategoryCommandHandler(ServicesDbContext context, IPublishEnd
             };
 
             context.ServiceCategories.Add(category);
+
             await context.SaveChangesAsync(ct);
-            
+
             await publishEndpoint.Publish(new CategoryCreatedEvent()
             {
                 Id = category.Id,
                 CategoryName = category.CategoryName,
                 TimeSlotSize = category.TimeSlotSize
             }, ct);
+
+            await context.SaveChangesAsync(ct);
+
+            await transaction.CommitAsync(ct);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync(ct);
             return Result.Failure(new Error(ex.Message, ErrorType.Internal));
         }
 

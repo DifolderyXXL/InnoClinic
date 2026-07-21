@@ -13,6 +13,8 @@ public class CreateSpecializationCommandHandler(ServicesDbContext context, IPubl
 {
     public async Task<Result> Handle(CreateSpecializationCommand command, CancellationToken ct)
     {
+        
+        await using var transaction = await context.Database.BeginTransactionAsync(ct);
         try
         {
             var specialization = new Specialization
@@ -22,6 +24,7 @@ public class CreateSpecializationCommandHandler(ServicesDbContext context, IPubl
             };
 
             context.Specializations.Add(specialization);
+
             await context.SaveChangesAsync(ct);
 
             await publishEndpoint.Publish(new SpecializationCreatedEvent
@@ -30,9 +33,14 @@ public class CreateSpecializationCommandHandler(ServicesDbContext context, IPubl
                 IsActive = specialization.IsActive,
                 Id = specialization.Id
             }, ct);
+
+            await context.SaveChangesAsync(ct);
+
+            await transaction.CommitAsync(ct);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync(ct);
             return Result.Failure(new Error(ex.Message, ErrorType.Internal));
         }
 

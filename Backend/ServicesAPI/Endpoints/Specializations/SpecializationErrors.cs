@@ -1,6 +1,6 @@
 using MicroserviceApiKernel.Results;
 
-namespace ServicesAPI.Endpoints.Specializations.DeleteSpecialization;
+namespace ServicesAPI.Endpoints.Specializations;
 
 public static class SpecializationErrors
 {

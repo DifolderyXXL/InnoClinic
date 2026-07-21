@@ -12,7 +12,7 @@ using ProfilesAPI.Data;
 namespace ProfilesAPI.Migrations
 {
     [DbContext(typeof(ProfilesDbContext))]
-    [Migration("20260713124911_InitialCreate")]
+    [Migration("20260721081831_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -321,10 +321,7 @@ namespace ProfilesAPI.Migrations
             modelBuilder.Entity("ProfilesAPI.Models.Specialization", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");

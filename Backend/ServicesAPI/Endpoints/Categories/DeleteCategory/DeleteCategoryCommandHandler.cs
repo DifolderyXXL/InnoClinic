@@ -23,14 +23,15 @@ public class DeleteCategoryCommandHandler(ServicesDbContext context, IPublishEnd
         try
         {
             context.ServiceCategories.Remove(category);
-            await context.SaveChangesAsync(ct);
-            
+
             await publishEndpoint.Publish(new CategoryDeletedEvent()
             {
                 Id = category.Id,
                 CategoryName = category.CategoryName,
                 TimeSlotSize = category.TimeSlotSize
             }, ct);
+
+            await context.SaveChangesAsync(ct);
         }
         catch (Exception ex)
         {

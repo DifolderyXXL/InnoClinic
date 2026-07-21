@@ -7,7 +7,7 @@ export function Layout() {
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <header style={{ padding: '10px', background: '#333', color: '#fff' }}>
                 <h1>InnoClinic</h1>
-                <div style={{ display: 'flex', flexDirection: 'row', minWidth: '100vh', justifyContent: 'space-between'  }}>
+                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'  }}>
                     <ClinicNavigation/>
                     <ProfileMinimalBlock/>
                 </div>

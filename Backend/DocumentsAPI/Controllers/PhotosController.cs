@@ -1,3 +1,4 @@
+using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Infrastructure.Photos;
@@ -47,6 +48,41 @@ public class PhotosController : BaseApiController
             BlobName = client.Name,
             Resource = "b",
             ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(15)
+        };
+        sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
+
+        var sasUri = client.GenerateSasUri(sasBuilder);
+        
+        return Ok(new { url = sasUri.ToString() });
+    }
+    
+    private async Task<bool> IsPhotoPublic(BlobClient blobClient, CancellationToken ct)
+    {
+        var tagsResponse = await blobClient.GetTagsAsync(cancellationToken: ct);
+        var tags = tagsResponse.Value.Tags;
+        
+        return tags.TryGetValue("public", out var value) && value.Equals("true", StringComparison.OrdinalIgnoreCase);
+    }
+    
+    [HttpGet("doctors/{doctorId:guid}/avatar/{photoId:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetDoctorPhoto(
+        [FromRoute] Guid doctorId,
+        [FromRoute] Guid photoId,
+        [FromServices] IUserPhotoStorage context,
+        CancellationToken ct)
+    {
+        var client = context.Repository.GetPhotoClient(doctorId.ToString(), photoId);
+
+        if (!await client.ExistsAsync(ct)) return NotFound();
+        if (!await IsPhotoPublic(client, ct)) return Forbid();
+
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = client.BlobContainerName,
+            BlobName = client.Name,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.AddHours(6)
         };
         sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
 

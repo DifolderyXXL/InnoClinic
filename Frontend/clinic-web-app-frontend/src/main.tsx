@@ -8,7 +8,8 @@ import { AuthProvider } from "./services/states/userState.tsx";
 import {LoginPage} from "./routes/pages/Identity/LoginPage.tsx";
 import {ProfilePage} from "./routes/pages/Identity/ProfilePage.tsx";
 import {Layout} from "./components/Layout.tsx";
-import {DoctorsPage} from "./routes/pages/DoctorsPage.tsx";
+import {DoctorsPage} from "./routes/pages/specific/doctors/DoctorsPage.tsx";
+import {ServicesPage} from "./routes/pages/specific/services/ServicesPage.tsx";
 
 
 createRoot(document.getElementById("root")!).render(
@@ -22,6 +23,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/login" element={<LoginPage/>} />
             <Route path="/profile" element={<ProfilePage/>} />
             <Route path="/doctors" element={<DoctorsPage/>} />
+            <Route path="/view-services" element={<ServicesPage/>} />
           </Route>
         </Routes>
       </BrowserRouter>

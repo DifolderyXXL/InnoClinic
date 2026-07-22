@@ -19,6 +19,14 @@ export abstract class BaseApiClient {
         }, params)
     }
 
+    public async delete<T = any, TRequest = null>(path: string, request: TRequest | null = null, params: Record<string, any> = {}) : Promise<Result<T>>{
+        return this.request(path, { method: 'DELETE', headers: {
+                "Content-Type": "application/json"
+            },
+            body: this.serialize(request)
+        }, params)
+    }
+
     public async put<T = any, TRequest = null>(path: string, request: TRequest | null = null, params: Record<string, any> = {}) : Promise<Result<T>>{
         return this.request(path, { method: 'PUT', headers: {
                 "Content-Type": "application/json"

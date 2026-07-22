@@ -5,6 +5,7 @@ export function ClinicNavigation() {
         <nav style={{alignContent: "center"}}>
             <RouteLinkCard to="/" >Home</RouteLinkCard>
             <RouteLinkCard to="/doctors">Doctors</RouteLinkCard>
+            <RouteLinkCard to="/view-services">Services</RouteLinkCard>
         </nav>
     )
 }

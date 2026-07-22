@@ -173,6 +173,54 @@ export class ServicesApi extends BaseApiClient {
     public async getScheduleTodayById(id: string): Promise<Result> {
         return this.get(`api/v1/schedules/today/${id}`);
     }
+
+    public async getAvailableDoctorSlots(doctorId: string, date: DateOnly): Promise<Result> {
+        const dateStr = date.toString(); 
+        return this.get(`/schedules/doctor/${doctorId}`, { dateOnly: dateStr });
+    }
 }
 
 export const servicesApi = new ServicesApi();
+
+
+export class DateOnly {
+    private readonly value: string;
+
+    private constructor(dateStr: string) {
+        this.value = dateStr;
+    }
+
+    static fromString(dateStr: string): DateOnly {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            throw new Error(`Invalid DateOnly format: "${dateStr}". Must be YYYY-MM-DD.`);
+        }
+        return new DateOnly(dateStr);
+    }
+    static fromNativeDate(date: Date): DateOnly {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return new DateOnly(`${yyyy}-${mm}-${dd}`);
+    }
+
+    toString(): string {
+        return this.value;
+    }
+}
+
+
+export interface TimeSlotWindow{
+    timeSlotStart: number;
+    BeginTime: TimeSpan;
+    EndTime: TimeSpan;
+}
+
+
+export type TimeSpan = string & { readonly __brand: unique symbol };
+
+export function toTimeSpan(timeStr: string): TimeSpan {
+    if (!/^\d{2}:\d{2}(:\d{2})?$/.test(timeStr)) {
+        throw new Error(`Invalid TimeSpan format: "${timeStr}". Expected HH:mm:ss or HH:mm`);
+    }
+    return timeStr as TimeSpan;
+}

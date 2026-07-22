@@ -58,17 +58,26 @@ export class ProfilesApi extends BaseApiClient {
     }
     
     public async getReceptionists(page: number = 1, pageSize: number = 50): Promise<Result> {
-        return this.get("api/v1/receptionists", { params: { Page: page, PageSize: pageSize } });
+        return this.get("api/v1/receptionists", { Page: page, PageSize: pageSize } );
     }
 
     public async getPatients(page: number = 1, pageSize: number = 50): Promise<Result> {
-        return this.get("api/v1/patients", { params: { Page: page, PageSize: pageSize } });
-    }
-    
-    public async getDoctors(page: number = 1, pageSize: number = 50): Promise<Result> {
-        return this.get("api/v1/doctors", { params: { Page: page, PageSize: pageSize } });
+        return this.get("api/v1/patients", { Page: page, PageSize: pageSize });
     }
 
+    public async getDoctors(params?: {
+        specializationId?: number;
+        page?: number;
+        pageSize?: number;
+    }): Promise<Result> {
+        return this.get("api/v1/doctors", 
+            {
+                Page: params?.page ?? 1,
+                PageSize: params?.pageSize ?? 50,
+                SpecializationId: params?.specializationId
+            }
+        );
+    }
     public async getDoctorById(id: string): Promise<Result> {
         return this.get(`api/v1/doctors/${id}`);
     }

@@ -6,6 +6,7 @@ export function ClinicNavigation() {
             <RouteLinkCard to="/" >Home</RouteLinkCard>
             <RouteLinkCard to="/doctors">Doctors</RouteLinkCard>
             <RouteLinkCard to="/view-services">Services</RouteLinkCard>
+            <RouteLinkCard to="/make-appointment">Make appointment</RouteLinkCard>
         </nav>
     )
 }

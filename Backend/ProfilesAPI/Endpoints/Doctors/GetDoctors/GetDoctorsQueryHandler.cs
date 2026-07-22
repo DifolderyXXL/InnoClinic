@@ -8,7 +8,7 @@ using ProfilesAPI.Data;
 
 namespace ProfilesAPI.Endpoints.Doctors.GetDoctors;
 
-public record GetDoctorsQuery(int Page = 1, int PageSize = 50) : IQuery<GetDoctorsResponse>;
+public record GetDoctorsQuery(int Page = 1, int PageSize = 50, int? SpecializationId = null) : IQuery<GetDoctorsResponse>;
 
 public record GetDoctorsResponse(List<DoctorDto> Items, int Page, int PageSize, int Total);
 
@@ -17,9 +17,16 @@ public class GetDoctorsQueryHandler(ProfilesDbContext context, IPhotoUrlFactory 
     public async Task<Result<GetDoctorsResponse>> Handle(GetDoctorsQuery query, CancellationToken ct)
     {
         var total = await context.Doctors.CountAsync(ct);
-        var doctors = await context.Doctors
+        var doctorsQuery = context.Doctors
             .OrderBy(x => x.Id)
-            .Pagination(query.Page, query.PageSize)
+            .Pagination(query.Page, query.PageSize);
+
+        if (query.SpecializationId.HasValue)
+        {
+            doctorsQuery = doctorsQuery.Where(x => x.SpecializationId == query.SpecializationId.Value);
+        }
+        
+        var doctors = await doctorsQuery
             .ProjectToType<DoctorDto>()
             .ToListAsync(ct);
 

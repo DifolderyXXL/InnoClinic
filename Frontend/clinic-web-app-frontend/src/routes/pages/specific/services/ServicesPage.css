@@ -33,5 +33,36 @@
 }
 
 .service-link:hover {
-    transform: translateX(5px); /* сдвигает влево */
+    transform: translateX(5px);
 }
+
+.option-select__input{
+    color: white !important;
+}
+.option-select__single-value{
+    color: white !important;
+}
+.option-select__menu{
+    background: #222 !important;
+    color: white !important;
+}
+
+.option-select__option{
+    background: #444 !important;
+    color: white !important;
+}
+
+.option-select__option--is-selected {
+    background: #555 !important;
+}
+
+.option-select__option:hover {
+    background: #777 !important;
+}
+
+.option-select__control{
+    background: #333 !important;
+    color: white !important;
+    
+}
+

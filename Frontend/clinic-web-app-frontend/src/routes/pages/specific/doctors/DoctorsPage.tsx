@@ -1,8 +1,8 @@
-import {useEffect, useState} from "react";
-import {profilesApi} from "../../services/api/ProfilesApi.ts";
-import {PageSelector} from "./Shared/PageSelector.tsx";
 import "./DoctorsPage.css";
-import {AvatarFromSource} from "./Shared/Avatar.tsx";
+import {useEffect, useState} from "react";
+import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
+import {PageSelector} from "../../Shared/PageSelector.tsx";
+import {AvatarFromSource} from "../../Shared/Avatar.tsx";
 
 
 const pageSize: number = 50;

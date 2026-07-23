@@ -44,7 +44,7 @@ var documentsApi = builder.AddProject<Projects.DocumentsAPI>("DocumentsAPI")
        .WithExternalHttpEndpoints();
 
 var sqlServer = builder.AddSqlServer("sqlServer")
-       .WithHostPort(58379)
+//       .WithHostPort(58379)
        .WithDataVolume()
        .WithLifetime(ContainerLifetime.Persistent);
 var profilesDb = sqlServer.AddDatabase("profilesSqlServer");

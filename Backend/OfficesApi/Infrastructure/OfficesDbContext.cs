@@ -125,7 +125,7 @@ public class OfficesDbContext(IMongoDatabase database)
     public async Task<List<Office>> GetAll(PaginationParameters pagination, CancellationToken ct)
     {
         return await _collection.Find(Builders<Office>.Filter.Empty)
-            .Skip(pagination.Skip)
+            .Skip(pagination.Skip())
             .Limit(pagination.PageSize)
             .ToListAsync(ct);
     }

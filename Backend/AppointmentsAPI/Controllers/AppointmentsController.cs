@@ -15,7 +15,7 @@ using AppointmentState = AppointmentsAPI.Models.AppointmentState;
 
 namespace AppointmentsAPI.Controllers;
 
-public record BookAppointmentCommand(Guid DoctorAccountId, long OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
+public record BookAppointmentCommand(Guid DoctorAccountId, string OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
 public record DeclineCommand(string Reason);
 
 
@@ -32,6 +32,7 @@ public class AppointmentsController(
     [HttpPost]
     [Route("book")]
     [Authorize(Policy = RolePolicy.Client)]
+    [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
     public async Task<IActionResult> BookAppointment(
         [FromBody] BookAppointmentCommand command,
         CancellationToken ct)
@@ -130,7 +131,40 @@ public class AppointmentsController(
         return Ok(new{ Items = items, Total = total, Page = pagination.Page, PageSize = pagination.PageSize });
     }
     
-    [HttpGet("me")]
+    [HttpGet("me/client")]
+    [Authorize(Policy = RolePolicy.Client)]
+    [ProducesResponseType(typeof(PagedResponse<AppointmentDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetClientAppointments(
+        [FromQuery] AppointmentState? state,
+        [FromQuery] PaginationParameters pagination,
+        CancellationToken ct = default)
+    {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var clientId))
+        {
+            return Unauthorized();
+        }
+        
+        var query = context.Appointments.AsNoTracking();
+
+        if (state != null)
+        {
+            query = query.Where(x => x.State == state);
+        }
+
+        var items = await query
+            .Where(x => x.PatientAccountId == clientId)
+            .OrderBy(x => x.Id)
+            .ToPagedResponseAsync(
+                pagination, 
+                AppointmentDtoHelper.ProjectToDto,
+                ct);
+        
+        return Ok(items);
+    }
+    
+    
+    [HttpGet("me/doctor")]
     [Authorize(Policy = RolePolicy.Doctor)]
     [ProducesResponseType(typeof(PagedResponse<AppointmentDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDoctorAppointments(

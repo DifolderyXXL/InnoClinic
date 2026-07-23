@@ -1,0 +1,119 @@
+.service-card{
+    display: inline-flex;
+    flex-direction: column;
+    background: #444;
+    color: white;
+    padding: 5px;
+}
+
+.services-list{
+    display: inline-flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 20px;
+}
+
+.specialization-group{
+    width: 100%;
+    text-align: left;
+    background: #222;
+    padding: 5px 0px;
+}
+
+.groups-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+}
+.service-link {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    text-decoration: none;
+}
+
+.service-link:hover {
+    transform: translateX(5px);
+}
+
+.option-select__input{
+    color: white !important;
+}
+.option-select__single-value{
+    color: white !important;
+}
+.option-select__menu{
+    background: #222 !important;
+    color: white !important;
+}
+
+.option-select__option{
+    background: #444 !important;
+    color: white !important;
+}
+
+.option-select__option--is-selected {
+    background: #555 !important;
+}
+
+.option-select__option:hover {
+    background: #777 !important;
+}
+
+.option-select__control{
+    background: #333 !important;
+    color: white !important;
+}
+
+.slot-item {
+    padding: 4px;
+    border: 1px solid #555;
+    width: 60px;
+    height: 24px;
+    text-align: center;
+    font-size: 10px;
+    cursor: default;
+    transition: background-color 0.15s ease;
+    user-select: none;
+}
+
+.slot-item.available {
+    background-color: #4caf50;
+    cursor: pointer;
+}
+
+.slot-item.available:hover {
+    background-color: #66bb6a;
+    transform: scale(1.05);
+}
+
+.slot-item.available.selected {
+    background-color: #ff9800;
+}
+
+.slot-item.unavailable {
+    background-color: #444;
+    cursor: default;
+}
+
+.slot-item.unavailable:hover {
+    background-color: #444;
+}
+
+.slots-table th {
+    padding: 4px 8px;
+    border: 1px solid #555;
+    font-size: 12px;
+}
+
+.slots-table td {
+    padding: 4px;
+    border: 1px solid #555;
+}
+.slot-item.selected{
+    background-color: #ff963b !important;
+}
+.slot-item.preview {
+    background-color: #ffeb3b !important; 
+}
+

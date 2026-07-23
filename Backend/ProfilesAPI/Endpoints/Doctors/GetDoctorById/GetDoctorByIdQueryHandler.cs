@@ -2,6 +2,7 @@ using Mapster;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using Microsoft.EntityFrameworkCore;
+using ProfilesAPI.Application;
 using ProfilesAPI.Data;
 
 namespace ProfilesAPI.Endpoints.Doctors.GetDoctorById;
@@ -10,8 +11,8 @@ public record GetDoctorByIdQuery(Guid Id) : IQuery<GetDoctorByIdResponse>;
 
 public record GetDoctorByIdResponse(DoctorDto DoctorDto);
 
-public class GetDoctorByIdQueryHandler(ProfilesDbContext context) : IQueryHandler<GetDoctorByIdQuery, GetDoctorByIdResponse>
-{
+public class GetDoctorByIdQueryHandler(ProfilesDbContext context, IPhotoUrlFactory photoUrlFactory) : IQueryHandler<GetDoctorByIdQuery, GetDoctorByIdResponse>
+{   
     public async Task<Result<GetDoctorByIdResponse>> Handle(GetDoctorByIdQuery query, CancellationToken ct)
     {
         var result = await context.Doctors
@@ -22,6 +23,12 @@ public class GetDoctorByIdQueryHandler(ProfilesDbContext context) : IQueryHandle
         if (result == null)
             return DoctorErrors.DoctorNotFound();
 
-        return new GetDoctorByIdResponse(result);
+        var doctor = result;
+        if (doctor.AccountPhotoId.HasValue)
+        {
+            doctor.PhotoUrl = photoUrlFactory.GenerateDoctorPhotoUrl(doctor.AccountId, doctor.AccountPhotoId.Value);
+        }
+
+        return new GetDoctorByIdResponse(doctor);
     }
 }

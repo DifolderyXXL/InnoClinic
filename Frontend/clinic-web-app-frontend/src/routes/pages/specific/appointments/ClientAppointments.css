@@ -1,0 +1,12 @@
+.appointment-container{
+    display: flex;
+    flex-direction: column;
+    background: #444;
+    padding: 5px;
+}
+
+.appointments-list-container{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap:5px;
+}

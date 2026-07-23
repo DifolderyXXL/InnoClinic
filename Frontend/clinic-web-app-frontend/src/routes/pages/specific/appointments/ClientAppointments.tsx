@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {type AppointmentDto, appointmentsApi} from "../../../../services/api/AppointmentApi.ts";
 import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
 import {type DoctorProfile, DoctorViewCard} from "../doctors/DoctorsPage.tsx";
+import "./ClientAppointments.css"
 
 export function ClientAppointments(){
     const [appointments, setAppointments] = useState<AppointmentDto[]>([])       
@@ -39,7 +40,7 @@ export function DoctorById({id}:DoctorByIdProps){
     useEffect(() => {
         profilesApi.getDoctorById(String(id))
             .then(result =>{
-                if(result.type === "ok") setDoctor(result.value);
+                if(result.type === "ok") setDoctor(result.value.doctorDto);
             })
     }, []);
     

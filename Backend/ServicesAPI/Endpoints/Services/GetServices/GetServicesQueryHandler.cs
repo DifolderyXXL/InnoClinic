@@ -19,7 +19,8 @@ public class GetServicesQueryHandler(ServicesDbContext context)
             .Map(dest => dest.CategoryId, src => src.CategoryId)
             .Map(dest => dest.SpecializationId, src => src.SpecializationId)
             .Map(dest => dest.CategoryName, src => src.ServiceCategory.CategoryName)
-            .Map(dest => dest.SpecializationName, src => src.Specialization.SpecializationName);
+            .Map(dest => dest.SpecializationName, src => src.Specialization.SpecializationName)
+            .Map(dest => dest.SlotLength, src => src.ServiceCategory.TimeSlotSize);
         return config;
     }
 
@@ -50,6 +51,7 @@ public record ServiceDto(
     string ServiceName,
     decimal Price,
     bool IsActive,
+    int SlotLength,
     long CategoryId,
     string CategoryName,
     long SpecializationId,

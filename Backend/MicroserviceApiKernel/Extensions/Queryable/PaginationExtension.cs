@@ -6,8 +6,10 @@ namespace MicroserviceApiKernel.Extensions.Queryable;
 
 public record PaginationParameters(int Page = 1, int PageSize = 50)
 {
-    public int Skip => (Page - 1) * PageSize;
+    public int Skip() => (Page - 1) * PageSize;
 }
+
+
 public static class PaginationExtension
 {
     extension<TSource>(IQueryable<TSource> source)

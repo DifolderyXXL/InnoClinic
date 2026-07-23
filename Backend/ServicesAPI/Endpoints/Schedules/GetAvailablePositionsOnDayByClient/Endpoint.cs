@@ -11,7 +11,7 @@ public class GetAvailablePositionsOnDayEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapGet("/schedules/doctor/{doctorId:guid}", 
-            async Task<Results<BadRequest<string>, Ok<AvailableTimeWindowDto[]>>> (
+            async Task<Results<BadRequest<string>, Ok<AvailablePositionsOnDayResponse>>> (
                 [FromRoute] Guid doctorId,
                 [FromQuery] DateOnly dateOnly,
                 IOptions<ScheduleOptions> options,
@@ -20,14 +20,24 @@ public class GetAvailablePositionsOnDayEndpoint : IEndpoint
         {
             var positions = await service.GetAvailablePositionsOnDay(doctorId, dateOnly, ct);
 
-            return TypedResults.Ok(positions.Select(x=>new AvailableTimeWindowDto(
+            var timeWindows = positions.Select(x => new AvailableTimeWindowDto(
                 x.TimeSlotStart,
                 x.TimeSlotSize,
                 options.Value.GetSlotTime(x.TimeSlotStart),
                 options.Value.GetSlotTime(x.TimeSlotStart + x.TimeSlotSize)
-                )).ToArray());
+            )).ToArray();
+            
+            return TypedResults.Ok(new AvailablePositionsOnDayResponse(
+                options.Value.WorkScheduleBeginTime,
+                options.Value.WorkScheduleEndTime,
+                options.Value.TimeSlotLength,
+                options.Value.GetSlotsAmount(),
+                timeWindows
+                ));
         });
     }
 
+    public record AvailablePositionsOnDayResponse(
+        TimeSpan DayBeginTime, TimeSpan DayEndTime, TimeSpan TimeSlotLength, int SlotAmount, AvailableTimeWindowDto[] AvailableTimeWindows);
     public record AvailableTimeWindowDto(int TimeSlotStart, int TimeSlotSize, TimeSpan BeginTime, TimeSpan EndTime);
 }

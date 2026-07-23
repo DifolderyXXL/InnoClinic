@@ -67,6 +67,7 @@ export interface ServiceDto {
     serviceName: string;
     price: number | string;
     isActive: boolean;
+    slotLength: number;
     categoryId: number | string;
     categoryName: string;
     specializationId: number | string;
@@ -174,10 +175,18 @@ export class ServicesApi extends BaseApiClient {
         return this.get(`api/v1/schedules/today/${id}`);
     }
 
-    public async getAvailableDoctorSlots(doctorId: string, date: DateOnly): Promise<Result> {
-        const dateStr = date.toString(); 
-        return this.get(`/schedules/doctor/${doctorId}`, { dateOnly: dateStr });
+    public async getAvailableDoctorSlots(doctorId: string, date: Date): Promise<Result> {
+
+        const dateStr = dateToDateOnly(date);
+        return this.get(`api/v1/schedules/doctor/${doctorId}`, { dateOnly: dateStr });
     }
+}
+
+export function dateToDateOnly(date: Date) : string{
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 export const servicesApi = new ServicesApi();
@@ -208,11 +217,19 @@ export class DateOnly {
     }
 }
 
+export interface AvailablePositionsOnDay{
+    dayBeginTime: TimeSpan;
+    dayEndTime: TimeSpan;
+    timeSlotLength: TimeSpan;
+    slotAmount: number;
+    availableTimeWindows: TimeSlotWindow[];
+}
 
 export interface TimeSlotWindow{
     timeSlotStart: number;
-    BeginTime: TimeSpan;
-    EndTime: TimeSpan;
+    timeSlotSize: number;
+    beginTime: TimeSpan;
+    endTime: TimeSpan;
 }
 
 
@@ -223,4 +240,24 @@ export function toTimeSpan(timeStr: string): TimeSpan {
         throw new Error(`Invalid TimeSpan format: "${timeStr}". Expected HH:mm:ss or HH:mm`);
     }
     return timeStr as TimeSpan;
+}
+export function timeSpanToMinutes(ts: TimeSpan): number {
+    const parts = ts.split(':').map(Number);
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return parts[0] * 60 + parts[1] + parts[2] / 60;
+}
+
+export function minutesToTimeSpan(minutes: number): TimeSpan {
+    const h = Math.floor(minutes / 60);
+    const m = Math.floor(minutes % 60);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}` as TimeSpan;
+}
+
+export function getHourFromMinutes(minutes: number): number {
+    return Math.floor(minutes / 60);
+}
+export function getSlotsInHour(slotLength: TimeSpan): number {
+    const lengthMinutes = timeSpanToMinutes(slotLength);
+    
+    return Math.floor(60 / lengthMinutes);
 }

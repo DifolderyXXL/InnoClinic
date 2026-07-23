@@ -15,7 +15,7 @@ using AppointmentState = AppointmentsAPI.Models.AppointmentState;
 
 namespace AppointmentsAPI.Controllers;
 
-public record BookAppointmentCommand(Guid DoctorAccountId, long OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
+public record BookAppointmentCommand(Guid DoctorAccountId, string OfficeId, DateOnly Date, int StartSlotIndex, long ServiceId, long SpecializationId);
 public record DeclineCommand(string Reason);
 
 

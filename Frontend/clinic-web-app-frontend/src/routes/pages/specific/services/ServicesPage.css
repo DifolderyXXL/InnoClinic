@@ -63,6 +63,57 @@
 .option-select__control{
     background: #333 !important;
     color: white !important;
-    
+}
+
+.slot-item {
+    padding: 4px;
+    border: 1px solid #555;
+    width: 60px;
+    height: 24px;
+    text-align: center;
+    font-size: 10px;
+    cursor: default;
+    transition: background-color 0.15s ease;
+    user-select: none;
+}
+
+.slot-item.available {
+    background-color: #4caf50;
+    cursor: pointer;
+}
+
+.slot-item.available:hover {
+    background-color: #66bb6a;
+    transform: scale(1.05);
+}
+
+.slot-item.available.selected {
+    background-color: #ff9800;
+}
+
+.slot-item.unavailable {
+    background-color: #444;
+    cursor: default;
+}
+
+.slot-item.unavailable:hover {
+    background-color: #444;
+}
+
+.slots-table th {
+    padding: 4px 8px;
+    border: 1px solid #555;
+    font-size: 12px;
+}
+
+.slots-table td {
+    padding: 4px;
+    border: 1px solid #555;
+}
+.slot-item.selected{
+    background-color: #ff963b !important;
+}
+.slot-item.preview {
+    background-color: #ffeb3b !important; 
 }
 

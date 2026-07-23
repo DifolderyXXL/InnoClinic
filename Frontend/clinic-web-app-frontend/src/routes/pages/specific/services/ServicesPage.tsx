@@ -1,7 +1,6 @@
 import {useEffect, useState} from "react";
-import {type CategoryDto, servicesApi, type SpecializationDto} from "../../../../services/api/ServicesApi.ts";
+import {type CategoryDto, servicesApi} from "../../../../services/api/ServicesApi.ts";
 import {DiscretePageSelector} from "../../Shared/PageSelector.tsx";
-import {groupBy} from "../../../../utilities/arrayUtils.ts";
 import {GroupedBySpecializationServices} from "./GroupBySpecializationServices.tsx";
 
 export interface ServiceDto {

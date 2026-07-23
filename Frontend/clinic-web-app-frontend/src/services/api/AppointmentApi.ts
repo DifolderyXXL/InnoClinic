@@ -59,13 +59,24 @@ export class AppointmentsApi extends BaseApiClient {
         );
     }
 
-    public async getMyAppointments(
+    public async getMyDoctorAppointments(
         state?: AppointmentState,
         page?: number,
         pageSize?: number,
         skip?: number
     ): Promise<Result> {
-        return this.get("api/v1/Appointments/me", 
+        return this.get("api/v1/Appointments/me/doctor", 
+            { state, Page: page, PageSize: pageSize, Skip: skip },
+        );
+    }
+
+    public async getMyClientAppointments(
+        state?: AppointmentState,
+        page?: number,
+        pageSize?: number,
+        skip?: number
+    ): Promise<Result> {
+        return this.get("api/v1/Appointments/me/client",
             { state, Page: page, PageSize: pageSize, Skip: skip },
         );
     }

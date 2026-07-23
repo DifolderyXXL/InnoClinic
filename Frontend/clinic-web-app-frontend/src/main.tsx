@@ -11,6 +11,7 @@ import {Layout} from "./components/Layout.tsx";
 import {DoctorsPage} from "./routes/pages/specific/doctors/DoctorsPage.tsx";
 import {ServicesPage} from "./routes/pages/specific/services/ServicesPage.tsx";
 import {MakeAppointmentForm} from "./routes/pages/actionable/MakeAppointmentForm.tsx";
+import {ClientAppointments} from "./routes/pages/specific/appointments/ClientAppointments.tsx";
 
 
 createRoot(document.getElementById("root")!).render(
@@ -26,6 +27,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/doctors" element={<DoctorsPage/>} />
             <Route path="/view-services" element={<ServicesPage/>} />
             <Route path="/make-appointment" element={<MakeAppointmentForm/>} />
+            <Route path="/my-appointments" element={<ClientAppointments/>} />
           </Route>
         </Routes>
       </BrowserRouter>

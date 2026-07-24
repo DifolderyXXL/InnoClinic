@@ -86,7 +86,7 @@ export function DoctorsPage() {
     }
 
     const listItems = doctors.map(doctor =>
-        <Link key={doctor.accountId} to={`/doctor?id=${doctor.accountId}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+        <Link key={doctor.accountId} to={`/doctors/details?id=${doctor.accountId}`} style={{ color: 'inherit', textDecoration: 'none' }}>
             <DoctorViewCard key={doctor.accountId} doctor={doctor}/>
         </Link>
     );

@@ -111,7 +111,9 @@ export function OfficeFullCard({ office, officeId, onClick, isClickable = false 
         >
             <div className="office-full-card-header">
                 <AvatarFromSource
-                    PhotoUrl={data.photoId}
+                    PhotoUrl={data && data.photoId
+                        ? documentsService.getOfficePhotoUrl(data.id, data.photoId)
+                        : null}
                     TextIfPhotoNull={data.city[0] ?? "O"}
                 />
                 <div className="office-full-card-body">
@@ -136,7 +138,7 @@ export function OfficeFullCard({ office, officeId, onClick, isClickable = false 
     if (isClickable && data.id) {
         return (
             <Link
-                to={`/offices/details?id=${data.id}`}
+                to={`/view-offices/details?id=${data.id}`}
                 className="office-link"
             >
                 {cardContent}

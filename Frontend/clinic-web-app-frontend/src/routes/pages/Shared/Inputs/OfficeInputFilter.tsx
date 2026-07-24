@@ -5,13 +5,13 @@ import {servicesApi, type SpecializationDto} from "../../../../services/api/Serv
 
 interface OfficeInputFilterProps{
     label?: string;
-    value: OfficeDto | null;
+    valueId: string | null;
     onChange: (office: OfficeDto | null) => void
 }
 function officeToString(office: OfficeDto){
     return `${office.city} ${office.street} ${office.houseNumber}`;
 }
-export function OfficeInputFilter({label, value, onChange}: OfficeInputFilterProps){
+export function OfficeInputFilter({label, valueId, onChange}: OfficeInputFilterProps){
     const [offices, setOffices] = useState<OfficeDto[]>([]);
 
     useEffect(() => {
@@ -20,26 +20,28 @@ export function OfficeInputFilter({label, value, onChange}: OfficeInputFilterPro
         });
     }, []);
 
+    const selectedOffice = offices.find(o => o.id === valueId) || null;
+
     return (
         <SearchableSelect options={offices}
                           label={label}
                           getLabel={officeToString}
                           getKey={o=>o.id}
                           onChange={onChange}
-                          value={value}></SearchableSelect>
+                          value={selectedOffice}></SearchableSelect>
     );
 }
 
 
 interface SpecializationInputFilterProps{
     label?: string;
-    value: SpecializationDto | null;
+    valueId: number | null;
     onChange: (spec: SpecializationDto | null) => void
 }
 function specializationToString(s: SpecializationDto){
     return `${s.specializationName}`;
 }
-export function SpecializationInputFilter({label, value, onChange}: SpecializationInputFilterProps){
+export function SpecializationInputFilter({label, valueId, onChange}: SpecializationInputFilterProps){
     const [specializations, setSpecializations] = useState<SpecializationDto[]>([]);
 
     useEffect(() => {
@@ -48,12 +50,14 @@ export function SpecializationInputFilter({label, value, onChange}: Specializati
         });
     }, []);
 
+    const selectedSpec = specializations.find(o => o.id === valueId) || null;
+
     return (
         <SearchableSelect options={specializations}
                           getLabel={specializationToString}
                           label={label}
                           getKey={o=>o.id}
                           onChange={onChange}
-                          value={value}></SearchableSelect>
+                          value={selectedSpec}></SearchableSelect>
     );
 }

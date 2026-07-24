@@ -6,53 +6,76 @@ import {AvatarFromSource} from "../../Shared/Avatar.tsx";
 import {type OfficeDto} from "../../../../services/api/OfficesApi.ts";
 import {OfficeInputFilter, SpecializationInputFilter} from "../../Shared/Inputs/OfficeInputFilter.tsx";
 import type {SpecializationDto} from "../../../../services/api/ServicesApi.ts";
+import {useSearchParams} from "react-router";
 
 
 const pageSize: number = 50;
 
 export function DoctorsPage() {
-    const [fullName, setFullName] = useState("")
-    const [queriedFullName, setQueriedFullName] = useState("")
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const currentPage = Number(searchParams.get("page")) || 1;
+    const urlFullName = searchParams.get("fullName") || "";
+    const urlOfficeId = searchParams.get("officeId") || "";
+    const urlSpecId = Number(searchParams.get("specId")) || null;
     
-    const [office, setOffice] = useState<OfficeDto | null>(null)
-    const [specialization, setSpecialization] = useState<SpecializationDto | null>(null);
+    const [fullName, setFullName] = useState(urlFullName)
+
+    const [office, setOffice] = useState<string | null>(urlOfficeId)
+    const [specialization, setSpecialization] = useState<number | null>(urlSpecId);
 
     const [doctors, setDoctors] = useState<any>(null);
     const [total, setTotal] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const loadData = async (page: number) => {
-        setLoading(true);
-        setError(null);
+    const updateUrlParams = (newParams: Record<string, string | null | undefined>) => {
+        const nextParams = new URLSearchParams(searchParams);
 
-        try {
-            setQueriedFullName(fullName);
-            const offices = office ? [office.id] : undefined;
-            const specializations = specialization ? [Number(specialization.id)] : undefined;
-            const result = await profilesApi.getDoctors({
-                page, 
-                pageSize, 
-                officeIds: offices,
-                specializationIds: specializations,
-                fullName: fullName
-            });
-            if (result.type === "ok") {
-                setDoctors(result.value.items);
-                setTotal(result.value.total);
+        Object.entries(newParams).forEach(([key, val]) => {
+            if (val) {
+                nextParams.set(key, val);
             } else {
-                setError(result.error?.title || "Error");
+                nextParams.delete(key);
             }
-        } catch (err) {
-            setError("Unhandled error");
-        } finally {
-            setLoading(false);
+        });
+        
+        if (!("page" in newParams)) {
+            nextParams.set("page", "1");
         }
+
+        setSearchParams(nextParams);
     };
 
     useEffect(() => {
-        loadData(1);
-    }, [office, specialization]);
+        const loadData = async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                const result = await profilesApi.getDoctors({
+                    page: currentPage,
+                    pageSize,
+                    officeIds: urlOfficeId ? [urlOfficeId] : undefined,
+                    specializationIds: urlSpecId ? [Number(urlSpecId)] : undefined,
+                    fullName: urlFullName || undefined
+                });
+
+                if (result.type === "ok") {
+                    setDoctors(result.value.items);
+                    setTotal(result.value.total);
+                } else {
+                    setError(result.error?.title || "Error");
+                }
+            } catch (err) {
+                setError("Unhandled error");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, [searchParams]);
     
     if (loading) {
         return <div style={{ textAlign: 'center', padding: '40px' }}>Loading doctors...</div>;
@@ -72,7 +95,7 @@ export function DoctorsPage() {
                 <div className="filter-block">
                     <form onSubmit={(e) => {
                         e.preventDefault();
-                        loadData(1);
+                        updateUrlParams({ fullName: fullName });
                     }}>
                         <label>Full name</label>
                         <input
@@ -82,7 +105,7 @@ export function DoctorsPage() {
                         />
                         <button
                             type="submit"
-                            disabled={queriedFullName === fullName}
+                            disabled={urlFullName === fullName}
                         >
                             Apply
                         </button>
@@ -90,11 +113,17 @@ export function DoctorsPage() {
                 </div>
                 <div className="filter-block">
                     <label>Office</label>
-                    <OfficeInputFilter value={office} onChange={setOffice}/>
+                    <OfficeInputFilter valueId={office} onChange={x => {
+                        setOffice(x?.id ?? null);
+                        updateUrlParams({ officeId: x?.id });
+                    }}/>
                 </div>
                 <div className="filter-block">
                     <label>Specialization</label>
-                    <SpecializationInputFilter value={specialization} onChange={setSpecialization}/>
+                    <SpecializationInputFilter valueId={specialization} onChange={x => {
+                        setSpecialization(Number(x?.id) ?? null);
+                        updateUrlParams({ specId: String(x?.id) });
+                    }}/>
 
                 </div>
             </div>
@@ -113,7 +142,7 @@ export function DoctorsPage() {
             <PageSelector
                 pageSize={pageSize}
                 total={total}
-                onPageChange={(page) => loadData(page)}
+                onPageChange={(page) => updateUrlParams({ page: String(page) })}
             />
         </div>
     );

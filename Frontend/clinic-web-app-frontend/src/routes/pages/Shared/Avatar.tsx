@@ -27,9 +27,23 @@ interface AvatarProps{
     IsDirect?: boolean;
 }
 
-export function AvatarFromSource({PhotoUrl, TextIfPhotoNull, IsDirect} : AvatarProps){
-    const [photoSrc, setPhotoSrc] = useState<string | null>(null);
+function getCachedPhotoUrl(PhotoUrl?: string | null, IsDirect?: boolean): string | null {
+    if (!PhotoUrl) return null;
+    if (IsDirect) return PhotoUrl;
 
+    const cache = getSasCache();
+    const cached = cache[PhotoUrl];
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.url;
+    }
+    return null;
+}
+
+export function AvatarFromSource({PhotoUrl, TextIfPhotoNull, IsDirect} : AvatarProps){
+    const [photoSrc, setPhotoSrc] = useState<string | null>(()=>
+        getCachedPhotoUrl(PhotoUrl, IsDirect)
+    );
+    
     useEffect(() => {
         if (!PhotoUrl) {
             setPhotoSrc(null);
@@ -46,18 +60,24 @@ export function AvatarFromSource({PhotoUrl, TextIfPhotoNull, IsDirect} : AvatarP
         const now = Date.now();
 
         if (cached && cached.expiresAt > now) {
-            console.log(`LOAD FROM CACHE ${PhotoUrl} ${cached.url}`)
             setPhotoSrc(cached.url);
             return;
         }
-        
-        console.log(`LOAD NEW ${PhotoUrl} ${cached.url}`)
-        
+
         bffFetch(PhotoUrl)
-            .then(res => res.json())
+            .then(async (res) => {
+                if (!res.ok) return null;
+                return res.json();
+            })
             .then(data => {
+                if (!data || !data.url) {
+                    setPhotoSrc(null);
+                    return;
+                }
+                const hour = 1000*60*60;
+                const expireWindow = data.expireTimeMillis ?? hour;
                 const url = data.url;
-                const expiresAt = now + data.expireTimeMillis;
+                const expiresAt = now + (data.expireTimeMillis ?? expireWindow);
                 
                 const newCache = { ...cache, [PhotoUrl]: { url, expiresAt } };
                 setSasCache(newCache);

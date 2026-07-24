@@ -3,10 +3,10 @@ import {useEffect, useState} from "react";
 import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
 import {PageSelector} from "../../Shared/PageSelector.tsx";
 import {AvatarFromSource} from "../../Shared/Avatar.tsx";
-import {type OfficeDto} from "../../../../services/api/OfficesApi.ts";
 import {OfficeInputFilter, SpecializationInputFilter} from "../../Shared/Inputs/OfficeInputFilter.tsx";
-import type {SpecializationDto} from "../../../../services/api/ServicesApi.ts";
 import {useSearchParams} from "react-router";
+import {Link} from "react-router-dom";
+import {OfficeAddress} from "../offices/OfficeCompactCard.tsx";
 
 
 const pageSize: number = 50;
@@ -86,7 +86,9 @@ export function DoctorsPage() {
     }
 
     const listItems = doctors.map(doctor =>
-        <DoctorViewCard key={doctor.accountId} doctor={doctor}/>
+        <Link key={doctor.accountId} to={`/doctor?id=${doctor.accountId}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+            <DoctorViewCard key={doctor.accountId} doctor={doctor}/>
+        </Link>
     );
     
     return (
@@ -166,10 +168,6 @@ interface DoctorViewCardProps{
     doctor: DoctorProfile
 }
 export function DoctorViewCard({doctor}: DoctorViewCardProps){
-    const formattedDate = doctor.dateOfBirth
-        ? new Date(doctor.dateOfBirth).toLocaleDateString('ru-RU')
-        : '—';
-
     const currentYear = new Date().getFullYear();
     const experience =
         doctor.careerStartYear > 0 && doctor.careerStartYear <= currentYear
@@ -191,9 +189,8 @@ export function DoctorViewCard({doctor}: DoctorViewCardProps){
                 </div>
 
                 <div className="doctor-details">
-                    <span>Office: {doctor.officeId}</span>
+                    <OfficeAddress officeId={doctor.officeId}/>
                     <span>Exp: {experience > 0 ? `${experience} years` : 'Newbie'}</span>
-                    <span>Birth: {formattedDate}</span>
                 </div>
             </div>
         </div>

@@ -28,6 +28,34 @@ public class PhotosController : BaseApiController
         return Ok(new { url = client.Uri.ToString() });
     }
     
+    [HttpGet("doctors/{doctorId:guid}/avatar/{photoId:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetDoctorPhoto(
+        [FromRoute] Guid doctorId,
+        [FromRoute] Guid photoId,
+        [FromServices] IUserPhotoStorage context,
+        CancellationToken ct)
+    {
+        var client = context.Repository.GetPhotoClient(doctorId.ToString(), photoId);
+
+        if (!await client.ExistsAsync(ct)) return NotFound();
+        if (!await IsPhotoPublic(client, ct)) return Forbid();
+
+        var expireTime = TimeSpan.FromHours(6);
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = client.BlobContainerName,
+            BlobName = client.Name,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.Add(expireTime)
+        };
+        sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
+
+        var sasUri = client.GenerateSasUri(sasBuilder);
+        
+        return Ok(new { url = sasUri.ToString(), expireTimeMillis = expireTime.TotalMilliseconds});
+    }
+    
     [HttpGet("users/avatar/{photoId:guid}")]
     [Authorize(Policy = RolePolicy.Client)]
     public async Task<IActionResult> GetProfilePhoto(
@@ -62,34 +90,6 @@ public class PhotosController : BaseApiController
         var tags = tagsResponse.Value.Tags;
         
         return tags.TryGetValue("public", out var value) && value.Equals("true", StringComparison.OrdinalIgnoreCase);
-    }
-    
-    [HttpGet("doctors/{doctorId:guid}/avatar/{photoId:guid}")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetDoctorPhoto(
-        [FromRoute] Guid doctorId,
-        [FromRoute] Guid photoId,
-        [FromServices] IUserPhotoStorage context,
-        CancellationToken ct)
-    {
-        var client = context.Repository.GetPhotoClient(doctorId.ToString(), photoId);
-
-        if (!await client.ExistsAsync(ct)) return NotFound();
-        if (!await IsPhotoPublic(client, ct)) return Forbid();
-
-        var expireTime = TimeSpan.FromHours(6);
-        var sasBuilder = new BlobSasBuilder
-        {
-            BlobContainerName = client.BlobContainerName,
-            BlobName = client.Name,
-            Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.Add(expireTime)
-        };
-        sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
-
-        var sasUri = client.GenerateSasUri(sasBuilder);
-        
-        return Ok(new { url = sasUri.ToString(), expireTimeMillis = expireTime.TotalMilliseconds});
     }
     
     [HttpPost("users/avatar")]

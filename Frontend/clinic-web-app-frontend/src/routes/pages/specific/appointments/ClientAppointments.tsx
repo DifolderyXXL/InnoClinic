@@ -40,7 +40,7 @@ export function DoctorById({id}:DoctorByIdProps){
     useEffect(() => {
         profilesApi.getDoctorById(String(id))
             .then(result =>{
-                if(result.type === "ok") setDoctor(result.value.doctorDto);
+                if(result.type === "ok") setDoctor(result.value);
             })
     }, []);
     

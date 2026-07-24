@@ -42,9 +42,9 @@ export function ProfilePage() {
                 profile && profile.account ? <AccountCard {...profile.account} /> : <AccountCreateCard onSuccess={loadData}/>
             }
             {profile && (
-                profile.patient ? <PatientCard {...profile.patient} /> : <PatientCreateCard onSuccess={loadData}/> 
+                profile.onlyPatient ? <PatientCard {...profile.onlyPatient} /> : <PatientCreateCard onSuccess={loadData}/> 
             )}
-            {profile && profile.doctor && <DoctorCard {...profile.doctor} />}
+            {profile && profile.onlyDoctor && <DoctorCard {...profile.onlyDoctor} />}
         </div>
     );
 }

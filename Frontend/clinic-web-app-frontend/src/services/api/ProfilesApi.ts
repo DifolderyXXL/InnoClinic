@@ -67,7 +67,7 @@ export class ProfilesApi extends BaseApiClient {
 
     public async getDoctors(params?: {
         status?: string;
-        officeIds?: number[];
+        officeIds?: string[];
         specializationIds?: number[];
         fullName?: string;
         page?: number;

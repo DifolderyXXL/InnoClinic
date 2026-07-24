@@ -77,18 +77,19 @@ public class PhotosController : BaseApiController
         if (!await client.ExistsAsync(ct)) return NotFound();
         if (!await IsPhotoPublic(client, ct)) return Forbid();
 
+        var expireTime = TimeSpan.FromHours(6);
         var sasBuilder = new BlobSasBuilder
         {
             BlobContainerName = client.BlobContainerName,
             BlobName = client.Name,
             Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.AddHours(6)
+            ExpiresOn = DateTimeOffset.UtcNow.Add(expireTime)
         };
         sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
 
         var sasUri = client.GenerateSasUri(sasBuilder);
         
-        return Ok(new { url = sasUri.ToString() });
+        return Ok(new { url = sasUri.ToString(), expireTimeMillis = expireTime.TotalMilliseconds});
     }
     
     [HttpPost("users/avatar")]

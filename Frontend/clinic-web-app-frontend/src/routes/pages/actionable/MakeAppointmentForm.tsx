@@ -6,7 +6,7 @@ import {
     servicesApi,
     type SpecializationDto
 } from "../../../services/api/ServicesApi.ts";
-import {type OfficeDto, officesApi} from "../../../services/api/OfficesApi.ts";
+import {type OfficeDto} from "../../../services/api/OfficesApi.ts";
 import {profilesApi} from "../../../services/api/ProfilesApi.ts";
 
 import Select from 'react-select';
@@ -15,6 +15,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {appointmentsApi} from "../../../services/api/AppointmentApi.ts";
 import {TimeSlotPicker} from "./TimeSlotPicker.tsx";
+import {OfficeInputFilter, SpecializationInputFilter} from "../Shared/Inputs/OfficeInputFilter.tsx";
 
 export interface DoctorProfileDto {
     accountId: string;
@@ -30,15 +31,6 @@ export interface DoctorProfileDto {
     careerStartYear: number;
 }
 
-function officeToString(office: OfficeDto){
-    return `${office.city} ${office.street} ${office.houseNumber}`;
-}
-
-
-function specializationToString(s: SpecializationDto){
-    return `${s.specializationName}`;
-}
-
 
 function serviceToString(s: ServiceDto){
     return `${s.serviceName}`;
@@ -52,10 +44,8 @@ function doctorToString(doctor: DoctorProfileDto){
 export function MakeAppointmentForm(){
     const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    
-    const [specializations, setSpecializations] = useState<SpecializationDto[]>([]);
+
     const [services, setServices] = useState<ServiceDto[]>([]);
-    const [offices, setOffices] = useState<OfficeDto[]>([]);
     const [doctors, setDoctors] = useState<DoctorProfileDto[]>([]);
     const [timeSlots, setTimeSlots] = useState<AvailablePositionsOnDay | null>(null);
     
@@ -66,15 +56,7 @@ export function MakeAppointmentForm(){
     
     const [date, setDate] = useState<Date | null>(null);
     const [timeSlot, setTimeSlot] = useState<number | null>(null);
-
-    useEffect(() => {
-        servicesApi.getSpecializations().then(result => {
-            if (result.type === "ok") setSpecializations(result.value.specializations);
-        });
-        officesApi.getOffices().then(result => {
-            if (result.type === "ok") setOffices(result.value.offices);
-        });
-    }, []);
+    
 
     useEffect(() => {
         if (!specialization) {
@@ -93,7 +75,7 @@ export function MakeAppointmentForm(){
             setDoctor(null);
             return;
         }
-        profilesApi.getDoctors({ specializationId: Number(service.specializationId) }).then(result => {
+        profilesApi.getDoctors({ specializationIds: [Number(service.specializationId)] }).then(result => {
             if (result.type === "ok") setDoctors(result.value.items);
         });
     }, [service]);
@@ -148,20 +130,9 @@ export function MakeAppointmentForm(){
     
     return (
       <div>
-          <SearchableSelect options={specializations} 
-                  getLabel={specializationToString} 
-                  label="Specialization" 
-                  getKey={o=>o.id} 
-                  onChange={setSpecialization} 
-                  value={specialization}></SearchableSelect>
-          
-          <SearchableSelect options={offices}
-                  getLabel={officeToString}
-                  label="Office"
-                  getKey={o=>o.id}
-                  onChange={setOffice}
-                  value={office}></SearchableSelect>
+          <SpecializationInputFilter label="Specialization" value={specialization} onChange={setSpecialization}/>
 
+          <OfficeInputFilter label="Office" value={office} onChange={setOffice}/>
 
           <SearchableSelect options={services}
                   getLabel={serviceToString}
@@ -211,7 +182,7 @@ export function MakeAppointmentForm(){
 
 
 interface SearchableSelectProps<T extends {}> {
-    label: string;
+    label?: string;
     options: T[];
     value: T | null;
     onChange: (value: T | null) => void;
@@ -247,7 +218,7 @@ export function SearchableSelect<T  extends {}>({
 
     return (
         <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', marginBottom: '4px' }}>{label}</label>
+            {label && <label style={{display: 'block', marginBottom: '4px'}}>{label}</label>}
             <Select
                 classNamePrefix="option-select"
                 options={selectOptions}

@@ -24,3 +24,15 @@
     flex-flow: column;
     background: #222;
 }
+
+.filter-block{
+    display: flex;
+    flex-flow: row;
+    gap: 5px;
+}
+
+.filter-container{
+    display: flex;
+    flex-flow: row;
+    gap: 20px;
+}

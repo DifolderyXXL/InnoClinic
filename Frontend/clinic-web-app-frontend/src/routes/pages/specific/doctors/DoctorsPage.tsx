@@ -3,11 +3,20 @@ import {useEffect, useState} from "react";
 import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
 import {PageSelector} from "../../Shared/PageSelector.tsx";
 import {AvatarFromSource} from "../../Shared/Avatar.tsx";
+import {type OfficeDto} from "../../../../services/api/OfficesApi.ts";
+import {OfficeInputFilter, SpecializationInputFilter} from "../../Shared/Inputs/OfficeInputFilter.tsx";
+import type {SpecializationDto} from "../../../../services/api/ServicesApi.ts";
 
 
 const pageSize: number = 50;
 
 export function DoctorsPage() {
+    const [fullName, setFullName] = useState("")
+    const [queriedFullName, setQueriedFullName] = useState("")
+    
+    const [office, setOffice] = useState<OfficeDto | null>(null)
+    const [specialization, setSpecialization] = useState<SpecializationDto | null>(null);
+
     const [doctors, setDoctors] = useState<any>(null);
     const [total, setTotal] = useState<number>(0);
     const [loading, setLoading] = useState(true);
@@ -18,7 +27,16 @@ export function DoctorsPage() {
         setError(null);
 
         try {
-            const result = await profilesApi.getDoctors(page, pageSize);
+            setQueriedFullName(fullName);
+            const offices = office ? [office.id] : undefined;
+            const specializations = specialization ? [Number(specialization.id)] : undefined;
+            const result = await profilesApi.getDoctors({
+                page, 
+                pageSize, 
+                officeIds: offices,
+                specializationIds: specializations,
+                fullName: fullName
+            });
             if (result.type === "ok") {
                 setDoctors(result.value.items);
                 setTotal(result.value.total);
@@ -34,7 +52,7 @@ export function DoctorsPage() {
 
     useEffect(() => {
         loadData(1);
-    }, []);
+    }, [office, specialization]);
     
     if (loading) {
         return <div style={{ textAlign: 'center', padding: '40px' }}>Loading doctors...</div>;
@@ -50,6 +68,38 @@ export function DoctorsPage() {
     
     return (
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+            <div className="filter-container">
+                <div className="filter-block">
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        loadData(1);
+                    }}>
+                        <label>Full name</label>
+                        <input
+                            type="text"
+                            value={fullName}
+                            onChange={e => setFullName(e.target.value)}
+                        />
+                        <button
+                            type="submit"
+                            disabled={queriedFullName === fullName}
+                        >
+                            Apply
+                        </button>
+                    </form>
+                </div>
+                <div className="filter-block">
+                    <label>Office</label>
+                    <OfficeInputFilter value={office} onChange={setOffice}/>
+                </div>
+                <div className="filter-block">
+                    <label>Specialization</label>
+                    <SpecializationInputFilter value={specialization} onChange={setSpecialization}/>
+
+                </div>
+            </div>
+
+
             <div style={{  flex: 1,
                 overflowY: 'auto',
                 display: 'flex',
@@ -79,7 +129,7 @@ export interface DoctorProfile {
     dateOfBirth: string; 
     specializationId: number;
     specializationSpecializationName: string;
-    officeId: number;
+    officeId: string;
     careerStartYear: number;
 }
 

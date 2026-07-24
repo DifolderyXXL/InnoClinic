@@ -37,7 +37,7 @@ public class Receptionist
     public long Id { get; set; }
     public Guid AccountId { get; set; }
     public virtual Account Account { get; set; }
-    public long OfficeId { get; set; }
+    public string OfficeId { get; set; }
 }
 
 public class Office

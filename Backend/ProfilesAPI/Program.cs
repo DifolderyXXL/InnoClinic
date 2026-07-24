@@ -22,11 +22,18 @@ builder.Services.AddDbContext<ProfilesDbContext>(options =>
 
 builder.AddCredentialsClient("identityclient");
 
+builder.Services.AddSingleton<IPhotoUrlFactory>(sp =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        var gatewayBaseUrl = config.DiscoverHttps("BffProxy");
 
-var gatewayBaseUrl = builder.Configuration.DiscoverHttps("BffProxy") 
-                       ?? throw new InvalidOperationException("BffProxy URL not found.");
-builder.Services.AddSingleton<IPhotoUrlFactory>(
-    new DocumentsPhotoUrlFactory(gatewayBaseUrl)
+        if (string.IsNullOrWhiteSpace(gatewayBaseUrl))
+        {
+            throw new InvalidOperationException("BffProxy URL not found.");
+        }
+        
+        return new DocumentsPhotoUrlFactory(gatewayBaseUrl);
+    }
 );
 
 builder.Services.ConfigureApplicationCookie(options =>

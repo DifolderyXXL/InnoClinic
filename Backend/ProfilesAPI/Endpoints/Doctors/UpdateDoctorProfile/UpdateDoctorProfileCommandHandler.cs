@@ -18,7 +18,7 @@ public record UpdateDoctorProfileCommand(
     long CareerStartYear,
     long SpecializationId,
     Status Status,
-    long OfficeId) : ICommand;
+    string OfficeId) : ICommand;
 public class UpdateDoctorProfileCommandHandler(ProfilesDbContext context, IPublishEndpoint publishEndpoint) : ICommandHandler<UpdateDoctorProfileCommand>
 {
     public async Task<Result> Handle(UpdateDoctorProfileCommand command, CancellationToken ct)

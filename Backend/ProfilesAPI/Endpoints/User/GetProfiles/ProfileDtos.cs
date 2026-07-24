@@ -20,14 +20,14 @@ public record OnlyPatientDto(
 public record OnlyDoctorDto(
     long Id,
     DateOnly DateOfBirth,
-    long OfficeId,
+    string OfficeId,
     long CareerStartYear,
     string SpecializationName
 );
 
 public record OnlyReceptionistDto(
     long Id,
-    long OfficeId
+    string OfficeId
 );
 
 public static class DtoConverters

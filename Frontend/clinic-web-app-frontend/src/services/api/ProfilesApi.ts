@@ -23,7 +23,7 @@ interface CreateDoctorCommand {
     careerStartYear: number;
     specializationId: number;
     status: number;
-    officeId: number;
+    officeId: string;
 }
 
 interface UpdateDoctorProfileCommand {
@@ -35,7 +35,7 @@ interface UpdateDoctorProfileCommand {
     careerStartYear: number;
     specializationId: number;
     status: number;
-    officeId: number;
+    officeId: string;
 }
 
 export class ProfilesApi extends BaseApiClient {
@@ -66,7 +66,10 @@ export class ProfilesApi extends BaseApiClient {
     }
 
     public async getDoctors(params?: {
-        specializationId?: number;
+        status?: string;
+        officeIds?: number[];
+        specializationIds?: number[];
+        fullName?: string;
         page?: number;
         pageSize?: number;
     }): Promise<Result> {
@@ -74,7 +77,10 @@ export class ProfilesApi extends BaseApiClient {
             {
                 Page: params?.page ?? 1,
                 PageSize: params?.pageSize ?? 50,
-                SpecializationId: params?.specializationId
+                SpecializationIds: params?.specializationIds,
+                OfficeIds: params?.officeIds,
+                FullName: params?.fullName,
+                Status: params?.status,
             }
         );
     }

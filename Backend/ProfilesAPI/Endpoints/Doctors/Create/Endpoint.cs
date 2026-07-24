@@ -35,7 +35,7 @@ public record CreateDoctorCommand(
     long CareerStartYear,
     long SpecializationId,
     Status Status,
-    long OfficeId) : ICommand;
+    string OfficeId) : ICommand;
 
 public class CreateDoctorCommandHandler(ProfilesDbContext context) : ICommandHandler<CreateDoctorCommand>
 {

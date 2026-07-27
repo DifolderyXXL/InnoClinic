@@ -17,10 +17,17 @@ export interface AppointmentDto {
     id: string;
     patientAccountId: string;
     doctorAccountId: string;
+    officeId: string;
+    serviceId: number;
+    specializationId: number;
+    doctorFullName: string;
+    patientFullName: string;
+    serviceName: string;
     reservationId: number | null;
     date: string;
     startSlotIndex: number;
-    serviceId: number;
+    beginTime: string | null;
+    endTime: string | null;
     state: string;
 }
 

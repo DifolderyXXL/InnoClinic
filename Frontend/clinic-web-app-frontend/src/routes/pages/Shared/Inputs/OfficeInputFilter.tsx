@@ -20,7 +20,7 @@ export function OfficeInputFilter({label, valueId, onChange}: OfficeInputFilterP
         });
     }, []);
 
-    const selectedOffice = offices.find(o => o.id === valueId) || null;
+    const selectedOffice = offices.find(o => String(o.id) === String(valueId)) || null;
 
     return (
         <SearchableSelect options={offices}
@@ -50,8 +50,8 @@ export function SpecializationInputFilter({label, valueId, onChange}: Specializa
         });
     }, []);
 
-    const selectedSpec = specializations.find(o => o.id === valueId) || null;
-
+    const selectedSpec = specializations.find(s => Number(s.id) === Number(valueId)) || null;
+    
     return (
         <SearchableSelect options={specializations}
                           getLabel={specializationToString}

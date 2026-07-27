@@ -11,8 +11,34 @@ import {OfficeAddress} from "../offices/OfficeCompactCard.tsx";
 
 const pageSize: number = 50;
 
-export function DoctorsPage() {
+export function useUpdateUrlParams() {
     const [searchParams, setSearchParams] = useSearchParams();
+
+    const updateUrlParams = (
+        newParams: Record<string, string | number | null | undefined>,
+        withPages: boolean = false
+    ) => {
+        const nextParams = new URLSearchParams(searchParams);
+
+        Object.entries(newParams).forEach(([key, val]) => {
+            if (val !== null && val !== undefined && val !== "") {
+                nextParams.set(key, String(val));
+            } else {
+                nextParams.delete(key);
+            }
+        });
+
+        if (withPages && !("page" in newParams)) {
+            nextParams.set("page", "1");
+        }
+
+        setSearchParams(nextParams, { replace: true });
+    };
+
+    return { searchParams, updateUrlParams };
+}
+export function DoctorsPage() {
+    const { searchParams, updateUrlParams } = useUpdateUrlParams();
 
     const currentPage = Number(searchParams.get("page")) || 1;
     const urlFullName = searchParams.get("fullName") || "";
@@ -29,23 +55,8 @@ export function DoctorsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const updateUrlParams = (newParams: Record<string, string | null | undefined>) => {
-        const nextParams = new URLSearchParams(searchParams);
 
-        Object.entries(newParams).forEach(([key, val]) => {
-            if (val) {
-                nextParams.set(key, val);
-            } else {
-                nextParams.delete(key);
-            }
-        });
-        
-        if (!("page" in newParams)) {
-            nextParams.set("page", "1");
-        }
-
-        setSearchParams(nextParams);
-    };
+    
 
     useEffect(() => {
         const loadData = async () => {

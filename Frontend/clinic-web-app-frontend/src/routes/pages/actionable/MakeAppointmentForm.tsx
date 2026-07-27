@@ -16,6 +16,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import {appointmentsApi} from "../../../services/api/AppointmentApi.ts";
 import {TimeSlotPicker} from "./TimeSlotPicker.tsx";
 import {OfficeInputFilter, SpecializationInputFilter} from "../Shared/Inputs/OfficeInputFilter.tsx";
+import {useUpdateUrlParams} from "../specific/doctors/DoctorsPage.tsx";
 
 export interface DoctorProfileDto {
     accountId: string;
@@ -42,6 +43,14 @@ function doctorToString(doctor: DoctorProfileDto){
 
 
 export function MakeAppointmentForm(){
+    const { searchParams, updateUrlParams } = useUpdateUrlParams();
+
+    const urlOfficeId = searchParams.get("officeId");
+    const urlSpecId = searchParams.get("specId") ? Number(searchParams.get("specId")) : null;
+    const urlServiceId = searchParams.get("serviceId") ? Number(searchParams.get("serviceId")) : null;
+    const urlDoctorId = searchParams.get("doctorId");
+
+    
     const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -56,64 +65,62 @@ export function MakeAppointmentForm(){
     
     const [date, setDate] = useState<Date | null>(null);
     const [timeSlot, setTimeSlot] = useState<number | null>(null);
-    
 
-    useEffect(() => {
-        if (!specialization) {
-            setServices([]);
-            setService(null);
-            return;
-        }
-        servicesApi.getServices(undefined, specialization.id).then(result => {
-            if (result.type === "ok") setServices(result.value.services);
-        });
-    }, [specialization]);
-    
-    useEffect(() => {
-        if (!service) {
-            setDoctors([]);
-            setDoctor(null);
-            return;
-        }
-        profilesApi.getDoctors({ specializationIds: [Number(service.specializationId)] }).then(result => {
-            if (result.type === "ok") setDoctors(result.value.items);
-        });
-    }, [service]);
+
 
 
     useEffect(() => {
-        if (!doctor || !date) {
-            setTimeSlots(null);
-            setTimeSlot(null);
-            return;
-        }
-        
-        servicesApi.getAvailableDoctorSlots(doctor.accountId, date).then(result =>{
-            if (result.type === "ok") setTimeSlots(result.value);
+        if (!urlServiceId) { setService(null); return; }
+        servicesApi.getService(urlServiceId).then(res => {
+            if (res.type === "ok") setService(res.value);
         });
-    }, [doctor, date]);
-    
-    async function BookAnAppointment(){
+    }, [urlServiceId]);
+
+    useEffect(() => {
+        if (!urlDoctorId) { setDoctor(null); return; }
+        profilesApi.getDoctorById(urlDoctorId).then(res => {
+            if (res.type === "ok") setDoctor(res.value);
+        });
+    }, [urlDoctorId]);
+
+    useEffect(() => {
+        if (!urlSpecId) { setServices([]); return; }
+        servicesApi.getServices(undefined, urlSpecId).then(res => {
+            if (res.type === "ok") setServices(res.value.services);
+        });
+    }, [urlSpecId]);
+
+    useEffect(() => {
+        if (!urlSpecId) { setDoctors([]); return; }
+        profilesApi.getDoctors({
+            specializationIds: [urlSpecId],
+            officeIds: urlOfficeId ? [urlOfficeId] : []
+        }).then(res => {
+            if (res.type === "ok") setDoctors(res.value.items);
+        });
+    }, [urlSpecId, urlOfficeId]);
+
+    useEffect(() => {
+        if (!urlDoctorId || !date) { setTimeSlots(null); return; }
+        servicesApi.getAvailableDoctorSlots(urlDoctorId, date).then(res => {
+            if (res.type === "ok") setTimeSlots(res.value);
+        });
+    }, [urlDoctorId, date]);
+
+    async function BookAnAppointment() {
+        if (!urlDoctorId || !urlOfficeId || !date || !timeSlot || !urlServiceId || !urlSpecId) return;
+
         setBookingStatus('loading');
         setErrorMessage(null);
 
         try {
             const result = await appointmentsApi.bookAppointment({
-                doctorAccountId: doctor!.accountId,
-                officeId: office!.id,
-                date: dateToDateOnly(date!),
-                startSlotIndex: timeSlot!,
-                serviceId: Number(service!.id),
-                specializationId: Number(specialization!.id)
-            });
-
-            console.log({
-                doctorAccountId: doctor!.accountId,
-                officeId: office!.id,
-                date: dateToDateOnly(date!),
-                startSlotIndex: timeSlot!,
-                serviceId: service!.id,
-                specializationId: specialization!.id
+                doctorAccountId: urlDoctorId,
+                officeId: urlOfficeId,
+                date: dateToDateOnly(date),
+                startSlotIndex: timeSlot,
+                serviceId: urlServiceId,
+                specializationId: urlSpecId
             });
 
             if (result.type === "ok") {
@@ -130,15 +137,24 @@ export function MakeAppointmentForm(){
     
     return (
       <div>
-          <SpecializationInputFilter label="Specialization" value={specialization} onChange={setSpecialization}/>
+          <SpecializationInputFilter label="Specialization" valueId={urlSpecId} 
+                                     onChange={spec => 
+                                     {
+                setSpecialization(spec);
+                updateUrlParams({ specId: spec?.id ?? null, serviceId: null, doctorId: null, slot: null });
+          }}/>
 
-          <OfficeInputFilter label="Office" value={office} onChange={setOffice}/>
+          <OfficeInputFilter label="Office" valueId={urlOfficeId}
+                             onChange={off => {
+                                 setOffice(off);
+                                 updateUrlParams({ officeId: off?.id ?? null, doctorId: null, slot: null });
+                             }}/>
 
           <SearchableSelect options={services}
                   getLabel={serviceToString}
                   label="Service"
                   getKey={o=>o.id}
-                  onChange={setService}
+                  onChange={s => updateUrlParams({ serviceId: s?.id ?? null, doctorId: null, slot: null })}
                   value={service}></SearchableSelect>
 
 
@@ -146,7 +162,7 @@ export function MakeAppointmentForm(){
                   getLabel={doctorToString}
                   label="Doctor"
                   getKey={o=>o.accountId}
-                  onChange={setDoctor}
+                  onChange={d => updateUrlParams({ doctorId: d?.accountId ?? null, slot: null })}
                   value={doctor}></SearchableSelect>
 
           <DatePicker selected={date} onChange={setDate} />
@@ -157,9 +173,11 @@ export function MakeAppointmentForm(){
               slotAmount={service.slotLength}
               onChange={x=>setTimeSlot(x)}/> )}
           
-          <button disabled={!(service && timeSlot && doctor && date && office && specialization && bookingStatus != 'loading')}
-            onClick={BookAnAppointment}
-            >
+
+          <button
+              disabled={!(service && timeSlot && doctor && date && urlOfficeId && urlSpecId && bookingStatus !== 'loading')}
+              onClick={BookAnAppointment}
+          >
               Book an appointment
           </button>
 

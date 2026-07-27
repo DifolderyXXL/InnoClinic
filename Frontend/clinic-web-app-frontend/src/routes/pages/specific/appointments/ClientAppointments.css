@@ -1,8 +1,13 @@
-.appointment-container{
+.appointment-card{
     display: flex;
     flex-direction: column;
     background: #444;
     padding: 5px;
+}
+
+.appointment-header{
+    display: flex;
+    flex-direction: column;
 }
 
 .appointments-list-container{

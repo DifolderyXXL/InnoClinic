@@ -1,7 +1,5 @@
 import {useEffect, useState} from "react";
 import {type AppointmentDto, appointmentsApi} from "../../../../services/api/AppointmentApi.ts";
-import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
-import {type DoctorProfile, DoctorViewCard} from "../doctors/DoctorsPage.tsx";
 import "./ClientAppointments.css"
 
 export function ClientAppointments(){
@@ -16,11 +14,7 @@ export function ClientAppointments(){
     }, []);
     
     const appointmentViews = appointments.map(a =>(
-            <div className="appointment-container">
-                <span>{a.date}</span>
-                <span>{a.state}</span>
-                <DoctorById id={a.doctorAccountId}/>
-            </div>
+           <AppointmentCard appointment={a}/>
         )
     );
     
@@ -31,25 +25,35 @@ export function ClientAppointments(){
     );
 }
 
-interface DoctorByIdProps{
-    id: string;
+interface AppointmentCardProps{
+    appointment: AppointmentDto
 }
-export function DoctorById({id}:DoctorByIdProps){
-    const [doctor, setDoctor] = useState<DoctorProfile | null>(null);
-
-    useEffect(() => {
-        profilesApi.getDoctorById(String(id))
-            .then(result =>{
-                if(result.type === "ok") setDoctor(result.value);
-            })
-    }, []);
-    
-    if(!doctor)
-    {
-        return (<div>...</div>);
-    }
-    
+export function AppointmentCard({appointment}:AppointmentCardProps){
     return (
-        <DoctorViewCard doctor={doctor}/>
+        <div className="appointment-card">
+            <div className="appointment-header">
+                <span className="appointment-date">{appointment.date}</span>
+                <span className={`appointment-status status-${appointment.state.toLowerCase()}`}>
+                      {appointment.state}
+                    </span>
+            </div>
+
+            <div className="appointment-body">
+                <h3 className="service-name">{appointment.serviceName}</h3>
+
+                <div className="appointment-details">
+                    <p><strong>Doctor:</strong> {appointment.doctorFullName}</p>
+                    <p><strong>Patient:</strong> {appointment.patientFullName}</p>
+                    <p>
+                        <strong>Time:</strong>{' '}
+                        {appointment.beginTime && appointment.endTime ? (
+                            <span>{appointment.beginTime} — {appointment.endTime}</span>
+                        ) : (
+                            <span>Slot {appointment.startSlotIndex} (Pending reservation)</span>
+                        )}
+                    </p>
+                </div>
+            </div>
+        </div>
     );
 }

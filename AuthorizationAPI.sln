@@ -10,6 +10,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceDefaults", "ServiceDefaults\ServiceDefaults.csproj", "{A5CEC213-9537-416E-90B1-3E5FED2AC1A4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{CE609670-85B9-0D16-FB54-ED063D5D8A6D}"
+	ProjectSection(SolutionItems) = preProject
+		Frontend\clinic-web-app-frontend\src\components\ClinicNavigation.tsx = Frontend\clinic-web-app-frontend\src\components\ClinicNavigation.tsx
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BFF.FrontendProxy", "Frontend\BFF.FrontendProxy\BFF.FrontendProxy.csproj", "{B5E94DD2-E0CA-4AB0-A6A8-C5037AB59E09}"
 EndProject

@@ -16,6 +16,7 @@ JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddMicroserviceDefaults("/profiles", typeof(Program).Assembly);
+builder.Services.AddIdentityAuthorizationPolicies();
 
 builder.Services.AddDbContext<ProfilesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("profilesSqlServer")));

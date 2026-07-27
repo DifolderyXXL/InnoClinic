@@ -77,8 +77,3 @@ public class CreateDoctorCommandValidator : AbstractValidator<CreateDoctorComman
         RuleFor(x => x.AccountId).NotEmpty();
     }
 }
-public static class DoctorErrors
-{
-    public static Error AlreadyExists() => Error.Create(ErrorType.Conflict);
-    public static Error NotFound() => Error.Create(ErrorType.NotFound);
-}

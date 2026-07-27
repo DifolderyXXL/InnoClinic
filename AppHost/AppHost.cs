@@ -79,6 +79,8 @@ var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("Appointments
        .WithReference(identityServer)
        .WithReference(postgresdb)
        .WithReference(rabbitmqServicesApi)
+       .WithReference(servicesAPI)
+       .WithReference(profilesAPI)
        .WithExternalHttpEndpoints()
        .WaitFor(postgresdb);
 

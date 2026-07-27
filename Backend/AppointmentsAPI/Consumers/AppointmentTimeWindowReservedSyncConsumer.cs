@@ -5,18 +5,21 @@ using MassTransit;
 namespace AppointmentsAPI.Consumers;
 
 public class AppointmentTimeWindowReservedSyncConsumer(
-    IAppointmentService service, 
-    ILogger<AppointmentTimeWindowReservedSyncConsumer>? logger) : IConsumer<TimeWindowReserved>
+    IAppointmentService service) : IConsumer<TimeWindowReserved>
 {
     public async Task Consume(ConsumeContext<TimeWindowReserved> context)
     {
-        try
+        var result = await service.UpdateReservation(
+            context.Message.AppointmentId, 
+            context.Message.ReservationId, 
+            context.Message.BeginTime, 
+            context.Message.EndTime, 
+            context.CancellationToken);
+
+        if (result.IsError)
         {
-            await service.UpdateReservationId(context.Message.AppointmentId, context.Message.ReservationId, context.CancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Sync reservation id failed for appointment: {AppointmentId}", context.Message.AppointmentId);
+            throw new InvalidOperationException(
+                $"Failed to sync reservation for appointment '{context.Message.AppointmentId}'. Error: {result.Error}");
         }
     }
 }

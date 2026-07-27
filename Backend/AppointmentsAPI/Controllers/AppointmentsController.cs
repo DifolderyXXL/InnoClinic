@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using AppointmentsAPI.Data;
 using AppointmentsAPI.Models;
+using AppointmentsAPI.Services;
 using Asp.Versioning;
 using Contracts.AppointmentContracts;
 using MassTransit;
@@ -35,6 +36,8 @@ public class AppointmentsController(
     [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
     public async Task<IActionResult> BookAppointment(
         [FromBody] BookAppointmentCommand command,
+        [FromServices] IProfilesApiClient profilesApiClient, 
+        [FromServices] IServicesApiClient servicesApiClient, 
         CancellationToken ct)
     {
         var user = await GetUserClaim();
@@ -43,6 +46,32 @@ public class AppointmentsController(
             return Unauthorized();
         }
 
+        var profilesResultTask = profilesApiClient.ValidateAppointmentContextAsync(new(command.DoctorAccountId, patientId, command.OfficeId), ct);
+        var serviceResultTask = servicesApiClient.GetService(command.ServiceId, ct);
+
+        await Task.WhenAll(profilesResultTask, serviceResultTask);
+        
+        var profilesResult = await profilesResultTask;
+        var serviceResult = await serviceResultTask;
+        
+        if (profilesResult.IsError) 
+            return BadRequest(profilesResult.Error);
+        if (serviceResult.IsError) 
+            return BadRequest(serviceResult.Error);
+        
+        var profiles = profilesResult.Value!;
+        var service = serviceResult.Value!;
+        
+        if (command.SpecializationId != service.SpecializationId)
+        {
+            return BadRequest("Selected specialization does not match the requested service.");
+        }
+        
+        if (profiles.DoctorSpecializationId != service.SpecializationId)
+        {
+            return BadRequest("Doctor's specialization does not match the requested service.");
+        }
+        
         var appointment = new Appointment
         {
             PatientAccountId = patientId,
@@ -52,7 +81,11 @@ public class AppointmentsController(
             StartSlotIndex = command.StartSlotIndex,
             ServiceId = command.ServiceId,
             OfficeId = command.OfficeId,
-            SpecializationId = command.SpecializationId
+            SpecializationId = command.SpecializationId,
+            
+            DoctorFullName = profiles.DoctorFullName,
+            PatientFullName = profiles.PatientFullName,
+            ServiceName = service.ServiceName,
         };
         var result = await appointmentService.AddAppointment(appointment, ct);
         if (result.IsError) return BadRequest();

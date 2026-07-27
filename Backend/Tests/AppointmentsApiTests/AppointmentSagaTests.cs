@@ -44,7 +44,7 @@ public class AppointmentSagaTests
         Assert.NotNull(sagaHarness.Sagas.ContainsInState(appointmentId, sagaHarness.StateMachine, sagaHarness.StateMachine.ProcessingReservation));
         
         
-        await harness.Bus.Publish(new TimeWindowReserved(appointmentId, reservationId));
+        await harness.Bus.Publish(new TimeWindowReserved(appointmentId, reservationId, default, default));
         Assert.True(await harness.Consumed.Any<TimeWindowReserved>());
         Assert.NotNull(sagaHarness.Sagas.ContainsInState(appointmentId, sagaHarness.StateMachine, sagaHarness.StateMachine.WaitingForApproval));
         
@@ -82,7 +82,7 @@ public class AppointmentSagaTests
         await harness.Bus.Publish(new AppointmentSubmitted(appointmentId, patientId, doctorId,   date, startSlot, slotCount));
         var sagaHarness = harness.GetSagaStateMachineHarness<AppointmentStateMachine, AppointmentState>();
         
-        await harness.Bus.Publish(new TimeWindowReserved(appointmentId, reservationId));
+        await harness.Bus.Publish(new TimeWindowReserved(appointmentId, reservationId, default, default));
         Assert.True(await harness.Consumed.Any<TimeWindowReserved>());
         Assert.NotNull(sagaHarness.Sagas.ContainsInState(appointmentId, sagaHarness.StateMachine, sagaHarness.StateMachine.WaitingForApproval));
         
@@ -119,7 +119,7 @@ public class AppointmentSagaTests
         await harness.Bus.Publish(new AppointmentSubmitted(appointmentId, patientId, doctorId,  date, startSlot, slotCount));
         var sagaHarness = harness.GetSagaStateMachineHarness<AppointmentStateMachine, AppointmentState>();
         
-        await harness.Bus.Publish(new TimeWindowReserved(appointmentId, reservationId));
+        await harness.Bus.Publish(new TimeWindowReserved(appointmentId, reservationId,  default, default));
         Assert.True(await harness.Consumed.Any<TimeWindowReserved>());
         Assert.NotNull(sagaHarness.Sagas.ContainsInState(appointmentId, sagaHarness.StateMachine, sagaHarness.StateMachine.WaitingForApproval));
         

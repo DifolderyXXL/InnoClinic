@@ -118,7 +118,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         During(ProcessingReservation,
             When(TimeWindowReserved)
                 .Then(context =>
-                {
+                {  
                     context.Saga.ReservationId = context.Message.ReservationId;
                 })
                 .PublishStateChanged(Models.AppointmentState.PendingApproval)

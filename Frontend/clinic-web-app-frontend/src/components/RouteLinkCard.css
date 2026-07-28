@@ -4,6 +4,7 @@
     text-decoration: none;
     padding: 8px 12px;
     border-radius: 4px;
+    white-space: nowrap;
     transition: font-size 0.2s ease, filter 0.2s ease, padding 0.2s ease;
 }
 

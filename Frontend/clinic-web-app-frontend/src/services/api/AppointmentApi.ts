@@ -17,10 +17,17 @@ export interface AppointmentDto {
     id: string;
     patientAccountId: string;
     doctorAccountId: string;
+    officeId: string;
+    serviceId: number;
+    specializationId: number;
+    doctorFullName: string;
+    patientFullName: string;
+    serviceName: string;
     reservationId: number | null;
     date: string;
     startSlotIndex: number;
-    serviceId: number;
+    beginTime: string | null;
+    endTime: string | null;
     state: string;
 }
 
@@ -79,6 +86,10 @@ export class AppointmentsApi extends BaseApiClient {
         return this.get("api/v1/Appointments/me/client",
             { state, Page: page, PageSize: pageSize, Skip: skip },
         );
+    }
+
+    public async getMyClientAppointmentById(id: string): Promise<Result> {
+        return this.get(`api/v1/Appointments/${id}/me/client`);
     }
 }
 

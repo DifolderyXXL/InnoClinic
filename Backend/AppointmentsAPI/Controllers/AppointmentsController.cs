@@ -1,14 +1,12 @@
-using System.Diagnostics;
-using System.Linq.Expressions;
 using AppointmentsAPI.Data;
 using AppointmentsAPI.Models;
+using AppointmentsAPI.Services;
 using Asp.Versioning;
 using Contracts.AppointmentContracts;
 using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions.Queryable;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AppointmentState = AppointmentsAPI.Models.AppointmentState;
@@ -28,13 +26,15 @@ public class AppointmentsController(
     AppointmentDbContext context) : ControllerBase
 {
     private async ValueTask<UserClaimParserResult?> GetUserClaim() => await UserClaimParser.Parse(HttpContext);
-    
+
     [HttpPost]
     [Route("book")]
     [Authorize(Policy = RolePolicy.Client)]
     [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
     public async Task<IActionResult> BookAppointment(
         [FromBody] BookAppointmentCommand command,
+        [FromServices] IProfilesApiClient profilesApiClient, 
+        [FromServices] IServicesApiClient servicesApiClient, 
         CancellationToken ct)
     {
         var user = await GetUserClaim();
@@ -43,6 +43,32 @@ public class AppointmentsController(
             return Unauthorized();
         }
 
+        var profilesResultTask = profilesApiClient.ValidateAppointmentContextAsync(new(command.DoctorAccountId, patientId, command.OfficeId), ct);
+        var serviceResultTask = servicesApiClient.GetService(command.ServiceId, ct);
+
+        await Task.WhenAll(profilesResultTask, serviceResultTask);
+        
+        var profilesResult = await profilesResultTask;
+        var serviceResult = await serviceResultTask;
+        
+        if (profilesResult.IsError) 
+            return BadRequest(profilesResult.Error);
+        if (serviceResult.IsError) 
+            return BadRequest(serviceResult.Error);
+        
+        var profiles = profilesResult.Value!;
+        var service = serviceResult.Value!;
+        
+        if (command.SpecializationId != service.SpecializationId)
+        {
+            return BadRequest("Selected specialization does not match the requested service.");
+        }
+        
+        if (profiles.DoctorSpecializationId != service.SpecializationId)
+        {
+            return BadRequest("Doctor's specialization does not match the requested service.");
+        }
+        
         var appointment = new Appointment
         {
             PatientAccountId = patientId,
@@ -52,7 +78,11 @@ public class AppointmentsController(
             StartSlotIndex = command.StartSlotIndex,
             ServiceId = command.ServiceId,
             OfficeId = command.OfficeId,
-            SpecializationId = command.SpecializationId
+            SpecializationId = command.SpecializationId,
+            
+            DoctorFullName = profiles.DoctorFullName,
+            PatientFullName = profiles.PatientFullName,
+            ServiceName = service.ServiceName,
         };
         var result = await appointmentService.AddAppointment(appointment, ct);
         if (result.IsError) return BadRequest();
@@ -154,7 +184,8 @@ public class AppointmentsController(
 
         var items = await query
             .Where(x => x.PatientAccountId == clientId)
-            .OrderBy(x => x.Id)
+            .OrderByDescending(x => x.Date)
+            .ThenBy(x=>x.BeginTime)
             .ToPagedResponseAsync(
                 pagination, 
                 AppointmentDtoHelper.ProjectToDto,
@@ -195,6 +226,36 @@ public class AppointmentsController(
         
         return Ok(items);
     }
+    
+    [HttpGet("{id:guid}/me/client")]
+    [Authorize(Policy = RolePolicy.Client)]
+    [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClientAppointments(
+        [FromRoute] Guid id,
+        CancellationToken ct = default)
+    {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var clientId))
+        {
+            return Unauthorized();
+        }
+        
+        var query = context.Appointments.AsNoTracking();
+        
+        var item = await query
+            .Where(x => x.Id == id && x.PatientAccountId == clientId)
+            .Select(AppointmentDtoHelper.ProjectToDto)
+            .FirstOrDefaultAsync(ct);
+        
+        if (item == null)
+        {
+            return NotFound();
+        }
+        
+        return Ok(item);
+    }
+
 }
 
 

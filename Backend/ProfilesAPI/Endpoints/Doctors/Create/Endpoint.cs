@@ -35,7 +35,7 @@ public record CreateDoctorCommand(
     long CareerStartYear,
     long SpecializationId,
     Status Status,
-    long OfficeId) : ICommand;
+    string OfficeId) : ICommand;
 
 public class CreateDoctorCommandHandler(ProfilesDbContext context) : ICommandHandler<CreateDoctorCommand>
 {
@@ -76,9 +76,4 @@ public class CreateDoctorCommandValidator : AbstractValidator<CreateDoctorComman
     {
         RuleFor(x => x.AccountId).NotEmpty();
     }
-}
-public static class DoctorErrors
-{
-    public static Error AlreadyExists() => Error.Create(ErrorType.Conflict);
-    public static Error NotFound() => Error.Create(ErrorType.NotFound);
 }

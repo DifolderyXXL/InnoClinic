@@ -1,6 +1,7 @@
 using AppointmentsAPI.Consumers;
 using AppointmentsAPI.Controllers;
 using AppointmentsAPI.Data;
+using AppointmentsAPI.Services;
 using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
@@ -44,6 +45,11 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
+builder.AddCredentialsClient<IProfilesApiClient, ProfilesApiClient>("ProfilesApiClient");
+builder.Services.AddHttpClient<IServicesApiClient, ServicesApiClient>(client =>
+{
+    client.BaseAddress = new Uri("https://ServicesAPI");
+});
 
 var app = builder.Build();
 

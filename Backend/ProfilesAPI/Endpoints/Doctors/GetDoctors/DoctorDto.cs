@@ -15,6 +15,6 @@ public record DoctorDto
 
     public string SpecializationSpecializationName { get; init; }
 
-    public long OfficeId { get; init; }
+    public string OfficeId { get; init; }
     public long CareerStartYear { get; init; }
 }

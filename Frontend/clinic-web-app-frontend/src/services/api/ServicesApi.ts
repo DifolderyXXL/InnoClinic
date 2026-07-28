@@ -97,6 +97,10 @@ export class ServicesApi extends BaseApiClient {
     public async getSpecializations(onlyActive?: boolean): Promise<Result> {
         return this.get("api/v1/specializations", { onlyActive });
     }
+    public async getSpecialization(id: string): Promise<Result> {
+        return this.get(`api/v1/specializations/${id}`);
+    }
+
 
     public async createSpecialization(
         command: CreateSpecializationCommand
@@ -121,6 +125,9 @@ export class ServicesApi extends BaseApiClient {
         specializationId?: number | string
     ): Promise<Result> {
         return this.get("api/v1/services", { categoryId, specializationId } );
+    }
+    public async getService(id: number): Promise<Result> {
+        return this.get(`api/v1/services/${id}`);
     }
 
     public async createService(command: CreateServiceCommand): Promise<Result> {

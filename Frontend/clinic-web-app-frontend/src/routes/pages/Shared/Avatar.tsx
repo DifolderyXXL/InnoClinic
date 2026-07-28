@@ -8,8 +8,8 @@ interface AvatarProps{
 }
 
 export function AvatarFromSource({PhotoUrl, TextIfPhotoNull, IsDirect} : AvatarProps){
-    const [photoSrc, setPhotoSrc] = useState<string | null>(null);
-
+    const [photoSrc, setPhotoSrc] = useState<string | null>();
+    
     useEffect(() => {
         if (!PhotoUrl) {
             setPhotoSrc(null);
@@ -18,13 +18,24 @@ export function AvatarFromSource({PhotoUrl, TextIfPhotoNull, IsDirect} : AvatarP
 
         if (IsDirect) {
             setPhotoSrc(PhotoUrl);
-        } else {
-            bffFetch(PhotoUrl)
-                .then(res => res.json())
-                .then(data => setPhotoSrc(data.url))
-                .catch(() => setPhotoSrc(null));
+            return;
         }
         
+
+        bffFetch(PhotoUrl)
+            .then(async (res) => {
+                if (!res.ok) return null;
+                return res.json();
+            })
+            .then(data => {
+                if (!data || !data.url) {
+                    setPhotoSrc(null);
+                    return;
+                }
+
+                setPhotoSrc(data.url)
+            })
+            .catch(() => setPhotoSrc(null));
     }, [PhotoUrl, IsDirect]);
     
     return (

@@ -41,7 +41,8 @@ var documentsApi = builder.AddProject<Projects.DocumentsAPI>("DocumentsAPI")
        .WithReference(rabbitmqServicesApi)
        .WithReference(documentsdb)
        .WithReference(cache)
-       .WithExternalHttpEndpoints();
+       .WithExternalHttpEndpoints()
+       .WaitFor(blobs);
 
 var sqlServer = builder.AddSqlServer("sqlServer")
 //       .WithHostPort(58379)
@@ -78,6 +79,8 @@ var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("Appointments
        .WithReference(identityServer)
        .WithReference(postgresdb)
        .WithReference(rabbitmqServicesApi)
+       .WithReference(servicesAPI)
+       .WithReference(profilesAPI)
        .WithExternalHttpEndpoints()
        .WaitFor(postgresdb);
 

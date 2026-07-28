@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 
 namespace MicroserviceApiKernel.Extensions;
 
@@ -59,5 +60,10 @@ public static class EndpointExtension
             
             endpoint.MapEndpoint(targetGroup);
         }
+    }
+
+    public static RouteHandlerBuilder HasPermissions(this RouteHandlerBuilder route, params string[] permissions)
+    {
+        return route.RequireAuthorization(permissions);
     }
 }

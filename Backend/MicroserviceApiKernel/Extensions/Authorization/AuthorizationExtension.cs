@@ -109,27 +109,114 @@ public static class AuthorizationExtension
                         new ScopeRequirement("identity"))
                     );
     }
-}
+    
+    public static IServiceCollection AddAppAuthorization(this IServiceCollection services)
+    {
+        services.AddAuthorizationBuilder()
+            .AddPolicy(Permissions.Accounts.ReadOwn, p => p.RequireRole(Roles.Client, Roles.Doctor, Roles.Receptionist))
+            .AddPolicy(Permissions.Accounts.Read, p => p.RequireRole(Roles.Receptionist))
+            .AddPolicy(Permissions.Accounts.Manage, p => p.RequireRole(Roles.Receptionist))
 
+            .AddPolicy(Permissions.Doctors.Read, p => p.RequireRole(Roles.Client, Roles.Doctor, Roles.Receptionist))
+            .AddPolicy(Permissions.Doctors.Manage, p => p.RequireRole(Roles.Receptionist))
+
+            .AddPolicy(Permissions.Patients.Read, p => p.RequireRole(Roles.Doctor, Roles.Receptionist))
+            .AddPolicy(Permissions.Patients.Manage, p => p.RequireRole(Roles.Client, Roles.Receptionist))
+
+            .AddPolicy(Permissions.Offices.Read, p => p.RequireAssertion(_ => true))
+            .AddPolicy(Permissions.Offices.Manage, p => p.RequireRole(Roles.Receptionist))
+
+            .AddPolicy(Permissions.Services.Read, p => p.RequireAssertion(_ => true))
+            .AddPolicy(Permissions.Services.Manage, p => p.RequireRole(Roles.Receptionist))
+
+            .AddPolicy(Permissions.Specializations.Read, p => p.RequireAssertion(_ => true))
+            .AddPolicy(Permissions.Specializations.Manage, p => p.RequireRole(Roles.Receptionist))
+
+            .AddPolicy(Permissions.Schedules.ReadOwn, p => p.RequireRole(Roles.Doctor))
+            .AddPolicy(Permissions.Schedules.Read, p => p.RequireRole(Roles.Client, Roles.Doctor, Roles.Receptionist))
+            .AddPolicy(Permissions.Schedules.Manage, p => p.RequireRole(Roles.Receptionist))
+
+            .AddPolicy(Permissions.Appointments.ReadOwn, p => p.RequireRole(Roles.Client, Roles.Doctor))
+            .AddPolicy(Permissions.Appointments.Read, p => p.RequireRole(Roles.Receptionist))
+            .AddPolicy(Permissions.Appointments.Manage, p => p.RequireRole(Roles.Client, Roles.Receptionist))
+
+            .AddPolicy(Permissions.MedicalResults.ReadOwn, p => p.RequireRole(Roles.Client))
+            .AddPolicy(Permissions.MedicalResults.Manage, p => p.RequireRole(Roles.Doctor))
+
+            .AddPolicy(Permissions.Photos.Read, p => p.RequireAssertion(_ => true))
+            .AddPolicy(Permissions.Photos.Manage, p => p.RequireRole(Roles.Client, Roles.Doctor, Roles.Receptionist));
+
+        return services;
+    }
+}
+public static class Roles
+{
+    public const string Client = "client";
+    public const string Doctor = "doctor";
+    public const string Receptionist = "receptionist";
+}
 public static class Permissions
 {
     public static class Accounts
     {
-        public const string ReadOwn = "permissions.accounts.read_own";
-        public const string ReadAll = "permissions.accounts.read_all";
-        public const string ManageRoles = "permissions.accounts.manage_roles";
+        public const string ReadOwn = "accounts.read_own";
+        public const string Read = "accounts.read";
+        public const string Manage = "accounts.manage";
     }
 
     public static class Doctors
     {
-        public const string Read = "permissions.doctors.read";
-        public const string ReadOwn = "permissions.doctors.read_own";
-        public const string Manage = "permissions.doctors.manage";
+        public const string Read = "doctors.read";
+        public const string Manage = "doctors.manage";
     }
 
     public static class Patients
     {
-        public const string ReadAll = "permissions.patients.read_all";
-        public const string CreateOwn = "permissions.patients.create_own";
+        public const string Read = "patients.read";
+        public const string Manage = "patients.manage";
+    }
+
+    public static class Offices
+    {
+        public const string Read = "offices.read";
+        public const string Manage = "offices.manage";
+    }
+
+    public static class Services
+    {
+        public const string Read = "services.read";
+        public const string Manage = "services.manage";
+    }
+
+    public static class Specializations
+    {
+        public const string Read = "specializations.read";
+        public const string Manage = "specializations.manage";
+    }
+
+    public static class Schedules
+    {
+        public const string ReadOwn = "schedules.read_own";
+        public const string Read = "schedules.read";
+        public const string Manage = "schedules.manage";
+    }
+
+    public static class Appointments
+    {
+        public const string ReadOwn = "appointments.read_own";
+        public const string Read = "appointments.read";
+        public const string Manage = "appointments.manage";
+    }
+
+    public static class MedicalResults
+    {
+        public const string ReadOwn = "medical_results.read_own";
+        public const string Manage = "medical_results.manage";
+    }
+
+    public static class Photos
+    {
+        public const string Read = "photos.read";
+        public const string Manage = "photos.manage";
     }
 }

@@ -129,7 +129,8 @@ internal static class HostingExtensions
             .AddInMemoryClients(Config.Clients)
             .AddServerSideSessions()
             .AddLicenseSummary()
-            .AddProfileService<RoleEnsuranceProfileService>();
+            .AddProfileService<RoleEnsuranceProfileService>()
+            .AddResourceOwnerValidator<CustomResourceOwnerPasswordValidator>();
 
         // Adds configuration to use Duende's Demo IdentityServer instance.
         builder.Services.AddAuthentication()
@@ -157,6 +158,8 @@ internal static class HostingExtensions
                 options.Scope.Add("email");
             });
 
+        
+        builder.Services.AddScoped<IRoleResolver, RoleResolver>();
         builder.Services.AddScoped<IUserRoleManager, UserRoleManager>();
         builder.Services.AddScoped<IUserCreateManager, UserCreateManager>();
         

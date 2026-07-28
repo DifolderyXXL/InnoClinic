@@ -78,7 +78,7 @@ export function OfficeCompactCard({ office, officeId }: BaseOfficeProps) {
                 PhotoUrl={data && data.photoId 
                     ? documentsService.getOfficePhotoUrl(data.id, data.photoId) 
                     : null}
-                TextIfPhotoNull={data.city[0] ?? "O"}
+                TextIfPhotoNull={data?.city?.[0] ?? "O"}
             />
             <div className="office-compact-info">
                 <strong className="office-compact-title">Office: {data.city}</strong>

@@ -6,7 +6,7 @@ public interface IUserCreateManager
 {
     Task<IdentityUser> CreateClientExternal(string email);
     Task<IdentityUser> CreateExternal(string email, string[] roles);
-    Task<IdentityUser> CreateInternal(string email, string password, string[] roles);
+    Task<(IdentityUser, IdentityResult)> CreateInternal(string email, string password, string[] roles);
 }
 
 public class UserCreateManager(
@@ -39,7 +39,7 @@ public class UserCreateManager(
         return user;
     }
 
-    public async Task<IdentityUser> CreateInternal(string email, string password, string[] roles)
+    public async Task<(IdentityUser, IdentityResult)> CreateInternal(string email, string password, string[] roles)
     {
         var user = new IdentityUser
         {
@@ -51,13 +51,13 @@ public class UserCreateManager(
         var createResult = await userManager.CreateAsync(user, password);
         if (!createResult.Succeeded)
         {
-            throw new InvalidOperationException($"Error while creating user: {createResult.Errors.First().Description}");
+            return (user, createResult);
         }
 
         foreach (var role in roles)
             await roleManager.AddUserToRole(user, role);
-
-        return user;
+        
+        return (user, createResult);
         
     }
 }

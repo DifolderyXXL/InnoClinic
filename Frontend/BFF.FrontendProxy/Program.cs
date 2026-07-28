@@ -70,6 +70,21 @@ builder.Services.AddAuthentication(options =>
             NameClaimType = "name",
             RoleClaimType = "role"
         };
+        
+        options.Events.OnRedirectToIdentityProvider = context =>
+        {
+            if (context.Request.Query.TryGetValue("acr_values", out var acrValues))
+            {
+                context.ProtocolMessage.AcrValues = acrValues;
+            }
+
+            if (context.Request.Query.TryGetValue("prompt", out var prompt))
+            {
+                context.ProtocolMessage.Prompt = prompt;
+            }
+            
+            return Task.CompletedTask;
+        };
     });
 
 builder.Services.AddAuthorization();

@@ -223,7 +223,7 @@ export function SearchableSelect<T  extends {}>({
                                         disabled = false,
                                     }: SearchableSelectProps<T>) {
     const selectOptions = useMemo(() => {
-        return options.map(item => ({
+        return (options ?? []).map(item => ({
             value: item,
             label: getLabel(item),
             key: String(getKey(item)),

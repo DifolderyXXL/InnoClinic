@@ -110,3 +110,26 @@ public static class AuthorizationExtension
                     );
     }
 }
+
+public static class Permissions
+{
+    public static class Accounts
+    {
+        public const string ReadOwn = "permissions.accounts.read_own";
+        public const string ReadAll = "permissions.accounts.read_all";
+        public const string ManageRoles = "permissions.accounts.manage_roles";
+    }
+
+    public static class Doctors
+    {
+        public const string Read = "permissions.doctors.read";
+        public const string ReadOwn = "permissions.doctors.read_own";
+        public const string Manage = "permissions.doctors.manage";
+    }
+
+    public static class Patients
+    {
+        public const string ReadAll = "permissions.patients.read_all";
+        public const string CreateOwn = "permissions.patients.create_own";
+    }
+}

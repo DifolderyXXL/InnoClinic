@@ -17,6 +17,6 @@ public class UpdateServiceEndpoint : IEndpoint
             var result = await handler.Handle(request with { Id = id }, ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Receptionist).WithTags(EndpointTags.Services);
+        }).HasPermissions(Permissions.Services.Manage).WithTags(EndpointTags.Services);
     }
 }

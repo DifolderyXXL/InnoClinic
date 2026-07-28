@@ -16,6 +16,6 @@ public class CreateServiceEndpoint : IEndpoint
             var result = await handler.Handle(request, ct);
 
             return result.MapToTypedResult(TypedResults.Created);
-        }).RequireAuthorization(RolePolicy.Receptionist).WithTags(EndpointTags.Services);
+        }).HasPermissions(Permissions.Services.Manage).WithTags(EndpointTags.Services);
     }
 }

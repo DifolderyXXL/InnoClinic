@@ -1,4 +1,5 @@
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ProfilesAPI.Endpoints.User;
@@ -6,7 +7,7 @@ namespace ProfilesAPI.Endpoints.User;
 public class UpdateRole : IEndpoint
 {
     public record Request(string UserId, string Role, string Action);
-    
+
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapPut("/accounts/role", async ([FromBody] Request request, IHttpClientFactory factory, CancellationToken ct) =>
@@ -47,7 +48,7 @@ public class UpdateRole : IEndpoint
 
                 return response.IsSuccessStatusCode ? Results.Ok() : Results.BadRequest();
             })
-            .RequireAuthorization(RolePolicy.Receptionist)
+            .HasPermissions(Permissions.Accounts.Manage)
             .WithDescription("Updates role for user."); ;
     }
 }

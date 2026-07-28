@@ -5,6 +5,7 @@ using Asp.Versioning;
 using Contracts.AppointmentContracts;
 using MassTransit;
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.Extensions.Endpoints;
 using MicroserviceApiKernel.Extensions.Queryable;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ public record DeclineCommand(string Reason);
 [ApiController]
 [ApiVersion(1)]
 public class AppointmentsController(
-    IPublishEndpoint publishEndpoint, 
+    IPublishEndpoint publishEndpoint,
     IAppointmentService appointmentService,
     AppointmentDbContext context) : ControllerBase
 {
@@ -29,12 +30,12 @@ public class AppointmentsController(
 
     [HttpPost]
     [Route("book")]
-    [Authorize(Policy = RolePolicy.Client)]
+    [HasPermission(Permissions.Appointments.Manage)]
     [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
     public async Task<IActionResult> BookAppointment(
         [FromBody] BookAppointmentCommand command,
-        [FromServices] IProfilesApiClient profilesApiClient, 
-        [FromServices] IServicesApiClient servicesApiClient, 
+        [FromServices] IProfilesApiClient profilesApiClient,
+        [FromServices] IServicesApiClient servicesApiClient,
         CancellationToken ct)
     {
         var user = await GetUserClaim();
@@ -47,28 +48,28 @@ public class AppointmentsController(
         var serviceResultTask = servicesApiClient.GetService(command.ServiceId, ct);
 
         await Task.WhenAll(profilesResultTask, serviceResultTask);
-        
+
         var profilesResult = await profilesResultTask;
         var serviceResult = await serviceResultTask;
-        
-        if (profilesResult.IsError) 
+
+        if (profilesResult.IsError)
             return BadRequest(profilesResult.Error);
-        if (serviceResult.IsError) 
+        if (serviceResult.IsError)
             return BadRequest(serviceResult.Error);
-        
+
         var profiles = profilesResult.Value!;
         var service = serviceResult.Value!;
-        
+
         if (command.SpecializationId != service.SpecializationId)
         {
             return BadRequest("Selected specialization does not match the requested service.");
         }
-        
+
         if (profiles.DoctorSpecializationId != service.SpecializationId)
         {
             return BadRequest("Doctor's specialization does not match the requested service.");
         }
-        
+
         var appointment = new Appointment
         {
             PatientAccountId = patientId,
@@ -79,14 +80,14 @@ public class AppointmentsController(
             ServiceId = command.ServiceId,
             OfficeId = command.OfficeId,
             SpecializationId = command.SpecializationId,
-            
+
             DoctorFullName = profiles.DoctorFullName,
             PatientFullName = profiles.PatientFullName,
             ServiceName = service.ServiceName,
         };
         var result = await appointmentService.AddAppointment(appointment, ct);
         if (result.IsError) return BadRequest();
-        
+
         await publishEndpoint.Publish(
             new AppointmentSubmitted(
                 result.Value,
@@ -99,10 +100,10 @@ public class AppointmentsController(
 
         return Accepted(result.Value);
     }
-    
+
     [HttpPost]
     [Route("approve-book/{id:guid}")]
-    [Authorize(Policy = RolePolicy.Receptionist)]
+    [HasPermission(Permissions.Appointments.Manage)]
     public async Task<IActionResult> ApproveAppointment(
         [FromRoute] Guid id,
         CancellationToken ct)
@@ -115,7 +116,7 @@ public class AppointmentsController(
 
     [HttpPost]
     [Route("decline-book/{id:guid}")]
-    [Authorize(Policy = RolePolicy.Receptionist)]
+    [HasPermission(Permissions.Appointments.Manage)]
     public async Task<IActionResult> DeclineAppointment(
         [FromRoute] Guid id,
         [FromBody] DeclineCommand command,
@@ -126,9 +127,9 @@ public class AppointmentsController(
 
         return Accepted();
     }
-    
+
     [HttpGet]
-    [Authorize(Policy = RolePolicy.Receptionist)]
+    [HasPermission(Permissions.Appointments.Read)]
     public async Task<IActionResult> GetAppointments(
         [FromQuery] AppointmentState? state,
         [FromQuery] PaginationParameters pagination,
@@ -157,12 +158,12 @@ public class AppointmentsController(
                 ReservationId = a.ReservationId
             })
             .ToListAsync(ct);
-        
-        return Ok(new{ Items = items, Total = total, Page = pagination.Page, PageSize = pagination.PageSize });
+
+        return Ok(new { Items = items, Total = total, Page = pagination.Page, PageSize = pagination.PageSize });
     }
-    
+
     [HttpGet("me/client")]
-    [Authorize(Policy = RolePolicy.Client)]
+    [HasPermission(Permissions.Appointments.ReadOwn)]
     [ProducesResponseType(typeof(PagedResponse<AppointmentDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetClientAppointments(
         [FromQuery] AppointmentState? state,
@@ -174,7 +175,7 @@ public class AppointmentsController(
         {
             return Unauthorized();
         }
-        
+
         var query = context.Appointments.AsNoTracking();
 
         if (state != null)
@@ -185,18 +186,18 @@ public class AppointmentsController(
         var items = await query
             .Where(x => x.PatientAccountId == clientId)
             .OrderByDescending(x => x.Date)
-            .ThenBy(x=>x.BeginTime)
+            .ThenBy(x => x.BeginTime)
             .ToPagedResponseAsync(
-                pagination, 
+                pagination,
                 AppointmentDtoHelper.ProjectToDto,
                 ct);
-        
+
         return Ok(items);
     }
-    
-    
+
+
     [HttpGet("me/doctor")]
-    [Authorize(Policy = RolePolicy.Doctor)]
+    [HasPermission(Permissions.Appointments.ReadOwn)]
     [ProducesResponseType(typeof(PagedResponse<AppointmentDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDoctorAppointments(
         [FromQuery] AppointmentState? state,
@@ -208,7 +209,7 @@ public class AppointmentsController(
         {
             return Unauthorized();
         }
-        
+
         var query = context.Appointments.AsNoTracking();
 
         if (state != null)
@@ -220,15 +221,15 @@ public class AppointmentsController(
             .Where(x => x.DoctorAccountId == doctorId)
             .OrderBy(x => x.Id)
             .ToPagedResponseAsync(
-                pagination, 
+                pagination,
                 AppointmentDtoHelper.ProjectToDto,
                 ct);
-        
+
         return Ok(items);
     }
-    
+
     [HttpGet("{id:guid}/me/client")]
-    [Authorize(Policy = RolePolicy.Client)]
+    [HasPermission(Permissions.Appointments.ReadOwn)]
     [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetClientAppointments(
@@ -252,7 +253,7 @@ public class AppointmentsController(
         {
             return NotFound();
         }
-        
+
         return Ok(item);
     }
 

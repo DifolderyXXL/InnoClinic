@@ -32,12 +32,16 @@ public static class AuthorizationExtension
             options.Authority = builder.Configuration.DiscoverHttps("IdentityServer");
             options.Audience = "api";
             options.IncludeErrorDetails = true;
+            
+            options.MapInboundClaims = false;
 
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
+                RoleClaimType = "role",
+                NameClaimType = "sub"
             };
             
         });
@@ -54,6 +58,7 @@ public static class AuthorizationExtension
 
     public static void AddApiAuthorizationPolicies(this IServiceCollection services)
     {
+        /*
         string[] roleClaimNames = ["role", System.Security.Claims.ClaimTypes.Role];
         services.AddAuthorizationBuilder()
             .AddPolicy(RolePolicy.Client, policy =>
@@ -80,6 +85,9 @@ public static class AuthorizationExtension
                         new RoleRequirement(["doctor"], roleClaimNames),
                         new ScopeRequirement("api"))
             );
+            */
+
+        services.AddAppAuthorization();
 
     }
 

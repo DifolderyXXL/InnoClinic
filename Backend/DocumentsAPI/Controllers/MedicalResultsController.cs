@@ -2,6 +2,7 @@ using DocumentsAPI.Application;
 using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Models;
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.Extensions.Endpoints;
 using MicroserviceApiKernel.SharedControllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ public class CreateMedicalResultRequest : MedicalResultBody
 public class MedicalResultsController : BaseApiController
 {
     [HttpGet("appointments/{appointmentId:guid}/me/export")]
-    [Authorize(RolePolicy.Client)]
+    [HasPermission(Permissions.MedicalResults.ReadOwn)]
     public async Task<IActionResult> ExportMedicalResultAsPdf(
         [FromRoute] Guid appointmentId,
         [FromServices] MedicalResultsDbContext context,
@@ -65,7 +66,7 @@ public class MedicalResultsController : BaseApiController
     }
     
     [HttpGet("appointments/{appointmentId:guid}/me")]
-    [Authorize(Policy = RolePolicy.Client)]
+    [HasPermission(Permissions.MedicalResults.ReadOwn)]
     public async Task<IActionResult> GetMedicalResult(
         [FromRoute] Guid appointmentId,
         [FromServices] MedicalResultsDbContext context,
@@ -96,7 +97,7 @@ public class MedicalResultsController : BaseApiController
     }
     
     [HttpPost("appointments/{appointmentId:guid}")]
-    [Authorize(Policy = RolePolicy.Doctor)]
+    [HasPermission(Permissions.MedicalResults.Manage)]
     public async Task<IActionResult> AddMedicalResult(
         [FromRoute] Guid appointmentId,
         [FromBody] CreateMedicalResultRequest request,
@@ -134,7 +135,7 @@ public class MedicalResultsController : BaseApiController
     }
     
     [HttpPut("appointments/{appointmentId:guid}")]
-    [Authorize(Policy = RolePolicy.Doctor)]
+    [HasPermission(Permissions.MedicalResults.Manage)]
     public async Task<IActionResult> UpdateMedicalResult(
         [FromRoute] Guid appointmentId,
         [FromBody] MedicalResultBody medicalResultBody,

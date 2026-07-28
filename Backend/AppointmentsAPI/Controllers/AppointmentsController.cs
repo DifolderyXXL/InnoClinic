@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Linq.Expressions;
 using AppointmentsAPI.Data;
 using AppointmentsAPI.Models;
 using AppointmentsAPI.Services;
@@ -9,7 +7,6 @@ using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions.Queryable;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AppointmentState = AppointmentsAPI.Models.AppointmentState;
@@ -29,7 +26,7 @@ public class AppointmentsController(
     AppointmentDbContext context) : ControllerBase
 {
     private async ValueTask<UserClaimParserResult?> GetUserClaim() => await UserClaimParser.Parse(HttpContext);
-    
+
     [HttpPost]
     [Route("book")]
     [Authorize(Policy = RolePolicy.Client)]
@@ -187,7 +184,8 @@ public class AppointmentsController(
 
         var items = await query
             .Where(x => x.PatientAccountId == clientId)
-            .OrderBy(x => x.Id)
+            .OrderByDescending(x => x.Date)
+            .ThenBy(x=>x.BeginTime)
             .ToPagedResponseAsync(
                 pagination, 
                 AppointmentDtoHelper.ProjectToDto,

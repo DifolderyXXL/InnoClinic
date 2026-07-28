@@ -10,11 +10,22 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DocumentsAPI.Controllers;
 
+public static class CacheHelper
+{
+    private const int FromHours = 60 * 60;
+    public const int PublicCacheTime = 6 * FromHours;
+    public const int PublicRestCacheTime = 5 * FromHours;
+    
+    public const int SensitiveCacheTime = 3 * FromHours;
+    public const int SensitiveRestCacheTime = 2 * FromHours;
+}
+
 public record PhotoCreatedResponse(Guid PhotoId);
 public class PhotosController : BaseApiController
 {
     [HttpGet("offices/{officeId}/avatar/{photoId:guid}")]
     [AllowAnonymous]
+    [ResponseCache(Duration = CacheHelper.PublicRestCacheTime, Location = ResponseCacheLocation.Any)]
     public async Task<IActionResult> GetPublicPhoto(
         [FromRoute] string officeId,
         [FromRoute] Guid photoId,
@@ -30,6 +41,7 @@ public class PhotosController : BaseApiController
     
     [HttpGet("doctors/{doctorId:guid}/avatar/{photoId:guid}")]
     [AllowAnonymous]
+    [ResponseCache(Duration = CacheHelper.PublicRestCacheTime, Location = ResponseCacheLocation.Any)]
     public async Task<IActionResult> GetDoctorPhoto(
         [FromRoute] Guid doctorId,
         [FromRoute] Guid photoId,
@@ -41,7 +53,7 @@ public class PhotosController : BaseApiController
         if (!await client.ExistsAsync(ct)) return NotFound();
         if (!await IsPhotoPublic(client, ct)) return Forbid();
 
-        var expireTime = TimeSpan.FromHours(6);
+        var expireTime = TimeSpan.FromSeconds(CacheHelper.PublicCacheTime);
         var sasBuilder = new BlobSasBuilder
         {
             BlobContainerName = client.BlobContainerName,
@@ -58,6 +70,7 @@ public class PhotosController : BaseApiController
     
     [HttpGet("users/avatar/{photoId:guid}")]
     [Authorize(Policy = RolePolicy.Client)]
+    [ResponseCache(Duration = CacheHelper.SensitiveRestCacheTime, Location = ResponseCacheLocation.Client)]
     public async Task<IActionResult> GetProfilePhoto(
         [FromRoute] Guid photoId,
         [FromServices] IUserPhotoStorage context,
@@ -75,7 +88,7 @@ public class PhotosController : BaseApiController
             BlobContainerName = client.BlobContainerName,
             BlobName = client.Name,
             Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(15)
+            ExpiresOn = DateTimeOffset.UtcNow.AddSeconds(CacheHelper.SensitiveCacheTime)
         };
         sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
 

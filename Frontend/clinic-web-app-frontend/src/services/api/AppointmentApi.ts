@@ -87,6 +87,10 @@ export class AppointmentsApi extends BaseApiClient {
             { state, Page: page, PageSize: pageSize, Skip: skip },
         );
     }
+
+    public async getMyClientAppointmentById(id: string): Promise<Result> {
+        return this.get(`api/v1/Appointments/${id}/me/client`);
+    }
 }
 
 export const appointmentsApi = new AppointmentsApi();

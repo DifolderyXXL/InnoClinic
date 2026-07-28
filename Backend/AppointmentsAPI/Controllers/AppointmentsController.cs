@@ -226,6 +226,36 @@ public class AppointmentsController(
         
         return Ok(items);
     }
+    
+    [HttpGet("{id:guid}/me/client")]
+    [Authorize(Policy = RolePolicy.Client)]
+    [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClientAppointments(
+        [FromRoute] Guid id,
+        CancellationToken ct = default)
+    {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var clientId))
+        {
+            return Unauthorized();
+        }
+        
+        var query = context.Appointments.AsNoTracking();
+        
+        var item = await query
+            .Where(x => x.Id == id && x.PatientAccountId == clientId)
+            .Select(AppointmentDtoHelper.ProjectToDto)
+            .FirstOrDefaultAsync(ct);
+        
+        if (item == null)
+        {
+            return NotFound();
+        }
+        
+        return Ok(item);
+    }
+
 }
 
 

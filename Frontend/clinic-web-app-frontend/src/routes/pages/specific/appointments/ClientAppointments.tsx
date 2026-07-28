@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {type AppointmentDto, appointmentsApi} from "../../../../services/api/AppointmentApi.ts";
 import "./ClientAppointments.css"
 import {PageSelector} from "../../Shared/PageSelector.tsx";
+import {Link} from "react-router-dom";
 
 const pageSize: number = 50;
 export function ClientAppointments(){
@@ -24,7 +25,9 @@ export function ClientAppointments(){
     }, []);
     
     const appointmentViews = appointments.map(a =>(
-           <AppointmentCard appointment={a}/>
+        <Link key={a.id} className="appointment-link" to={`/my-appointments/details?id=${a.id}`}>
+            <AppointmentCard appointment={a}/>
+        </Link>
         )
     );
     
@@ -71,3 +74,4 @@ export function AppointmentCard({appointment}:AppointmentCardProps){
         </div>
     );
 }
+

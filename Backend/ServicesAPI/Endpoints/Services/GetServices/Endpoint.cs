@@ -21,6 +21,17 @@ public class GetServicesEndpoint : IEndpoint
 
             return result.MapToTypedResult(TypedResults.Ok);
         }).AllowAnonymous().WithTags(EndpointTags.Services);
+        
+        builder.MapGet("/services/{serviceId:long}", async (
+            [FromRoute] long serviceId,
+            IQueryHandler<GetServiceByIdQuery, ServiceDto> handler,
+            CancellationToken ct
+        ) =>
+        {
+            var result = await handler.Handle(new(serviceId), ct);
+
+            return result.MapToTypedResult(TypedResults.Ok);
+        }).AllowAnonymous().WithTags(EndpointTags.Services);
     }
 }
 

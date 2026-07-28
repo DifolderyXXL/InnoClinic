@@ -10,7 +10,7 @@ public class Doctor
     
     public long SpecializationId { get; set; }
     public virtual Specialization Specialization { get; set; }
-    public long OfficeId { get; set; }
+    public string OfficeId { get; set; }
     public long CareerStartYear { get; set; }
 
     public Status Status { get; set; }

@@ -1,5 +1,4 @@
 using Contracts.DocumentsContracts;
-using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Infrastructure.Photos;
 using MassTransit;
 

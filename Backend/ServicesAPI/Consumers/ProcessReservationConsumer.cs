@@ -59,6 +59,7 @@ public class ProcessReservationConsumer(
     IScheduleService scheduleService,
     ServicesDbContext db,
     ILogger<ProcessReservationConsumer> logger,
+    IOptions<ScheduleOptions> scheduleOptions,
     IOptions<ReservationOptions> reservationOptions)
     : IConsumer<ProcessReservation>
 {
@@ -90,7 +91,13 @@ public class ProcessReservationConsumer(
             new(context.Message.Date, context.Message.StartSlotIndex, (int)slotCount),
             context.CancellationToken);
         
-        await context.Publish(new TimeWindowReserved(context.Message.AppointmentId, entity.Id));   
+        await context.Publish(new TimeWindowReserved(
+            context.Message.AppointmentId, 
+            entity.Id,
+            scheduleOptions.Value.GetSlotTime(entity.StartSlotIndex),
+            scheduleOptions.Value.GetSlotTime(entity.EndSlotIndex)
+            ));   
+        
         await context.SchedulePublish(
             delay: reservationOptions.Value.ReserveTime,
             message: new ReservationExpired(context.Message.AppointmentId, entity.Id));   

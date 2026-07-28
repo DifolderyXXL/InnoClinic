@@ -6,7 +6,7 @@ public record DoctorEventObject
     public Guid AccountId { get; set; }
     public DateOnly DateOfBirth { get; set; }
 
-    public long OfficeId { get; set; }
+    public string OfficeId { get; set; }
     public long CareerStartYear { get; set; }
 }
 

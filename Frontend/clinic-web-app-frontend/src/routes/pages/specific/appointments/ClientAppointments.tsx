@@ -1,55 +1,77 @@
 import {useEffect, useState} from "react";
 import {type AppointmentDto, appointmentsApi} from "../../../../services/api/AppointmentApi.ts";
-import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
-import {type DoctorProfile, DoctorViewCard} from "../doctors/DoctorsPage.tsx";
 import "./ClientAppointments.css"
+import {PageSelector} from "../../Shared/PageSelector.tsx";
+import {Link} from "react-router-dom";
 
+const pageSize: number = 50;
 export function ClientAppointments(){
-    const [appointments, setAppointments] = useState<AppointmentDto[]>([])       
+    const [appointments, setAppointments] = useState<AppointmentDto[]>([])
+    const [totalPages, setTotalPages] = useState<number>(0)
+    
+    const load = async (page: number) =>{
+        appointmentsApi.getMyClientAppointments(undefined, page, pageSize)
+            .then(result => {
+                if(result.type === "ok") {
+                    console.log(result.value)
+                    setAppointments(result.value.items ?? []);
+                    setTotalPages(result.value.totalCount)
+                }
+            })  
+    };
     
     useEffect(() => {
-        appointmentsApi.getMyClientAppointments()
-            .then(result => {
-                if(result.type === "ok")
-                    setAppointments(result.value.items ?? []);
-            })
+        load(1)
     }, []);
     
     const appointmentViews = appointments.map(a =>(
-            <div className="appointment-container">
-                <span>{a.date}</span>
-                <span>{a.state}</span>
-                <DoctorById id={a.doctorAccountId}/>
-            </div>
+        <Link key={a.id} className="appointment-link" to={`/my-appointments/details?id=${a.id}`}>
+            <AppointmentCard appointment={a}/>
+        </Link>
         )
     );
     
     return (
-        <div className="appointments-list-container">
-            {appointmentViews}
+        <div style={{display:"flex", flexDirection:"column"}}>
+
+            <div className="appointments-list-container">
+                {appointmentViews}
+            </div>
+            <PageSelector total={totalPages} pageSize={pageSize} onPageChange={x=>load(x)}/>
         </div>
     );
 }
 
-interface DoctorByIdProps{
-    id: string;
+interface AppointmentCardProps{
+    appointment: AppointmentDto
 }
-export function DoctorById({id}:DoctorByIdProps){
-    const [doctor, setDoctor] = useState<DoctorProfile | null>(null);
-
-    useEffect(() => {
-        profilesApi.getDoctorById(String(id))
-            .then(result =>{
-                if(result.type === "ok") setDoctor(result.value.doctorDto);
-            })
-    }, []);
-    
-    if(!doctor)
-    {
-        return (<div>...</div>);
-    }
-    
+export function AppointmentCard({appointment}:AppointmentCardProps){
     return (
-        <DoctorViewCard doctor={doctor}/>
+        <div className="appointment-card">
+            <div className="appointment-header">
+                <span className="appointment-date">{appointment.date}</span>
+                <span className={`appointment-status status-${appointment.state.toLowerCase()}`}>
+                      {appointment.state}
+                    </span>
+            </div>
+
+            <div className="appointment-body">
+                <h3 className="service-name">{appointment.serviceName}</h3>
+
+                <div className="appointment-details">
+                    <p><strong>Doctor:</strong> {appointment.doctorFullName}</p>
+                    <p><strong>Patient:</strong> {appointment.patientFullName}</p>
+                    <p>
+                        <strong>Time:</strong>{' '}
+                        {appointment.beginTime && appointment.endTime ? (
+                            <span>{appointment.beginTime} — {appointment.endTime}</span>
+                        ) : (
+                            <span>Slot {appointment.startSlotIndex} (Pending reservation)</span>
+                        )}
+                    </p>
+                </div>
+            </div>
+        </div>
     );
 }
+

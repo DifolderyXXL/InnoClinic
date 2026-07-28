@@ -42,6 +42,12 @@ public class BlobPhotoStorage(IPhotoRepository context) : IPhotoStorage
         
         var copyOperation = await activeBlobClient.StartCopyFromUriAsync(tempBlobClient.Uri, cancellationToken: ct);
         await copyOperation.WaitForCompletionAsync(ct);
+        
+        await activeBlobClient.SetHttpHeadersAsync(new BlobHttpHeaders
+        {
+            ContentType = "image/jpeg",
+            CacheControl = "private, max-age=31536000, immutable"
+        }, cancellationToken: ct);
 
         await tempBlobClient.DeleteIfExistsAsync(cancellationToken: ct);
         return true;
@@ -65,11 +71,16 @@ public class BlobPhotoStorage(IPhotoRepository context) : IPhotoStorage
     public async Task<Guid> UploadTempAsync(string userId, Stream stream, TimeSpan ttl, CancellationToken ct)
     {
         var photoId = Guid.NewGuid();
-        var blobClient = context.GetTempPhotoClient(userId.ToString(), photoId);
+        var blobClient = context.GetTempPhotoClient(userId, photoId);
         
         var expiresOn = DateTime.UtcNow.Add(ttl);
         var options = new BlobUploadOptions
         {
+            HttpHeaders = new BlobHttpHeaders
+            {
+                ContentType = "image/jpeg",
+                CacheControl = "private, max-age=3600" 
+            },
             Tags = new Dictionary<string, string>
             {
                 { "expiresOn", expiresOn.Ticks.ToString() }

@@ -8,10 +8,21 @@ public class AppointmentDto
     public Guid Id { get; init; }
     public Guid PatientAccountId { get; init; }
     public Guid DoctorAccountId { get; init; }
+    public string OfficeId { get; init; } = null!;
+    public long ServiceId { get; init; }
+    public long SpecializationId { get; init; }
+    
+    public string DoctorFullName { get; init; } = null!;
+    public string PatientFullName { get; init; } = null!;
+    public string ServiceName { get; init; } = null!;
+    
     public long? ReservationId { get; init; }
     public DateOnly Date { get; init; }
     public int StartSlotIndex { get; init; }
-    public long ServiceId { get; init; }
+    
+    public TimeSpan? BeginTime { get; init; }
+    public TimeSpan? EndTime { get; init; }
+    
     public string State { get; init; }
 }
 
@@ -24,11 +35,21 @@ public static class AppointmentDtoHelper
             Id = a.Id,
             PatientAccountId = a.PatientAccountId,
             DoctorAccountId = a.DoctorAccountId,
+            OfficeId = a.OfficeId,
+            ServiceId = a.ServiceId,
+            SpecializationId = a.SpecializationId,
+            
+            DoctorFullName = a.DoctorFullName,
+            PatientFullName = a.PatientFullName,
+            ServiceName = a.ServiceName,
+            
+            ReservationId = a.ReservationId,
             Date = a.Date,
             StartSlotIndex = a.StartSlotIndex,
-            ServiceId = a.ServiceId,
-            State = a.State.ToString(),
-            ReservationId = a.ReservationId
+            BeginTime = a.BeginTime,
+            EndTime = a.EndTime,
+            
+            State = a.State.ToString()
         };
     
 }

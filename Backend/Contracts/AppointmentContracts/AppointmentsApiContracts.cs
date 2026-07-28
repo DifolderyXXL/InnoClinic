@@ -10,7 +10,7 @@ public record AppointmentSubmitted(
     DateOnly Date,
     int StartSlotIndex,
     long ServiceId);
-public record TimeWindowReserved(Guid AppointmentId, long ReservationId);
+public record TimeWindowReserved(Guid AppointmentId, long ReservationId, TimeSpan BeginTime, TimeSpan EndTime);
 public record ReservationFailed(Guid AppointmentId);
 public record AppointmentApproved(Guid AppointmentId);
 public record AppointmentDeclined(Guid AppointmentId, string? Reason);

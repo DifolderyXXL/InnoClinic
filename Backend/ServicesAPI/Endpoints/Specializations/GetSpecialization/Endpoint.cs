@@ -6,6 +6,7 @@ using MicroserviceApiKernel.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServicesAPI.Data;
+using ServicesAPI.Models;
 
 namespace ServicesAPI.Endpoints.Specializations.GetSpecialization;
 
@@ -24,6 +25,20 @@ public class GetSpecializationsEndpoint : IEndpoint
 
             return result.MapToTypedResult(TypedResults.Ok);
         }).AllowAnonymous().WithTags(EndpointTags.Specialization);
+        
+        builder.MapGet("/specializations/{id:long}", async (
+                [FromRoute] long id,
+                IQueryHandler<GetSpecializationByIdQuery, SpecializationDto> handler,
+                CancellationToken ct
+            ) =>
+            {
+                var query = new GetSpecializationByIdQuery(id);
+                var result = await handler.Handle(query, ct);
+
+                return result.MapToTypedResult(TypedResults.Ok);
+            })
+            .AllowAnonymous()
+            .WithTags(EndpointTags.Specialization);
     }
 }
 public record SpecializationDto(long Id, string SpecializationName, bool IsActive);
@@ -48,5 +63,29 @@ public class GetSpecializationsQueryHandler(ServicesDbContext context)
             .ToListAsync(ct);
 
         return new GetSpecializationsResponse(specializations);
+    }
+}
+
+
+
+public record GetSpecializationByIdQuery(long Id) : IQuery<SpecializationDto>;
+
+public class GetSpecializationByIdQueryHandler(ServicesDbContext context)
+    : IQueryHandler<GetSpecializationByIdQuery, SpecializationDto>
+{
+    public async Task<Result<SpecializationDto>> Handle(GetSpecializationByIdQuery query, CancellationToken ct)
+    {
+        var specialization = await context.Specializations
+            .AsNoTracking()
+            .Where(s => s.Id == query.Id)
+            .ProjectToType<SpecializationDto>()
+            .FirstOrDefaultAsync(ct);
+
+        if (specialization is null)
+        {
+            return DomainErrors<Specialization>.NotFound();
+        }
+
+        return specialization;
     }
 }

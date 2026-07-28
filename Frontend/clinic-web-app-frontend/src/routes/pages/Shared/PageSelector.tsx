@@ -3,11 +3,11 @@ import "./PageSelector.css"
 
 interface PageSelectorProps {
     total: number;
-    pageSize: number;
+    pageSize?: number;
     onPageChange: (page: number) => void;
 }
 
-export function PageSelector({ total, pageSize, onPageChange }: PageSelectorProps) {
+export function PageSelector({ total, pageSize = 50, onPageChange }: PageSelectorProps) {
     const [currentPage, setCurrentPage] = useState(1);
 
     const totalPages = Math.ceil(total / pageSize);

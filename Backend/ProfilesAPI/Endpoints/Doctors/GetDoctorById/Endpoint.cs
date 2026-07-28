@@ -15,7 +15,7 @@ public class GetDoctorByIdEndpoint : IDoctorEndpoint
         {
             var result = await handler.Handle(new(id), ct);
 
-            return result.MapToTypedResult(TypedResults.Ok);
+            return result.MapToTypedResult(x=>TypedResults.Ok(x.DoctorDto));
         }).RequireAuthorization(RolePolicy.Client);
     }
 }

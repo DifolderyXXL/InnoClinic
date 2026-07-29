@@ -13,3 +13,13 @@ export function ClinicNavigation() {
         </nav>
     )
 }
+
+export function DoctorNavigation() {
+    return (
+        <nav style={{alignContent: "center", overflowX: "auto",
+            overflowY: "hidden", scrollbarWidth: "thin",}}>
+            <RouteLinkCard to="/my-schedule" >My schedule</RouteLinkCard>
+
+        </nav>
+    )
+}

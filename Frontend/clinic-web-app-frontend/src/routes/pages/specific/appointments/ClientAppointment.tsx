@@ -2,7 +2,7 @@ import "./ClientAppointments.css";
 import {useSearchParams} from "react-router";
 import {type AppointmentDto, appointmentsApi} from "../../../../services/api/AppointmentApi.ts";
 import {useEffect, useState} from "react";
-import {AppointmentCard} from "./ClientAppointments.tsx";
+import {AppointmentCard} from "../../common/Appointment/AppointmentCard.tsx";
 
 export function ClientAppointment(){
     const [searchParams] = useSearchParams();

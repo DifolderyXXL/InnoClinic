@@ -84,24 +84,26 @@ public class ProcessReservationConsumer(
         }
 
         var slotCount = timeStepResult.Value;
-        
+
         var entity = await reservationService.TryReserve(
             context.Message.DoctorId,
             context.Message.AppointmentId,
             new(context.Message.Date, context.Message.StartSlotIndex, (int)slotCount),
             context.CancellationToken);
-        
+
+        await db.SaveChangesAsync(context.CancellationToken);
+
         await context.Publish(new TimeWindowReserved(
-            context.Message.AppointmentId, 
+            context.Message.AppointmentId,
             entity.Id,
             scheduleOptions.Value.GetSlotTime(entity.StartSlotIndex),
             scheduleOptions.Value.GetSlotTime(entity.EndSlotIndex)
-            ));   
-        
+        ));
+
         await context.SchedulePublish(
             delay: reservationOptions.Value.ReserveTime,
-            message: new ReservationExpired(context.Message.AppointmentId, entity.Id));   
-        
+            message: new ReservationExpired(context.Message.AppointmentId, entity.Id));
+
         await db.SaveChangesAsync(context.CancellationToken);
     }
 }

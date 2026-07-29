@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import {ProfileMinimalBlock} from "../routes/pages/Shared/ProfileMinimalBlock.tsx";
-import {ClinicNavigation} from "./ClinicNavigation.tsx";
+import {ClinicNavigation, DoctorNavigation} from "./ClinicNavigation.tsx";
+import {RequireRole, Roles} from "./common/RequireRole.tsx";
 
 export function Layout() {
     return (
@@ -8,7 +9,12 @@ export function Layout() {
             <header style={{ padding: '10px', background: '#333', color: '#fff' }}>
                 <h1>InnoClinic</h1>
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'  }}>
-                    <ClinicNavigation/>
+                    <div  style={{ display: 'flex', flexDirection: 'column', alignItems:"start" }}>
+                        <ClinicNavigation/>
+                        <RequireRole roles={[Roles.Doctor]}>
+                            <DoctorNavigation/>
+                        </RequireRole>
+                    </div>
                     <ProfileMinimalBlock/>
                 </div>
             </header>

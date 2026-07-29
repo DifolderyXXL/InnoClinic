@@ -4,7 +4,7 @@ using ServicesAPI.Application.Scheduling;
 
 namespace ServicesAPI.Consumers;
 
-public class ProcessReservationConfirmationConsumer(IReservationService reservationService) : IConsumer<ProcessReservationConfirmation>
+public class ProcessReservationConfirmationConsumer(IReservationService reservationService, ILogger<ProcessReservationConfirmationConsumer> logger) : IConsumer<ProcessReservationConfirmation>
 {
     public async Task Consume(ConsumeContext<ProcessReservationConfirmation> context)
     {
@@ -18,5 +18,7 @@ public class ProcessReservationConfirmationConsumer(IReservationService reservat
         {
             await context.Publish(new ReservationFailed(context.Message.AppointmentId));   
         }
+        
+        logger.LogDebug("Reservation confirmation result {Result}: r: {Reservation}, a: {Appointment}", result, context.Message.ReservationId, context.Message.AppointmentId);
     }
 }

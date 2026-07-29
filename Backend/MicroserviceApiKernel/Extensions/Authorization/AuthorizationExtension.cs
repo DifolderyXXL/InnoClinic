@@ -58,37 +58,7 @@ public static class AuthorizationExtension
 
     public static void AddApiAuthorizationPolicies(this IServiceCollection services)
     {
-        /*
-        string[] roleClaimNames = ["role", System.Security.Claims.ClaimTypes.Role];
-        services.AddAuthorizationBuilder()
-            .AddPolicy(RolePolicy.Client, policy =>
-                policy
-                    .AddRequirements(
-                        new RoleRequirement(["client"], roleClaimNames),
-                        new ScopeRequirement("api"))
-                    )
-            .AddPolicy(RolePolicy.DoctorOrReceptionist, policy =>
-                policy
-                    .AddRequirements(
-                        new RoleRequirement(["doctor", "receptionist"], roleClaimNames),
-                        new ScopeRequirement("api"))
-                    )
-            .AddPolicy(RolePolicy.Receptionist, policy =>
-                policy
-                    .AddRequirements(
-                        new RoleRequirement(["receptionist"], roleClaimNames),
-                        new ScopeRequirement("api"))
-                    )
-            .AddPolicy(RolePolicy.Doctor, policy =>
-                policy
-                    .AddRequirements(
-                        new RoleRequirement(["doctor"], roleClaimNames),
-                        new ScopeRequirement("api"))
-            );
-            */
-
         services.AddAppAuthorization();
-
     }
 
     public static void AddIdentityAuthorizationPolicies(this IServiceCollection services)

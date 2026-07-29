@@ -8,6 +8,7 @@ using MicroserviceApiKernel.Extensions.Endpoints;
 using MicroserviceApiKernel.SharedControllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
 
 namespace DocumentsAPI.Controllers;
 
@@ -107,7 +108,7 @@ public class PhotosController : BaseApiController
     }
 
     [HttpPost("users/avatar")]
-    [HasPermission(Permissions.Accounts.Manage)]
+    [HasPermission(Permissions.Photos.Manage)]
     [Produces<PhotoCreatedResponse>]
     public async Task<IActionResult> UploadProfilePhoto(
         IFormFile file,
@@ -156,7 +157,7 @@ public class PhotosController : BaseApiController
     }
     
     [HttpPost("offices/{officeId}/avatar/confirm")]
-    [HasPermission(Permissions.Accounts.Manage)]
+    [Authorize(Policy = RolePolicy.IdentityServer)]
     public async Task<IActionResult> ConfirmProfilePhoto(
         string officeId,
         [FromQuery] Guid photoId,

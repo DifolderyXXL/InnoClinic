@@ -22,26 +22,26 @@ public class GetScheduleByDoctorEndpoint : IEndpoint
         {
             var id = Guid.Parse(user.Id);
             var date = DateOnly.FromDateTime(DateTime.UtcNow);
-            
+
             var result = await handler.Handle(new(date, id), ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Doctor);
+        }).HasPermissions(Permissions.Schedules.ReadOwn);
 
-        builder.MapGet("schedules/me", async(
+        builder.MapGet("schedules/me", async (
             [FromQuery] DateOnly date,
             IQueryHandler<GetScheduleQuery, GetScheduleResponse> handler,
             UserClaimInfo user,
             CancellationToken ct) =>
         {
             var id = Guid.Parse(user.Id);
-            
+
             var result = await handler.Handle(new(date, id), ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Doctor);
-        
-        builder.MapGet("schedules/{id:guid}", async(
+        }).HasPermissions(Permissions.Schedules.ReadOwn);
+
+        builder.MapGet("schedules/{id:guid}", async (
             [FromRoute] Guid id,
             [FromQuery] DateOnly date,
             IQueryHandler<GetScheduleQuery, GetScheduleResponse> handler,
@@ -50,10 +50,9 @@ public class GetScheduleByDoctorEndpoint : IEndpoint
             var result = await handler.Handle(new(date, id), ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Receptionist);
-        
-                
-        builder.MapGet("schedules/today/{id:guid}", async(
+        }).HasPermissions(Permissions.Schedules.Read);
+
+        builder.MapGet("schedules/today/{id:guid}", async (
             [FromRoute] Guid id,
             IQueryHandler<GetScheduleQuery, GetScheduleResponse> handler,
             CancellationToken ct) =>
@@ -62,7 +61,7 @@ public class GetScheduleByDoctorEndpoint : IEndpoint
             var result = await handler.Handle(new(date, id), ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Receptionist);
+        }).HasPermissions(Permissions.Schedules.Read);
     }
 }
 
@@ -79,13 +78,13 @@ public class GetScheduleQueryHandler(ServicesDbContext context, IOptions<Schedul
 
         if (query.DoctorId != null)
         {
-            reservation = reservation.Where(x=>x.DoctorId == query.DoctorId);
+            reservation = reservation.Where(x => x.DoctorId == query.DoctorId);
         }
 
         var slots = await reservation
-            .Where(x=>x.IsConfirmed)
-            .OrderBy(x=>x.StartSlotIndex)
-            .Select(x=>new{ x.AppointmentId, x.StartSlotIndex, x.SlotCount})
+            .Where(x => x.IsConfirmed)
+            .OrderBy(x => x.StartSlotIndex)
+            .Select(x => new { x.AppointmentId, x.StartSlotIndex, x.SlotCount })
             .ToListAsync(ct);
 
         var timespans = slots.Select(x =>

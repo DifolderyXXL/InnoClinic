@@ -22,6 +22,6 @@ public class Endpoint : IEndpoint
             var result = await handler.Handle(new(id, request.IsActive), ct);
 
             return result.MapToTypedResult(() => TypedResults.Ok());
-        }).RequireAuthorization(RolePolicy.Receptionist);
+        }).HasPermissions(Permissions.Offices.Manage);
     }
 }

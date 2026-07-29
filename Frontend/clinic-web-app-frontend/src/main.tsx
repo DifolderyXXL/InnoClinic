@@ -25,7 +25,11 @@ createRoot(document.getElementById("root")!).render(
           <Route element={<Layout />}>
             <Route path="/" element={<App />} />
             <Route path="/debug" element={<DebugPage />} />
-            <Route path="/login" element={<LoginPage/>} />
+            
+            <Route path="/login-patient" element={<LoginPage role="client"/>} />
+            <Route path="/login-doctor" element={<LoginPage role="doctor"/>} />
+            <Route path="/login-receptionist" element={<LoginPage role="receptionist"/>} />
+            
             <Route path="/profile" element={<ProfilePage/>} />
             
             <Route path="/doctors" element={<DoctorsPage/>} />

@@ -7,7 +7,7 @@ import {Link} from "react-router-dom";
 const pageSize: number = 50;
 export function ClientAppointments(){
     const [appointments, setAppointments] = useState<AppointmentDto[]>([])
-    const [totalPages, setTotalPages] = useState<number>(0)
+    const [totalPages, setTotalPages] = useState<number>(1)
     
     const load = async (page: number) =>{
         appointmentsApi.getMyClientAppointments(undefined, page, pageSize)
@@ -37,7 +37,7 @@ export function ClientAppointments(){
             <div className="appointments-list-container">
                 {appointmentViews}
             </div>
-            <PageSelector total={totalPages} pageSize={pageSize} onPageChange={x=>load(x)}/>
+            <PageSelector total={totalPages??1} pageSize={pageSize} onPageChange={x=>load(x)}/>
         </div>
     );
 }

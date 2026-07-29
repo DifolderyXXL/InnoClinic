@@ -5,6 +5,8 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using Deunde.IdentityServer.Extensions;
+using Deunde.IdentityServer.Services;
+using Duende.IdentityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +20,7 @@ namespace Deunde.IdentityServer.Pages.Account.Register;
 public class Index : PageModel
 {
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly IUserCreateManager _userCreateManager;
     private readonly IIdentityServerInteractionService _interaction;
     private readonly IEventService _events;
     private readonly IAuthenticationSchemeProvider _schemeProvider;
@@ -33,13 +36,15 @@ public class Index : PageModel
         IAuthenticationSchemeProvider schemeProvider,
         IIdentityProviderStore identityProviderStore,
         IEventService events,
-        UserManager<IdentityUser> userManager)
+        UserManager<IdentityUser> userManager,
+        IUserCreateManager userCreateManager)
     {
         _interaction = interaction;
         _schemeProvider = schemeProvider;
         _identityProviderStore = identityProviderStore;
         _events = events;
         _userManager = userManager;
+        _userCreateManager = userCreateManager;
     }
 
     public async Task<IActionResult> OnGet(string? returnUrl)
@@ -90,14 +95,11 @@ public class Index : PageModel
 
             bool isEmailVerificationRequired = _userManager.Options.SignIn.RequireConfirmedEmail;
             bool defaultEmailConfirmed = !isEmailVerificationRequired;
-            var newUser = new IdentityUser
-            {
-                UserName = Input.Email,
-                Email = Input.Email,
-                EmailConfirmed = defaultEmailConfirmed
-            };
-
-            var result = await _userManager.CreateAsync(newUser, Input.Password!);
+            var (newUser, result) = await _userCreateManager.CreateInternal(
+                Input.Email!, 
+                Input.Password!, 
+                [UserCreateManager.ClientRole]
+            );
 
             if (result.Succeeded)
             {
@@ -110,10 +112,16 @@ public class Index : PageModel
                     props.IsPersistent = true;
                     props.ExpiresUtc = DateTimeOffset.UtcNow.Add(LoginOptions.RememberMeLoginDuration);
                 }
+                
+                var additionalClaims = new List<Claim>
+                {
+                    new(JwtClaimTypes.Role, UserCreateManager.ClientRole)
+                };
 
                 var isuser = new IdentityServerUser(newUser.Id)
                 {
-                    DisplayName = newUser.UserName
+                    DisplayName = newUser.UserName,
+                    AdditionalClaims = additionalClaims
                 };
 
                 await HttpContext.SignInAsync(isuser, props);

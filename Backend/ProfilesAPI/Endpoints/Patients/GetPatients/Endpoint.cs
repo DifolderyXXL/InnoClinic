@@ -16,6 +16,6 @@ public class Endpoint : IPatientEndpoint
             var result = await handler.Handle(query, ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.DoctorOrReceptionist);
+        }).HasPermissions(Permissions.Patients.Read);
     }
 }

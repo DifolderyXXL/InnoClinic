@@ -43,7 +43,7 @@ builder.Services.AddAuthentication(options =>
     {
         options.Cookie.Name = "bff-local-session";
         options.Cookie.Path = "/";
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     })
     .AddOpenIdConnect("oidc", options =>
@@ -69,6 +69,21 @@ builder.Services.AddAuthentication(options =>
         {
             NameClaimType = "name",
             RoleClaimType = "role"
+        };
+        
+        options.Events.OnRedirectToIdentityProvider = context =>
+        {
+            if (context.Request.Query.TryGetValue("acr_values", out var acrValues))
+            {
+                context.ProtocolMessage.AcrValues = acrValues;
+            }
+
+            if (context.Request.Query.TryGetValue("prompt", out var prompt))
+            {
+                context.ProtocolMessage.Prompt = prompt;
+            }
+            
+            return Task.CompletedTask;
         };
     });
 

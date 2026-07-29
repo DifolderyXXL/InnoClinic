@@ -1,3 +1,4 @@
+using Duende.IdentityModel;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 
@@ -15,6 +16,7 @@ public static class Config
             new IdentityResources.OpenId(),
             new IdentityResources.Profile(),
             new IdentityResources.Email(),
+            new IdentityResource("role", "User role", new[] { JwtClaimTypes.Role })
         ];
 
     public static IEnumerable<ApiScope> ApiScopes => [
@@ -30,7 +32,7 @@ public static class Config
         new ApiResource("api")
         {
             Scopes = { "api" },
-            UserClaims = { "email", "role" }
+            UserClaims = { "email", "role", JwtClaimTypes.Role }
         }
     ];
 
@@ -45,7 +47,7 @@ public static class Config
             UpdateAccessTokenClaimsOnRefresh = true,
             RedirectUris = { "https://localhost:5001/signin-oidc" },
             PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
-            AllowedScopes = { "openid", "profile", "email", "api", "offline_access" },
+            AllowedScopes = { "openid", "profile", "email", "api", "offline_access", "role" },
             
             RefreshTokenExpiration = TokenExpiration.Absolute,
             AbsoluteRefreshTokenLifetime = 2592000,
@@ -73,7 +75,7 @@ public static class Config
             AllowOfflineAccess = true,
             AlwaysIncludeUserClaimsInIdToken = true,
             UpdateAccessTokenClaimsOnRefresh = true,
-            AllowedScopes = { "openid", "profile", "email", "api", "offline_access" }
+            AllowedScopes = { "openid", "profile", "email", "api", "offline_access", "role" }
         },
         new Client
         {

@@ -16,6 +16,6 @@ public class DeleteCategoryEndpoint : IEndpoint
             var result = await handler.Handle(new DeleteCategoryCommand(id), ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Receptionist).WithTags(EndpointTags.Categories);
+        }).HasPermissions(Permissions.Services.Manage).WithTags(EndpointTags.Categories);
     }
 }

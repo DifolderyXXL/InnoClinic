@@ -6,6 +6,8 @@ using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using Duende.IdentityServer.Test;
 using Deunde.IdentityServer.Extensions;
+using Deunde.IdentityServer.Services;
+using Duende.IdentityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +22,7 @@ public class Index : PageModel
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly IRoleResolver _roleResolver;
     private readonly IIdentityServerInteractionService _interaction;
     private readonly IEventService _events;
     private readonly IAuthenticationSchemeProvider _schemeProvider;
@@ -36,7 +39,8 @@ public class Index : PageModel
         IIdentityProviderStore identityProviderStore,
         IEventService events,
         UserManager<IdentityUser> userManager,
-        SignInManager<IdentityUser> signInManager
+        SignInManager<IdentityUser> signInManager,
+        IRoleResolver roleResolver
         )
     {
         _interaction = interaction;
@@ -45,6 +49,7 @@ public class Index : PageModel
         _events = events;
         _userManager = userManager;
         _signInManager = signInManager;
+        _roleResolver = roleResolver;
     }
 
     public async Task<IActionResult> OnGet(string? returnUrl)
@@ -113,10 +118,13 @@ public class Index : PageModel
                     props.IsPersistent = true;
                     props.ExpiresUtc = DateTimeOffset.UtcNow.Add(LoginOptions.RememberMeLoginDuration);
                 }
-
+                
+                var roleClaim = await _roleResolver.ResolveUserRoleClaimAsync(user, context?.AcrValues);
+                
                 var isuser = new IdentityServerUser(user.Id)
                 {
                     DisplayName = user.UserName,
+                    AdditionalClaims = [roleClaim]
                 };
 
                 await HttpContext.SignInAsync(isuser, props);

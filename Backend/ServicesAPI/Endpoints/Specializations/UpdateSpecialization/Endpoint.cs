@@ -17,6 +17,6 @@ public class UpdateSpecializationEndpoint : IEndpoint
             var result = await handler.Handle(request with { Id = id }, ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Receptionist).WithTags(EndpointTags.Specialization);
+        }).HasPermissions(Permissions.Specializations.Manage).WithTags(EndpointTags.Specialization);
     }
 }

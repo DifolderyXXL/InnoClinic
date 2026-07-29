@@ -4,9 +4,11 @@ using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Infrastructure.Photos;
 using FluentValidation;
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.Extensions.Endpoints;
 using MicroserviceApiKernel.SharedControllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
 
 namespace DocumentsAPI.Controllers;
 
@@ -15,7 +17,7 @@ public static class CacheHelper
     private const int FromHours = 60 * 60;
     public const int PublicCacheTime = 6 * FromHours;
     public const int PublicRestCacheTime = 5 * FromHours;
-    
+
     public const int SensitiveCacheTime = 3 * FromHours;
     public const int SensitiveRestCacheTime = 2 * FromHours;
 }
@@ -38,7 +40,7 @@ public class PhotosController : BaseApiController
 
         return Ok(new { url = client.Uri.ToString() });
     }
-    
+
     [HttpGet("doctors/{doctorId:guid}/avatar/{photoId:guid}")]
     [AllowAnonymous]
     [ResponseCache(Duration = CacheHelper.PublicRestCacheTime, Location = ResponseCacheLocation.Any)]
@@ -64,12 +66,12 @@ public class PhotosController : BaseApiController
         sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
 
         var sasUri = client.GenerateSasUri(sasBuilder);
-        
-        return Ok(new { url = sasUri.ToString(), expireTimeMillis = expireTime.TotalMilliseconds});
+
+        return Ok(new { url = sasUri.ToString(), expireTimeMillis = expireTime.TotalMilliseconds });
     }
-    
+
     [HttpGet("users/avatar/{photoId:guid}")]
-    [Authorize(Policy = RolePolicy.Client)]
+    [HasPermission(Permissions.Accounts.ReadOwn)]
     [ResponseCache(Duration = CacheHelper.SensitiveRestCacheTime, Location = ResponseCacheLocation.Client)]
     public async Task<IActionResult> GetProfilePhoto(
         [FromRoute] Guid photoId,
@@ -78,7 +80,7 @@ public class PhotosController : BaseApiController
     {
         var user = await GetUserClaim();
         if (user == null || !Guid.TryParse(user.Id, out var guid)) return Unauthorized();
-        
+
         var client = context.Repository.GetPhotoClient(guid.ToString(), photoId);
 
         if (!await client.ExistsAsync(ct)) return NotFound();
@@ -93,20 +95,20 @@ public class PhotosController : BaseApiController
         sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
 
         var sasUri = client.GenerateSasUri(sasBuilder);
-        
+
         return Ok(new { url = sasUri.ToString() });
     }
-    
+
     private async Task<bool> IsPhotoPublic(BlobClient blobClient, CancellationToken ct)
     {
         var tagsResponse = await blobClient.GetTagsAsync(cancellationToken: ct);
         var tags = tagsResponse.Value.Tags;
-        
+
         return tags.TryGetValue("public", out var value) && value.Equals("true", StringComparison.OrdinalIgnoreCase);
     }
-    
+
     [HttpPost("users/avatar")]
-    [Authorize(Policy = RolePolicy.Client)]
+    [HasPermission(Permissions.Photos.Manage)]
     [Produces<PhotoCreatedResponse>]
     public async Task<IActionResult> UploadProfilePhoto(
         IFormFile file,
@@ -131,9 +133,9 @@ public class PhotosController : BaseApiController
         
         return Ok(new PhotoCreatedResponse(guid));
     }
-    
+
     [HttpPost("offices/{officeId}/avatar")]
-    [Authorize(Policy = RolePolicy.Receptionist)]
+    [HasPermission(Permissions.Offices.Manage)]
     [Produces<PhotoCreatedResponse>]
     public async Task<IActionResult> UploadOfficePhoto(
         IFormFile file,

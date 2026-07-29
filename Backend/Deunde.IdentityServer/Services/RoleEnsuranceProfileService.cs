@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using Duende.IdentityModel;
@@ -28,8 +29,15 @@ public class RoleEnsuranceProfileService(
                 context.IssuedClaims.Add(new Claim(JwtClaimTypes.EmailVerified, user.EmailConfirmed ? "true" : "false"));
             }
 
-            var roles = await userManager.GetRolesAsync(user);
-            context.IssuedClaims.AddRange(roles.Select(x => new Claim(JwtClaimTypes.Role, x)));
+            var selectedRoleClaim = context.Subject.Claims.FirstOrDefault(c => 
+                c.Type == JwtClaimTypes.Role || 
+                c.Type == ClaimTypes.Role || 
+                c.Type == "role");
+
+            if (selectedRoleClaim != null)
+            {
+                context.IssuedClaims.Add(new Claim(JwtClaimTypes.Role, selectedRoleClaim.Value));
+            }
         }
     }
 

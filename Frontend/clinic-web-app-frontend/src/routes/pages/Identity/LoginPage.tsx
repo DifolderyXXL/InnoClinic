@@ -1,16 +1,21 @@
 import {useEffect} from "react";
-import {loginUrl} from "../../../services/bffEndpoints.tsx";
 
+export const getLoginUrl = (role?: string) => {
+    const baseUrl = "/bff/login";
+    return role ? `${baseUrl}?prompt=login&acr_values=role:${role}` : baseUrl;
+};
 
-export function LoginPage() {
+interface LoginPageProps {
+    role?: string; 
+}
+export function LoginPage({ role }: LoginPageProps) {
     useEffect(() => {
-        window.location.assign(loginUrl);
-    }, []);
+        window.location.assign(getLoginUrl(role));
+    }, [role]);
 
     return (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-            <p>Redirecting</p>
+            <p>Redirecting...</p>
         </div>
     );
 }
-

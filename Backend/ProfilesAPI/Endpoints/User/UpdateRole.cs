@@ -1,36 +1,54 @@
 using MicroserviceApiKernel;
+using MicroserviceApiKernel.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ProfilesAPI.Endpoints.User;
 
 public class UpdateRole : IEndpoint
 {
-    public record Request(string UserId, string Role);
-    
+    public record Request(string UserId, string Role, string Action);
+
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapPut("/accounts/role", async ([FromBody] Request request, IHttpClientFactory factory, CancellationToken ct) =>
-        {
-            var context = factory.CreateClient("identityclient");
-            HttpResponseMessage? response = request.Role switch
             {
-                "Patient" => await SendUpdateRole(context, request.UserId, "client"),
-                "Doctor" => await SendUpdateRole(context, request.UserId, "client", "doctor"),
-                "Receptionist" => await SendUpdateRole(context, request.UserId, "client", "doctor", "receptionist"),
-                _ => null
-            };
-            if (response == null)
-                return Results.BadRequest();
+                var targetRole = request.Role switch
+                {
+                    "Doctor" => "doctor",
+                    "Receptionist" => "receptionist",
+                    _ => null
+                };
 
-            return response.IsSuccessStatusCode ? Results.Ok() : Results.BadRequest();
-        })
-        .RequireAuthorization(RolePolicy.Receptionist)
-        .WithDescription("Updates role for user."); ;
-    }
+                if (targetRole == null)
+                {
+                    return Results.BadRequest(new { error = "Invalid role" });
+                }
 
-    private async Task<HttpResponseMessage> SendUpdateRole(HttpClient context, string userId, params string[] roles)
-    {
-        var response = await context.PutAsJsonAsync("api/v1/role", new { UserId = userId, Roles = roles });
-        return response;
+                var client = factory.CreateClient("identityclient");
+                HttpResponseMessage response;
+
+                var payload = new { UserId = request.UserId, Role = targetRole };
+
+                if (request.Action.Equals("add", StringComparison.OrdinalIgnoreCase))
+                {
+                    response = await client.PostAsJsonAsync("role", payload, ct);
+                }
+                else if (request.Action.Equals("remove", StringComparison.OrdinalIgnoreCase))
+                {
+                    var httpRequest = new HttpRequestMessage(HttpMethod.Delete, "role")
+                    {
+                        Content = JsonContent.Create(payload)
+                    };
+                    response = await client.SendAsync(httpRequest, ct);
+                }
+                else
+                {
+                    return Results.BadRequest(new { error = "Invalid action" });
+                }
+
+                return response.IsSuccessStatusCode ? Results.Ok() : Results.BadRequest();
+            })
+            .HasPermissions(Permissions.Accounts.Manage)
+            .WithDescription("Updates role for user."); ;
     }
 }

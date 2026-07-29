@@ -16,6 +16,6 @@ public class DeleteSpecializationEndpoint : IEndpoint
             var result = await handler.Handle(new DeleteSpecializationCommand(id), ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Receptionist).WithTags(EndpointTags.Specialization);
+        }).HasPermissions(Permissions.Specializations.Manage).WithTags(EndpointTags.Specialization);
     }
 }

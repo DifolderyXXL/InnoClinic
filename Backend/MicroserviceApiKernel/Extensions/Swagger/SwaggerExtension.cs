@@ -1,12 +1,16 @@
 using System;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace MicroserviceApiKernel.Extensions;
@@ -40,6 +44,8 @@ public static class SwaggerExtension
                 return Task.CompletedTask;
             });
 
+            options.AddOperationTransformer<OpenApiRolesOperationTransformer>();
+
             configureOptions?.Invoke(options);
         });
     }
@@ -48,10 +54,10 @@ public static class SwaggerExtension
         builder.Services.AddSwaggerGen(options =>
         {
             options.CustomSchemaIds(i => i.FullName?.Replace('+', '_'));
-
+            
             options.AddSecurityDefinition("oauth2", SecuritySchemeHelper.GetOauth2SecurityScheme());
             options.AddSecurityRequirement(SecuritySchemeHelper.GetOauth2SecurityRequirement);
-
+            
             setupAction?.Invoke(options);
         });
     }
@@ -70,5 +76,60 @@ public static class SwaggerExtension
 
             setupOptions?.Invoke(options);
         });
+    }
+}public class OpenApiRolesOperationTransformer : IOpenApiOperationTransformer
+{
+    public Task TransformAsync(
+        OpenApiOperation operation, 
+        OpenApiOperationTransformerContext context, 
+        CancellationToken cancellationToken)
+    {
+        var authorizeData = context.Description.ActionDescriptor.EndpointMetadata
+            .OfType<IAuthorizeData>()
+            .ToList();
+
+        if (authorizeData.Count == 0) return Task.CompletedTask;
+
+        var policies = authorizeData
+            .Select(a => a.Policy)
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Distinct()
+            .ToList();
+
+        var roles = authorizeData
+            .Select(a => a.Roles)
+            .Where(r => !string.IsNullOrWhiteSpace(r))
+            .SelectMany(r => r!.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+            .Distinct()
+            .ToList();
+
+        operation.Extensions ??= new Dictionary<string, IOpenApiExtension>();
+        if (policies.Count > 0)
+        {
+            operation.Extensions["x-policies"] = new JsonOpenApiExtension(policies);
+        }
+
+        if (roles.Count > 0)
+        {
+            operation.Extensions["x-roles"] = new JsonOpenApiExtension(roles);
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+public class JsonOpenApiExtension : IOpenApiExtension
+{
+    private readonly object _data;
+
+    public JsonOpenApiExtension(object data)
+    {
+        _data = data;
+    }
+
+    public void Write(IOpenApiWriter writer, OpenApiSpecVersion specVersion)
+    {
+        var json = JsonSerializer.Serialize(_data);
+        writer.WriteRaw(json);
     }
 }

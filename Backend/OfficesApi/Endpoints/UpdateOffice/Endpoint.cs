@@ -23,6 +23,6 @@ public class Endpoint : IEndpoint
             ), ct);
 
             return result.MapToTypedResult(() => TypedResults.Ok());
-        }).RequireAuthorization(RolePolicy.Receptionist);
+        }).HasPermissions(Permissions.Offices.Manage);
     }
 }

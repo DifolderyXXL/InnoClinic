@@ -23,7 +23,7 @@ public class Endpoint : IEndpoint
 
             return result.MapToTypedResult(x => TypedResults.Ok(new Response(x.Account, x.Patient, x.Doctor, x.Receptionist)));
         })
-        .RequireAuthorization(RolePolicy.Client)
+        .HasPermissions(Permissions.Accounts.ReadOwn)
         .WithDescription("Provides user all available profiles.")
         .Produces<Response>(StatusCodes.Status200OK);
     }

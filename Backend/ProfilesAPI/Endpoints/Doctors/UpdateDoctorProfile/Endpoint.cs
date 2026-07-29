@@ -19,9 +19,9 @@ public class UpdateDoctorProfileEndpoint : IDoctorEndpoint
             CancellationToken ct) =>
         {
             var result = await handler.Handle(request with { Id = id }, ct);
-            
+
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Receptionist);
+        }).HasPermissions(Permissions.Doctors.Manage);
 
         builder.MapPut("/doctors/me", async (
             UpdateDoctorProfileCommand request,
@@ -45,6 +45,6 @@ public class UpdateDoctorProfileEndpoint : IDoctorEndpoint
             var result = await handler.Handle(request with { Id = doctorId }, ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Doctor);
+        }).HasPermissions(Permissions.Doctors.Read);
     }
 }

@@ -17,6 +17,6 @@ public class CreateCategoryEndpoint : IEndpoint
             var result = await handler.Handle(request, ct);
 
             return result.MapToTypedResult(TypedResults.Created);
-        }).RequireAuthorization(RolePolicy.Receptionist).WithTags(EndpointTags.Categories);
+        }).HasPermissions(Permissions.Services.Manage).WithTags(EndpointTags.Categories);
     }
 }

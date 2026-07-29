@@ -22,10 +22,10 @@ public class CreateDoctorEndpoint : IDoctorEndpoint
             ICommandHandler<CreateDoctorCommand> handler,
             CancellationToken ct) =>
         {
-            var result = await handler.Handle(command with {AccountId = id}, ct);
+            var result = await handler.Handle(command with { AccountId = id }, ct);
 
             return result.MapToTypedResult(TypedResults.Created);
-        }).RequireAuthorization(RolePolicy.Receptionist);
+        }).HasPermissions(Permissions.Doctors.Manage);
     }
 }
 
@@ -44,17 +44,17 @@ public class CreateDoctorCommandHandler(ProfilesDbContext context) : ICommandHan
         var account = await context.Accounts
             .Include(account => account.Doctor)
             .FirstOrDefaultAsync(x => x.Id == command.AccountId, ct);
-        
+
         if (account == null) return AccountErrors.NotFound();
 
         if (account.Doctor != null) return DoctorErrors.AlreadyExists();
-        
+
         var specialization = await context.Specializations.FindAsync([command.SpecializationId], ct);
         if (specialization == null)
         {
             return SpecializationErrors.SpecializationNotFound();
         }
-        
+
         await context.Doctors.AddAsync(new()
         {
             AccountId = account.Id,

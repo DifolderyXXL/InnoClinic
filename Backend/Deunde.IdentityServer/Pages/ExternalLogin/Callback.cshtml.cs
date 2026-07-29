@@ -23,6 +23,7 @@ public class Callback : PageModel
     private readonly IUserCreateManager _userCreateManager;
 
     private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly IRoleResolver _roleResolver;
     private readonly IIdentityServerInteractionService _interaction;
     private readonly ILogger<Callback> _logger;
     private readonly IEventService _events;
@@ -33,7 +34,8 @@ public class Callback : PageModel
         ILogger<Callback> logger,
         UserManager<IdentityUser> userManager,
         IUserCreateManager userCreateManager,
-        SignInManager<IdentityUser> signInManager)
+        SignInManager<IdentityUser> signInManager,
+        IRoleResolver roleResolver)
     {
         _interaction = interaction;
         _logger = logger;
@@ -42,6 +44,7 @@ public class Callback : PageModel
         _userCreateManager = userCreateManager;
 
         _signInManager = signInManager;
+        _roleResolver = roleResolver;
     }
 
     public async Task<IActionResult> OnGet()
@@ -117,13 +120,20 @@ public class Callback : PageModel
         var localSignInProps = new AuthenticationProperties();
         CaptureExternalLoginContext(result, additionalLocalClaims, localSignInProps);
 
+        // retrieve return URL
+        var returnUrl = result.Properties.Items["returnUrl"] ?? "~/";
+        var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
+        
+        var requestedRole = context?.AcrValues.FirstOrDefault();
+        var roleClaim = await _roleResolver.ResolveUserRoleClaimAsync(user, requestedRole == null ? [] : [requestedRole]);
+        
         // issue authentication cookie for user
-        var additionalClaims = new List<Claim>();
+
         var isuser = new IdentityServerUser(user.Id)
         {
             DisplayName = user.UserName,
             IdentityProvider = provider,
-            AdditionalClaims = additionalClaims
+            AdditionalClaims = [roleClaim]
         };
 
 
@@ -132,11 +142,9 @@ public class Callback : PageModel
         // delete temporary cookie used during external authentication
         await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
 
-        // retrieve return URL
-        var returnUrl = result.Properties.Items["returnUrl"] ?? "~/";
+
 
         // check if external login is in the context of an OIDC request
-        var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
         await _events.RaiseAsync(new UserLoginSuccessEvent(provider, providerKey, user.Id, user.UserName, true, context?.Client.ClientId));
         Telemetry.Metrics.UserLogin(context?.Client.ClientId, provider!);
 

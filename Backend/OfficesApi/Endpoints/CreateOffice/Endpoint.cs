@@ -20,7 +20,7 @@ public class Endpoint : IEndpoint
                 new(request.PhotoId, request.City, request.Street, request.HouseNumber, request.OfficeNumber, request.RegistryPhoneNumber, request.IsActive), ct);
 
             return result.MapToTypedResult(TypedResults.Created);
-        }).RequireAuthorization(RolePolicy.Receptionist);
+        }).HasPermissions(Permissions.Offices.Manage);
     }
 }
 

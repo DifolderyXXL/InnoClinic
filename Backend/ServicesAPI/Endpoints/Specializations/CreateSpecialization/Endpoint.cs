@@ -17,6 +17,6 @@ public class CreateSpecializationEndpoint : IEndpoint
             var result = await handler.Handle(request, ct);
 
             return result.MapToTypedResult(TypedResults.Created);
-        }).RequireAuthorization(RolePolicy.Receptionist).WithTags(EndpointTags.Specialization);
+        }).HasPermissions(Permissions.Specializations.Manage).WithTags(EndpointTags.Specialization);
     }
 }

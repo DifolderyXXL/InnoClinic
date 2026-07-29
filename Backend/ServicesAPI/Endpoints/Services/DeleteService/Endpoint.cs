@@ -16,6 +16,6 @@ public class DeleteServiceEndpoint : IEndpoint
             var result = await handler.Handle(new DeleteServiceCommand(id), ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization(RolePolicy.Receptionist).WithTags(EndpointTags.Services);
+        }).HasPermissions(Permissions.Services.Manage).WithTags(EndpointTags.Services);
     }
 }

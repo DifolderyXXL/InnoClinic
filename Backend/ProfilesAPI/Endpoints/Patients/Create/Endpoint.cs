@@ -25,7 +25,7 @@ public class CreatePatientEndpoint : IPatientEndpoint
             var guid = Guid.Parse(user.Id);
             var result = await handler.Handle(new(guid, request.DateOfBirth), ct);
             return result.MapToTypedResult(TypedResults.Created);
-        }).RequireAuthorization(RolePolicy.Client);
+        }).HasPermissions(Permissions.Patients.Manage);
     }
 }
 
@@ -34,11 +34,11 @@ public record CreatePatientCommand(Guid Id, DateOnly DateOfBirth) : ICommand;
 public class CreatePatientCommandHandler(ProfilesDbContext context) : ICommandHandler<CreatePatientCommand>
 {
     public async Task<Result> Handle(CreatePatientCommand command, CancellationToken ct)
-    {  
+    {
         var account = await context.Accounts
             .Include(account => account.Patient)
             .FirstOrDefaultAsync(x => x.Id == command.Id, ct);
-        
+
         if (account == null) return AccountErrors.NotFound();
 
         if (account.Patient != null) return PatientErrors.AlreadyExists();

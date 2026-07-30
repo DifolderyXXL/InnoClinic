@@ -65,6 +65,10 @@ export class ProfilesApi extends BaseApiClient {
         return this.get("api/v1/patients", { Page: page, PageSize: pageSize });
     }
 
+    public async getPatient(id: string): Promise<Result> {
+        return this.get(`api/v1/patients/${id}`);
+    }
+
     public async getDoctors(params?: {
         status?: string;
         officeIds?: string[];

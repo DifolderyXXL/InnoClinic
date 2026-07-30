@@ -132,11 +132,17 @@ public class AppointmentsController(
     [HasPermission(Permissions.Appointments.Read)]
     public async Task<IActionResult> GetAppointments(
         [FromQuery] AppointmentState? state,
+        [FromQuery] Guid? patientId,
         [FromQuery] PaginationParameters pagination,
         CancellationToken ct = default)
     {
         var query = context.Appointments.AsNoTracking();
 
+        if (patientId.HasValue)
+        {
+            query = query.Where(x => x.PatientAccountId == patientId.Value);
+        }
+        
         if (state != null)
         {
             query = query.Where(x => x.State == state);
@@ -146,17 +152,7 @@ public class AppointmentsController(
         var items = await query
             .OrderBy(x => x.Id)
             .Pagination(pagination)
-            .Select(a => new AppointmentDto
-            {
-                Id = a.Id,
-                PatientAccountId = a.PatientAccountId,
-                DoctorAccountId = a.DoctorAccountId,
-                Date = a.Date,
-                StartSlotIndex = a.StartSlotIndex,
-                ServiceId = a.ServiceId,
-                State = a.State.ToString(),
-                ReservationId = a.ReservationId
-            })
+            .Select(AppointmentDtoHelper.ProjectToDto)
             .ToListAsync(ct);
 
         return Ok(new { Items = items, Total = total, Page = pagination.Page, PageSize = pagination.PageSize });
@@ -257,6 +253,34 @@ public class AppointmentsController(
         return Ok(item);
     }
 
+    [HttpGet("{id:guid}/me/doctor")]
+    [HasPermission(Permissions.Appointments.ReadOwn)]
+    [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetDoctorAppointments(
+        [FromRoute] Guid id,
+        CancellationToken ct = default)
+    {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var clientId))
+        {
+            return Unauthorized();
+        }
+        
+        var query = context.Appointments.AsNoTracking();
+        
+        var item = await query
+            .Where(x => x.Id == id && x.DoctorAccountId == clientId)
+            .Select(AppointmentDtoHelper.ProjectToDto)
+            .FirstOrDefaultAsync(ct);
+        
+        if (item == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(item);
+    }
 }
 
 

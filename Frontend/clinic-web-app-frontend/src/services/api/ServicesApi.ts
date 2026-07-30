@@ -165,22 +165,7 @@ export class ServicesApi extends BaseApiClient {
         return this.delete(`api/v1/categories/${id}`);
     }
 
-    // --------------------- Schedules ---------------------
-    public async getScheduleTodayMe(): Promise<Result> {
-        return this.get("api/v1/schedules/today/me");
-    }
 
-    public async getScheduleMe(date: string): Promise<Result> {
-        return this.get("api/v1/schedules/me", { date });
-    }
-
-    public async getScheduleById(id: string, date: string): Promise<Result> {
-        return this.get(`api/v1/schedules/${id}`, { date });
-    }
-
-    public async getScheduleTodayById(id: string): Promise<Result> {
-        return this.get(`api/v1/schedules/today/${id}`);
-    }
 
     public async getAvailableDoctorSlots(doctorId: string, date: Date): Promise<Result> {
 

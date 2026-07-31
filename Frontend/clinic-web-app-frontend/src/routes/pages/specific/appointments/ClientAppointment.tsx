@@ -30,6 +30,6 @@ export function ClientAppointment(){
     }
 
     return(
-        <AppointmentCard appointment={appointment}/>
+        <AppointmentCard appointment={appointment} showResultLink={true}/>
     );
 }

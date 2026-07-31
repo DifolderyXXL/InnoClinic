@@ -1,0 +1,172 @@
+.medical-result-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #2b2b2b;
+    border-radius: 8px;
+    padding: 16px;
+    color: #fff;
+}
+
+.medical-result-header {
+    border-bottom: 1px solid #555;
+    padding-bottom: 8px;
+}
+
+.medical-result-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.medical-result-section {
+    background: #444;
+    padding: 10px 12px;
+    border-radius: 6px;
+}
+
+.section-title {
+    margin: 0 0 4px 0;
+    font-size: 0.95rem;
+    text-transform: capitalize;
+    color: #ddd;
+}
+
+.section-content {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #fff;
+}
+
+.medical-result-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 6px;
+}
+
+.download-btn {
+    background-color: #0066cc;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.download-btn:hover:not(:disabled) {
+    background-color: #0052a3;
+}
+
+.download-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #ff4d4d;
+    font-size: 0.85rem;
+    margin-top: 6px;
+}
+
+.edit-btn {
+    background-color: #d97706;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.edit-btn:hover:not(:disabled) {
+    background-color: #b45309;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.autofill-btn:hover:not(:disabled) {
+    background-color: #1b5e20;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.submit-btn {
+    background-color: #0066cc;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background-color: #0052a3;
+}
+
+.cancel-btn {
+    background-color: #555;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cancel-btn:hover:not(:disabled) {
+    background-color: #666;
+}
+
+.form-group,
+.medical-result-form fieldset > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label,
+.medical-result-form fieldset label {
+    font-size: 0.85rem;
+    color: #bbb;
+}
+
+.form-group input,
+.form-group textarea,
+.medical-result-form fieldset input,
+.medical-result-form fieldset textarea {
+    background-color: #222;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 8px 10px;
+    color: #fff;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.medical-result-form fieldset input:focus,
+.medical-result-form fieldset textarea:focus {
+    border-color: #0066cc;
+}
+
+.form-group textarea,
+.medical-result-form fieldset textarea {
+    resize: vertical;
+    min-height: 70px;
+}

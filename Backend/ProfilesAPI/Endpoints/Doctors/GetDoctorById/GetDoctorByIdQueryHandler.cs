@@ -4,6 +4,7 @@ using MicroserviceApiKernel.Results;
 using Microsoft.EntityFrameworkCore;
 using ProfilesAPI.Application;
 using ProfilesAPI.Data;
+using ProfilesAPI.Endpoints.Doctors.GetDoctors;
 
 namespace ProfilesAPI.Endpoints.Doctors.GetDoctorById;
 
@@ -17,7 +18,7 @@ public class GetDoctorByIdQueryHandler(ProfilesDbContext context, IPhotoUrlFacto
     {
         var result = await context.Doctors
             .Where(x => x.AccountId == query.Id)
-            .ProjectToType<DoctorDto>()
+            .ProjectToType<DoctorDto>(DoctorHelper.Config)
             .FirstOrDefaultAsync(cancellationToken: ct);
 
         if (result == null)

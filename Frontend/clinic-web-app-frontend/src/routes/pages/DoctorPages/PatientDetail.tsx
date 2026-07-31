@@ -54,7 +54,7 @@ export function DoctorScheduledAppointment() {
     <div>
       {appointment && (
         <>
-          <AppointmentCard appointment={appointment} />
+          <AppointmentCard appointment={appointment} showResultLink={true}/>
           <PatientCardById id={appointment.patientAccountId} />
         </>
       )}

@@ -1,13 +1,15 @@
-import type {AppointmentDto} from "../../../../services/api/AppointmentApi.ts";
+import {type AppointmentDto, appointmentsApi} from "../../../../services/api/AppointmentApi.ts";
 import "./AppointmentCard.css"
-import {TitledCard} from "../TitledCard.tsx";
+import {Link} from "react-router-dom";
+import {useEffect, useState} from "react";
 
-interface AppointmentCardProps{
-    appointment: AppointmentDto
+interface AppointmentCardProps {
+    appointment: AppointmentDto;
+    showResultLink?: boolean;
 }
-export function AppointmentCard({appointment}:AppointmentCardProps){
+export function AppointmentCard({appointment, showResultLink}:AppointmentCardProps){
     return (
-        <TitledCard>
+        <div>
             <div className="appointment-card">
                 <div className="appointment-header">
                     <span className="appointment-date">{appointment.date}</span>
@@ -32,8 +34,36 @@ export function AppointmentCard({appointment}:AppointmentCardProps){
                         </p>
                     </div>
                 </div>
+
+                {showResultLink && (
+                    <div className="appointment-actions">
+                        <Link to={`/medical-results/details?id=${appointment.id}&userId=${appointment.patientAccountId}`}>
+                            View medical result
+                        </Link>
+                    </div>
+                )}
             </div>
-        </TitledCard>
+        </div>
        
     );
 }
+
+interface AppointmentByIdCardProps{
+    appointmentId: string;
+    showResultLink: boolean;
+}
+export function MyDoctorAppointmentByIdCard({appointmentId, showResultLink}:AppointmentByIdCardProps){
+    const [appointment, setAppointment] = useState<AppointmentDto|null>(null);
+
+    useEffect(() => {
+        appointmentsApi.getMyDoctorAppointmentById(appointmentId)
+            .then(result =>{
+                if(result.type === "ok") setAppointment(result.value);
+            })
+    }, []);
+    
+    if(!appointment) return <></>
+    
+    return <AppointmentCard appointment={appointment} showResultLink={showResultLink}/>;
+}
+

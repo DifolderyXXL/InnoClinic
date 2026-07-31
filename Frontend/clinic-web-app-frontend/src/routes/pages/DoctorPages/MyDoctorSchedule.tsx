@@ -7,12 +7,15 @@ import {profilesApi} from "../../../services/api/ProfilesApi.ts";
 import {TitledCard} from "../common/TitledCard.tsx";
 import {PaginatedListView} from "../common/PaginatedListView.tsx";
 import {useUpdateUrlParams} from "../specific/doctors/DoctorsPage.tsx";
+import DatePicker from "react-datepicker";
+import {DateOnly, dateToDateOnly} from "../../../services/api/ServicesApi.ts";
 
 export function MyDoctorSchedule(){
-    const [searchParams] = useSearchParams();
+    const { searchParams, updateUrlParams } = useUpdateUrlParams();
     const [schedule, setSchedule] = useState<AppointmentDto[]>([])
 
     const targetDate = searchParams.get("date") || null;
+    const [date, setDate] = useState<Date | null>(DateOnly.parseToNative(targetDate));
     
     useEffect(() => {
         const promise = targetDate 
@@ -22,11 +25,17 @@ export function MyDoctorSchedule(){
         promise.then(x=>{
                 if(x.type === "ok") setSchedule(x.value);
             })
-    }, []);
+    }, [targetDate]);
     
     return (
         <div>
             <h3>Schedule</h3>
+            <DatePicker selected={date ?? new Date()} onChange={(x:Date | null)=>{
+                setDate(x);
+                if(x)  updateUrlParams({date: dateToDateOnly(x)});
+                
+                
+            }}/>
             <table>
                 <thead>
                 <tr>

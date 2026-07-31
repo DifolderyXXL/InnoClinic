@@ -204,6 +204,19 @@ export class DateOnly {
         return new DateOnly(`${yyyy}-${mm}-${dd}`);
     }
 
+    toNativeDate(): Date {
+        return new Date(`${this.value}T00:00:00`);
+    }
+    
+    static parseToNative(dateStr: string | null): Date | null {
+        if (!dateStr) return null;
+        try {
+            return DateOnly.fromString(dateStr).toNativeDate();
+        } catch {
+            return null;
+        }
+    }
+
     toString(): string {
         return this.value;
     }

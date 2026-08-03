@@ -36,6 +36,6 @@ public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsPr
 
     public async Task CancelReservation(long reservationId, CancellationToken ct)
     {
-        await store.TryRemove(reservationId, true, ct);
+        await store.TryRemove(reservationId, false, ct);
     }
 }

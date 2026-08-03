@@ -32,7 +32,7 @@ public class GetDoctorsQueryHandler(ProfilesDbContext context, IPhotoUrlFactory 
         doctorsQuery = ApplyFilters(doctorsQuery, query.Filters);
         
         var doctors = await doctorsQuery
-            .ProjectToType<DoctorDto>()
+            .ProjectToType<DoctorDto>(DoctorHelper.Config)
             .ToListAsync(ct);
 
         foreach (var doctor in doctors)

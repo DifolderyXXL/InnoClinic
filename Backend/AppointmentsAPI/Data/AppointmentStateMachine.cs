@@ -119,7 +119,10 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
             When(TimeWindowReserved)
                 .Then(context =>
                 {  
+                    var serviceProvider = context.GetPayload<IServiceProvider>();
+                    var logger = serviceProvider.GetRequiredService<ILogger<AppointmentStateMachine>>();
                     context.Saga.ReservationId = context.Message.ReservationId;
+                    logger.LogWarning("TimeWindowReserved: ReservationId set to {Id}", context.Saga.ReservationId);
                 })
                 .PublishStateChanged(Models.AppointmentState.PendingApproval)
                 .TransitionTo(WaitingForApproval)   

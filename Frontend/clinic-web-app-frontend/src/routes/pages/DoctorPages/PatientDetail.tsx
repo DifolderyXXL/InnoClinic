@@ -79,7 +79,7 @@ function PatientRecentAppointments({ id }: PatientRecentAppointmentsProps) {
     );
 
     if (result.type === "ok") {
-      return { items: result.value.items, total: result.value.total };
+      return { items: result.value.items, total: result.value.totalCount };
     }
 
     return {

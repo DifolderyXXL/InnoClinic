@@ -14,7 +14,6 @@ export function ClientAppointments(){
         appointmentsApi.getMyClientAppointments(undefined, page, pageSize)
             .then(result => {
                 if(result.type === "ok") {
-                    console.log(result.value)
                     setAppointments(result.value.items ?? []);
                     setTotalPages(result.value.totalCount)
                 }

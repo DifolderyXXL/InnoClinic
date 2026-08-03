@@ -136,26 +136,10 @@ public class AppointmentsController(
         [FromQuery] PaginationParameters pagination,
         CancellationToken ct = default)
     {
-        var query = context.Appointments.AsNoTracking();
-
-        if (patientId.HasValue)
-        {
-            query = query.Where(x => x.PatientAccountId == patientId.Value);
-        }
+        var items = await context.QueryAppointmentsAsync(pagination, ct, state, 
+            patientId: patientId);
         
-        if (state != null)
-        {
-            query = query.Where(x => x.State == state);
-        }
-
-        var total = await query.CountAsync(ct);
-        var items = await query
-            .OrderBy(x => x.Id)
-            .Pagination(pagination)
-            .Select(AppointmentDtoHelper.ProjectToDto)
-            .ToListAsync(ct);
-
-        return Ok(new { Items = items, Total = total, Page = pagination.Page, PageSize = pagination.PageSize });
+        return Ok(items);
     }
 
     [HttpGet("me/client")]
@@ -171,22 +155,9 @@ public class AppointmentsController(
         {
             return Unauthorized();
         }
-
-        var query = context.Appointments.AsNoTracking();
-
-        if (state != null)
-        {
-            query = query.Where(x => x.State == state);
-        }
-
-        var items = await query
-            .Where(x => x.PatientAccountId == clientId)
-            .OrderByDescending(x => x.Date)
-            .ThenBy(x => x.BeginTime)
-            .ToPagedResponseAsync(
-                pagination,
-                AppointmentDtoHelper.ProjectToDto,
-                ct);
+        
+        var items = await context.QueryAppointmentsAsync(pagination, ct, state, 
+            patientId: clientId);
 
         return Ok(items);
     }
@@ -206,20 +177,8 @@ public class AppointmentsController(
             return Unauthorized();
         }
 
-        var query = context.Appointments.AsNoTracking();
-
-        if (state != null)
-        {
-            query = query.Where(x => x.State == state);
-        }
-
-        var items = await query
-            .Where(x => x.DoctorAccountId == doctorId)
-            .OrderBy(x => x.Id)
-            .ToPagedResponseAsync(
-                pagination,
-                AppointmentDtoHelper.ProjectToDto,
-                ct);
+        var items = await context.QueryAppointmentsAsync(pagination, ct, state, 
+            doctorId:doctorId);
 
         return Ok(items);
     }
@@ -257,7 +216,7 @@ public class AppointmentsController(
     [HasPermission(Permissions.Appointments.ReadOwn)]
     [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetDoctorAppointments(
+    public async Task<IActionResult> GetDoctorAppointment(
         [FromRoute] Guid id,
         CancellationToken ct = default)
     {
@@ -283,4 +242,44 @@ public class AppointmentsController(
     }
 }
 
+public static class AppointmentExtensions
+{
+    public static IQueryable<Appointment> OrderAppointments(this IQueryable<Appointment> query)
+    {
+        return query.OrderByDescending(x => x.Date)
+            .ThenBy(x => x.BeginTime);
+    }
 
+    public static async Task<PagedResponse<AppointmentDto>> QueryAppointmentsAsync(
+        this AppointmentDbContext context,
+        PaginationParameters pagination,
+        CancellationToken ct,
+        AppointmentState? state = null, Guid? doctorId= null, Guid? patientId= null)
+    {
+        
+        var query = context.Appointments.AsNoTracking();
+
+        if (state != null)
+        {
+            query = query.Where(x => x.State == state);
+        }
+
+        if (doctorId != null)
+        {
+            query = query.Where(x => x.DoctorAccountId == doctorId);
+        }
+        
+        if (patientId != null)
+        {
+            query = query.Where(x => x.PatientAccountId == patientId);
+        }
+
+        var items = await query
+            .OrderAppointments()
+            .ToPagedResponseAsync(
+                pagination,
+                AppointmentDtoHelper.ProjectToDto,
+                ct);
+        return items;
+    }
+}

@@ -165,22 +165,7 @@ export class ServicesApi extends BaseApiClient {
         return this.delete(`api/v1/categories/${id}`);
     }
 
-    // --------------------- Schedules ---------------------
-    public async getScheduleTodayMe(): Promise<Result> {
-        return this.get("api/v1/schedules/today/me");
-    }
 
-    public async getScheduleMe(date: string): Promise<Result> {
-        return this.get("api/v1/schedules/me", { date });
-    }
-
-    public async getScheduleById(id: string, date: string): Promise<Result> {
-        return this.get(`api/v1/schedules/${id}`, { date });
-    }
-
-    public async getScheduleTodayById(id: string): Promise<Result> {
-        return this.get(`api/v1/schedules/today/${id}`);
-    }
 
     public async getAvailableDoctorSlots(doctorId: string, date: Date): Promise<Result> {
 
@@ -217,6 +202,19 @@ export class DateOnly {
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
         return new DateOnly(`${yyyy}-${mm}-${dd}`);
+    }
+
+    toNativeDate(): Date {
+        return new Date(`${this.value}T00:00:00`);
+    }
+    
+    static parseToNative(dateStr: string | null): Date | null {
+        if (!dateStr) return null;
+        try {
+            return DateOnly.fromString(dateStr).toNativeDate();
+        } catch {
+            return null;
+        }
     }
 
     toString(): string {

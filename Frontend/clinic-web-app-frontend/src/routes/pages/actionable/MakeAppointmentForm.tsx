@@ -108,7 +108,7 @@ export function MakeAppointmentForm(){
     }, [urlDoctorId, date]);
 
     async function BookAnAppointment() {
-        if (!urlDoctorId || !urlOfficeId || !date || !timeSlot || !urlServiceId || !urlSpecId) return;
+        if (!urlDoctorId || !urlOfficeId || !date || timeSlot==-1 || !urlServiceId || !urlSpecId) return;
 
         setBookingStatus('loading');
         setErrorMessage(null);
@@ -175,7 +175,7 @@ export function MakeAppointmentForm(){
           
 
           <button
-              disabled={!(service && timeSlot && doctor && date && urlOfficeId && urlSpecId && bookingStatus !== 'loading')}
+              disabled={!(service && timeSlot != -1 && doctor && date && urlOfficeId && urlSpecId && bookingStatus !== 'loading')}
               onClick={BookAnAppointment}
           >
               Book an appointment

@@ -92,34 +92,36 @@ app.UseAuthorizationDefaultsWithAspire();
 
 app.MapEndpoints();
 
-const string TestGroupTag = "Test Endpoints";
-app.MapGet("/my-profile", (ClaimsPrincipal user) =>
+if (app.Environment.IsDevelopment())
 {
-    var userId = user.FindFirst("sub")?.Value
-              ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    const string testGroupTag = "Test Endpoints";
+    app.MapGet("/my-profile", (ClaimsPrincipal user) =>
+    {
+        var userId = user.FindFirst("sub")?.Value
+                     ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-    var email = user.FindFirst("email")?.Value
-             ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        var email = user.FindFirst("email")?.Value
+                    ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
-    return Results.Ok(new { Message = "Okey, we have profile", UserId = userId, Email = email });
-}).RequireAuthorization().WithTags(TestGroupTag);
+        return Results.Ok(new { Message = "Okey, we have profile", UserId = userId, Email = email });
+    }).RequireAuthorization().WithTags(testGroupTag);
 
-app.MapGet("/client-only", (ClaimsPrincipal user) =>
-{
-    var userId = user.FindFirst("sub")?.Value
-              ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    app.MapGet("/client-only", (ClaimsPrincipal user) =>
+    {
+        var userId = user.FindFirst("sub")?.Value
+                     ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-    var email = user.FindFirst("email")?.Value
-             ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        var email = user.FindFirst("email")?.Value
+                    ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
-    return Results.Ok(new { Message = "You are only client, ok!", UserId = userId, Email = email });
-}).RequireAuthorization(RolePolicy.Client).WithTags(TestGroupTag);
+        return Results.Ok(new { Message = "You are only client, ok!", UserId = userId, Email = email });
+    }).RequireAuthorization(RolePolicy.Client).WithTags(testGroupTag);
 
-app.MapGet("/get-headers", (HttpContext context) =>
-{
-    return Results.Ok(context.Request.Headers.Select(x => $"{x.Key}: {x.Value}").ToArray());
-}).WithTags(TestGroupTag);
-
+    app.MapGet("/get-headers", (HttpContext context) =>
+    {
+        return Results.Ok(context.Request.Headers.Select(x => $"{x.Key}: {x.Value}").ToArray());
+    }).WithTags(testGroupTag);
+}
 
 
 app.Run();

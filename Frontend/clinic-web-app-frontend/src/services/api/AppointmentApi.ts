@@ -38,7 +38,16 @@ export interface PagedResponseOfAppointmentDto {
     totalCount: number;
 }
 
-export type AppointmentState = number;
+export const AppointmentState = {
+    Created: 0,
+    PendingReservation: 1,
+    PendingApproval: 2,
+    Approved: 3,
+    Failed: 4,
+    Confirmed: 5
+} as const;
+
+export type AppointmentState = typeof AppointmentState[keyof typeof AppointmentState];
 
 export class AppointmentsApi extends BaseApiClient {
     protected override readonly middlewarePath = "/appointments";
@@ -57,12 +66,12 @@ export class AppointmentsApi extends BaseApiClient {
 
     public async getAppointments(
         state?: AppointmentState,
+        patientId?: string,
         page?: number,
-        pageSize?: number,
-        skip?: number
+        pageSize?: number
     ): Promise<Result> {
         return this.get("api/v1/Appointments", 
-            { state, Page: page, PageSize: pageSize, Skip: skip },
+            { state, Page: page, PageSize: pageSize, patientId },
         );
     }
 
@@ -90,6 +99,27 @@ export class AppointmentsApi extends BaseApiClient {
 
     public async getMyClientAppointmentById(id: string): Promise<Result> {
         return this.get(`api/v1/Appointments/${id}/me/client`);
+    }
+
+    public async getMyDoctorAppointmentById(id: string): Promise<Result> {
+        return this.get(`api/v1/Appointments/${id}/me/doctor`);
+    }
+
+    // --------------------- Schedules ---------------------
+    public async getScheduleTodayMe(): Promise<Result> {
+        return this.get("api/v1/Schedule/today/me");
+    }
+
+    public async getScheduleMe(date: string): Promise<Result> {
+        return this.get("api/v1/Schedule/me", { date });
+    }
+
+    public async getScheduleById(id: string, date: string): Promise<Result> {
+        return this.get(`api/v1/Schedule/${id}`, { date });
+    }
+
+    public async getScheduleTodayById(id: string): Promise<Result> {
+        return this.get(`api/v1/Schedule/today/${id}`);
     }
 }
 

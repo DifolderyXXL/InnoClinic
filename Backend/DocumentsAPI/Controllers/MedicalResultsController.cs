@@ -3,6 +3,7 @@ using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Models;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions.Endpoints;
+using MicroserviceApiKernel.Results;
 using MicroserviceApiKernel.SharedControllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,37 +33,25 @@ public class MedicalResultsController : BaseApiController
         var user = await GetUserClaim();
         if (user == null || !Guid.TryParse(user.Id, out var guid)) return Unauthorized();
 
-        var result = await context.GetByAppointmentIdAsync(appointmentId, ct);
-        if (result.IsError)
-        {
-            return NotFound();
-        }
-
-        var medicalResult = result.Value!;
+        var result = await MedicalResultsHelper.ExportMedicalResult(context, medicalResultService, appointmentId, guid, ct);
+        if (result == null) return NotFound();
         
-        if (medicalResult.UserId != guid) return NotFound();
+        return Ok(new { url = result.ToString() });
+    }
+    
+    [HttpGet("appointments/{appointmentId:guid}/users/{userId:guid}/export")]
+    [HasPermission(Permissions.MedicalResults.Read)]
+    public async Task<IActionResult> ExportMedicalResultAsPdf(
+        [FromRoute] Guid appointmentId,
+        [FromRoute] Guid userId,
+        [FromServices] MedicalResultsDbContext context,
+        [FromServices] MedicalResultService medicalResultService, 
+        CancellationToken ct)
+    {
+        var result = await MedicalResultsHelper.ExportMedicalResult(context, medicalResultService, appointmentId, userId, ct);
+        if (result == null) return NotFound();
         
-        var request = new MedicalResultPdfData(
-            medicalResult.AppointmentId,
-            medicalResult.DoctorName,
-            medicalResult.Specialization,
-            medicalResult.ServiceName,
-            medicalResult.PatientName,
-            medicalResult.PatientDateOfBirth,
-            medicalResult.Complaints,
-            medicalResult.Conclusion,
-            medicalResult.Diagnosis,
-            medicalResult.Recommendations,
-            medicalResult.UpdateStamp
-            );
-
-        var pdfResult = await medicalResultService.GetOrCreateMedicalResultPdfAsync(guid, result.Value!.UpdateStamp, request, ct);
-        if (pdfResult.IsSuccess)
-        {
-            return Ok(new { url = pdfResult.Value!.ToString() });
-        }
-
-        return Problem(statusCode: StatusCodes.Status429TooManyRequests);
+        return Ok(new { url = result.ToString() });
     }
     
     [HttpGet("appointments/{appointmentId:guid}/me")]
@@ -73,27 +62,28 @@ public class MedicalResultsController : BaseApiController
         CancellationToken ct)
     {
         var user = await GetUserClaim();
-        if (user == null || !Guid.TryParse(user.Id, out var guid)) return Unauthorized();
+        if (user == null || !Guid.TryParse(user.Id, out var userId)) return Unauthorized();
 
-        var result = await context.GetByAppointmentIdAsync(appointmentId, ct);
-        if (result.IsError)
-        {
-            return NotFound();
-        }
+        var result = await MedicalResultsHelper.GetMedicalResult(context, appointmentId, userId, ct);
 
-        if (result.Value!.UserId != guid)
-        {
-            return NotFound();
-        }
+        if (result == null) return NotFound();
         
-        var bodyOnly = new MedicalResultBody 
-        {
-            Complaints = result.Value.Complaints,
-            Conclusion = result.Value.Conclusion,
-            Recommendations = result.Value.Recommendations
-        };
+        return Ok(result);
+    }
+    
+    [HttpGet("appointments/{appointmentId:guid}/users/{userId:guid}")]
+    [HasPermission(Permissions.MedicalResults.Read)]
+    public async Task<IActionResult> GetMedicalResult(
+        [FromRoute] Guid appointmentId,
+        [FromRoute] Guid userId,
+        [FromServices] MedicalResultsDbContext context,
+        CancellationToken ct)
+    {
+        var result = await MedicalResultsHelper.GetMedicalResult(context, appointmentId, userId, ct);
 
-        return Ok(bodyOnly);
+        if (result == null) return NotFound();
+        
+        return Ok(result);
     }
     
     [HttpPost("appointments/{appointmentId:guid}")]
@@ -166,4 +156,64 @@ public class MedicalResultsController : BaseApiController
     }
 }
 
+public static class MedicalResultsHelper
+{
+    public static async Task<MedicalResultBody?> GetMedicalResult(MedicalResultsDbContext context,  Guid appointmentId, Guid patientId, CancellationToken ct)
+    {
+        var result = await context.GetByAppointmentIdAsync(appointmentId, ct);
+        if (result.IsError)
+        {
+            return null;
+        }
 
+        if (result.Value!.UserId != patientId)
+        {
+            return null;
+        }
+        
+        var bodyOnly = new MedicalResultBody 
+        {
+            Complaints = result.Value.Complaints,
+            Conclusion = result.Value.Conclusion,
+            Diagnosis = result.Value.Diagnosis,
+            Recommendations = result.Value.Recommendations
+        };
+
+        return bodyOnly;
+    }
+
+    public static async Task<Uri?> ExportMedicalResult(MedicalResultsDbContext context, MedicalResultService medicalResultService, Guid appointmentId, Guid patientId, CancellationToken ct)
+    {
+        var result = await context.GetByAppointmentIdAsync(appointmentId, ct);
+        if (result.IsError)
+        {
+            return null;
+        }
+
+        var medicalResult = result.Value!;
+        
+        if (medicalResult.UserId != patientId) return null;
+        
+        var request = new MedicalResultPdfData(
+            medicalResult.AppointmentId,
+            medicalResult.DoctorName,
+            medicalResult.Specialization,
+            medicalResult.ServiceName,
+            medicalResult.PatientName,
+            medicalResult.PatientDateOfBirth,
+            medicalResult.Complaints,
+            medicalResult.Conclusion,
+            medicalResult.Diagnosis,
+            medicalResult.Recommendations,
+            medicalResult.UpdateStamp
+        );
+
+        var pdfResult = await medicalResultService.GetOrCreateMedicalResultPdfAsync(patientId, result.Value!.UpdateStamp, request, ct);
+        if (pdfResult.IsSuccess)
+        {
+            return pdfResult.Value;
+        }
+
+        return null;
+    }
+}

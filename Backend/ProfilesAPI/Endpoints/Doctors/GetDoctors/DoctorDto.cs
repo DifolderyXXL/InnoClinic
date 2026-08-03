@@ -13,7 +13,7 @@ public record DoctorDto
     public DateOnly DateOfBirth { get; set; }
     public long SpecializationId { get; init; }
 
-    public string SpecializationSpecializationName { get; init; }
+    public string SpecializationName { get; init; }
 
     public string OfficeId { get; init; }
     public long CareerStartYear { get; init; }

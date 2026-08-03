@@ -1,0 +1,26 @@
+.appointment-card{
+    display: flex;
+    flex-direction: column;
+    background: #444;
+    padding: 5px;
+}
+
+.appointment-header{
+    display: flex;
+    flex-direction: column;
+}
+
+.appointments-list-container{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap:5px;
+}
+
+.appointment-link{
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    background: #444;
+    padding: 5px;
+}

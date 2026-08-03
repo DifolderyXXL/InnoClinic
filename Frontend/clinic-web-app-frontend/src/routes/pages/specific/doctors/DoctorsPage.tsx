@@ -170,7 +170,7 @@ export interface DoctorProfile {
     photoUrl?: string | null;   
     dateOfBirth: string; 
     specializationId: number;
-    specializationSpecializationName: string;
+    specializationName: string;
     officeId: string;
     careerStartYear: number;
 }
@@ -196,7 +196,7 @@ export function DoctorViewCard({doctor}: DoctorViewCardProps){
             <div className="doctor-info">
                 <div className="doctor-name">
                     <strong>{fullName}</strong>
-                    <span>{doctor.specializationSpecializationName}</span>
+                    <span>{doctor.specializationName}</span>
                 </div>
 
                 <div className="doctor-details">

@@ -1,12 +1,17 @@
-import {useSearchParams} from "react-router";
+import { useSearchParams} from "react-router";
 import {useEffect, useState} from "react";
 import type {DoctorProfile} from "./DoctorsPage.tsx";
 import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
 import {AvatarFromSource} from "../../Shared/Avatar.tsx";
 import {OfficeCompactCard} from "../offices/OfficeCompactCard.tsx";
 import "./DoctorsPage.css";
+import type {ServiceDto} from "../services/ServicesPage.tsx";
+import {servicesApi} from "../../../../services/api/ServicesApi.ts";
+import {ServiceView} from "../services/GroupBySpecializationServices.tsx";
+import {useAppointmentNavigation} from "../../actionable/hooks/useAppointmentNavigation.tsx";
 
 export function DoctorPage(){
+    const [ navigateToAppointment ]  = useAppointmentNavigation();
     const [searchParams] = useSearchParams();
     const [doctor, setDoctor] = useState<DoctorProfile>()
 
@@ -44,6 +49,10 @@ export function DoctorPage(){
     const fullName = [doctor.accountLastName, doctor.accountFirstName, doctor.accountMiddleName]
         .filter(Boolean)
         .join(' ');
+    
+    const bookAppointmentCommand = (serviceId: number) =>{
+        navigateToAppointment({specId: doctor.specializationId, doctorId: doctor.accountId, serviceId: serviceId, officeId: doctor.officeId});
+    };
 
     return (
         <div className="doctor-card">
@@ -52,7 +61,7 @@ export function DoctorPage(){
             <div className="doctor-info">
                 <div className="doctor-name">
                     <strong>{fullName}</strong>
-                    <span>{doctor.specializationSpecializationName}</span>
+                    <span>{doctor.specializationName}</span>
                 </div>
 
                 <div className="doctor-details">
@@ -62,6 +71,54 @@ export function DoctorPage(){
                 
                 <OfficeCompactCard officeId={doctor.officeId}/>
             </div>
+
+            <div className="services-container">
+                <span>{`Services by ${doctor.specializationName}`}</span>
+                <ServicesBySpecializationId specializationId={doctor.specializationId} onBookAppointment={bookAppointmentCommand}/>
+            </div>
+        </div>
+    );
+}
+
+interface ServicesBySpecializationIdProps{
+    specializationId: number;
+    onBookAppointment?: (serviceId:number) => void;
+}
+export function ServicesBySpecializationId({specializationId, onBookAppointment = () => {}}: ServicesBySpecializationIdProps){
+    const [services, setServices] = useState<Array<ServiceDto>>();
+
+    useEffect(() => {
+        const loadData = async () =>{
+            try {
+                const result = await servicesApi.getServices(undefined, specializationId);
+                if (result.type === "ok") {
+                    setServices(result.value.services);
+                }
+                else{
+                    setServices([]);
+                }
+            } catch (err) {
+                console.log(err)
+            }
+        }
+        loadData();
+    }, [specializationId]);
+
+    if(!services)
+    {
+        return <></>
+    }
+
+    return (
+        <div className="services-list">
+            {services.map((service) => (
+                <div key={service.id}>
+                    <button onClick={_=>onBookAppointment?.(service.id)}>
+                        Book
+                    </button>
+                    <ServiceView service={service}/>
+                </div>
+            ))}
         </div>
     );
 }

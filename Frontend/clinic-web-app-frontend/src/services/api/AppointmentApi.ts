@@ -121,6 +121,30 @@ export class AppointmentsApi extends BaseApiClient {
     public async getScheduleTodayById(id: string): Promise<Result> {
         return this.get(`api/v1/Schedule/today/${id}`);
     }
+
+    public async getClinicAppointments(
+        filter: ClinicAppointmentsFilterParameters
+    ): Promise<Result<PagedResponseOfAppointmentDto>> {
+        return this.get("api/v1/Appointments/clinic", {
+            Date: filter.date,
+            DoctorFullName: filter.doctorFullName,
+            ServiceName: filter.serviceName,
+            Status: filter.status,
+            OfficeId: filter.officeId,
+            Page: filter.page,
+            PageSize: filter.pageSize,
+        });
+    }
 }
 
 export const appointmentsApi = new AppointmentsApi();
+
+export interface ClinicAppointmentsFilterParameters {
+    date?: string | null;            // Формат YYYY-MM-DD
+    doctorFullName?: string | null;
+    serviceName?: string | null;
+    status?: AppointmentState | null;
+    officeId?: string | null;
+    page?: number;
+    pageSize?: number;
+}

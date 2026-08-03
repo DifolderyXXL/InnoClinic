@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import {ProfileMinimalBlock} from "../routes/pages/Shared/ProfileMinimalBlock.tsx";
-import {ClinicNavigation, DoctorNavigation} from "./ClinicNavigation.tsx";
+import {ClinicNavigation, DoctorNavigation, ReceptionistNavigation} from "./ClinicNavigation.tsx";
 import {RequireRole, Roles} from "./common/RequireRole.tsx";
 
 export function Layout() {
@@ -13,6 +13,9 @@ export function Layout() {
                         <ClinicNavigation/>
                         <RequireRole roles={[Roles.Doctor]}>
                             <DoctorNavigation/>
+                        </RequireRole> 
+                        <RequireRole roles={[Roles.Receptionist]}>
+                            <ReceptionistNavigation/>
                         </RequireRole>
                     </div>
                     <ProfileMinimalBlock/>

@@ -72,6 +72,7 @@ export function PaginatedListView<T>({
             {renderItems(items)}
 
             <PageSelector
+                currentPage={currentPage}
                 pageSize={pageSize}
                 total={total}
                 onPageChange={onPageChange}

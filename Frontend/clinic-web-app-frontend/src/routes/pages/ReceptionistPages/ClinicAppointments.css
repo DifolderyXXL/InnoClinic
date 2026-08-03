@@ -1,0 +1,30 @@
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 200px;
+}
+
+.btn {
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-approve {
+    background-color: #16a34a;
+}
+.btn-approve:hover {
+    background-color: #15803d;
+}
+
+.btn-decline {
+    background-color: #dc2626;
+}
+.btn-decline:hover {
+    background-color: #b91c1c;
+}

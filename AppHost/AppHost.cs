@@ -105,7 +105,7 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithExternalHttpEndpoints();
 
 var frontend = builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")
-       .WithHttpEndpoint(port: 5173)
+       .WithHttpEndpoint(port: 5173, isProxied: true)
        .WithEnvironment("VITE_BFF_PROXY_URL", bff.GetEndpoint("https"))
        .WithReference(bff);
 

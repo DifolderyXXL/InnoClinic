@@ -10,10 +10,10 @@ export const Roles = {
 export type Role = typeof Roles[keyof typeof Roles];
 
 interface RequireRoleProps{
-    roles: Role[];
+    roles?: Role[];
     children?: React.ReactNode;
 }
-export function RequireRole({roles, children}: RequireRoleProps){
+export function RequireRole({roles=[], children}: RequireRoleProps){
     const context = useAuth()
     if(context.state.status !== "authorized")
     {

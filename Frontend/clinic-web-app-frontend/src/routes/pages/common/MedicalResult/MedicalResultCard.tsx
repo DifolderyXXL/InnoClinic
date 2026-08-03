@@ -3,9 +3,7 @@ import {type ChangeEvent, type SyntheticEvent, useEffect, useState} from "react"
 import { useSearchParams } from "react-router";
 import { CreateMedicalResultForm } from "./CreateMedicalResult.tsx";
 import "./MedicalResultCard.css"
-import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
-import {appointmentsApi} from "../../../../services/api/AppointmentApi.ts";
-import {AppointmentCard, MyDoctorAppointmentByIdCard} from "../Appointment/AppointmentCard.tsx";
+import {MyDoctorAppointmentByIdCard} from "../Appointment/AppointmentCard.tsx";
 
 interface MedicalResultCardProps {
     medicalResult: MedicalResultBody;

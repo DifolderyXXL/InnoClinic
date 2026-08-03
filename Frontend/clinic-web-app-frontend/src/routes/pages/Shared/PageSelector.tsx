@@ -2,19 +2,17 @@ import React, {useState} from "react";
 import "./PageSelector.css"
 
 interface PageSelectorProps {
+    currentPage: number;
     total: number;
     pageSize?: number;
     onPageChange: (page: number) => void;
 }
 
-export function PageSelector({ total, pageSize = 50, onPageChange }: PageSelectorProps) {
-    const [currentPage, setCurrentPage] = useState(1);
-
+export function PageSelector({ currentPage, total, pageSize = 50, onPageChange }: PageSelectorProps) {
     const totalPages = Math.ceil(total / pageSize);
 
     const goToPage = (page: number) => {
         if (page < 1 || page > totalPages) return;
-        setCurrentPage(page);
         onPageChange(page);
     };
 

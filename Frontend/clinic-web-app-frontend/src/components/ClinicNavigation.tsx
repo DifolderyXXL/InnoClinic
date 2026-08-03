@@ -26,3 +26,13 @@ export function DoctorNavigation() {
         </nav>
     )
 }
+
+export function ReceptionistNavigation() {
+    return (
+        <nav style={{alignContent: "center", overflowX: "auto",
+            overflowY: "hidden", scrollbarWidth: "thin",}}>
+            <RouteLinkCard to="/clinic-schedule" >Clinic schedule</RouteLinkCard>
+
+        </nav>
+    )
+}

@@ -4,8 +4,6 @@ import { CreateMedicalResultForm } from "./CreateMedicalResult.tsx";
 import "./MedicalResultCard.css"
 import {MedicalResultCard} from "./MedicalResultCard.tsx";
 
-
-
 interface DoctorMedicalResultViewProps {
     appointmentId: string;
     userId: string;

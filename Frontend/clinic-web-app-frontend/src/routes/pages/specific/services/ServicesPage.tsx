@@ -1,65 +1,73 @@
-import {useEffect, useState} from "react";
-import {type CategoryDto, servicesApi} from "../../../../services/api/ServicesApi.ts";
-import {DiscretePageSelector} from "../../Shared/PageSelector.tsx";
-import {GroupedBySpecializationServices} from "./GroupBySpecializationServices.tsx";
+import { useEffect, useState } from "react";
+import { type CategoryDto, servicesApi } from "../../../../services/api/ServicesApi.ts";
+import { DiscretePageSelector } from "../../Shared/PageSelector.tsx";
+import { GroupedBySpecializationServices } from "./GroupBySpecializationServices.tsx";
+import "./ServicesPage.css";
 
 export interface ServiceDto {
     id: number;
     serviceName: string;
     price: number;
     isActive: boolean;
-    
+
     categoryId: number;
     categoryName: string;
-    
+
     specializationId: number;
     specializationName: string;
 }
 
-export function ServicesPage(){
-    const [categories, setCategories] = useState<Array<CategoryDto>>();
+export function ServicesPage() {
+    const [categories, setCategories] = useState<Array<CategoryDto> | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [category, setCategory] = useState<CategoryDto | null>(null);
 
     useEffect(() => {
-        const loadData = async () =>{
+        const loadData = async () => {
             try {
                 const result = await servicesApi.getCategories();
                 if (result.type === "ok") {
-                    setCategories(result.value.categories);
+                    const fetchedCategories = result.value.categories || result.value.items || [];
+                    setCategories(fetchedCategories);
+                    if (fetchedCategories.length > 0) {
+                        setCategory(fetchedCategories[0]);
+                    }
                 } else {
-                    setError(result.error?.title || "Error");
+                    setError(result.error?.title || "Error loading categories");
                 }
-            } catch (err) {
+            } catch {
                 setError("Unhandled error");
             }
-        }
+        };
         loadData();
-    }, [category?.id]);
-    
-    if(error)
-    {
-        return (<div><p>{error}</p></div>);
+    }, []);
+
+    if (error) {
+        return <div className="status-message error">{error}</div>;
     }
-    
-    if(!categories)
-    {
-        return <></>;
+
+    if (!categories) {
+        return <div className="status-message">Loading categories...</div>;
     }
-    
-    if(!category)
-    {
-        setCategory(categories[0])
-    }
-    
+
     return (
-        <div>
-            <DiscretePageSelector tabs={categories} onPageChange={setCategory} start={categories[0]} getId={x=>x.id}>
+        <div className="services-page-container">
+            <DiscretePageSelector
+                tabs={categories}
+                onPageChange={setCategory}
+                start={category || categories[0]}
+                getId={x => x.id}
+            >
                 {(activeTab: CategoryDto) => (
-                    <>{activeTab.categoryName}</>
+                    <span>{activeTab.categoryName}</span>
                 )}
             </DiscretePageSelector>
-            {category && <GroupedBySpecializationServices category={category}/>}
+
+            {category && (
+                <div className="services-content">
+                    <GroupedBySpecializationServices category={category} />
+                </div>
+            )}
         </div>
     );
 }

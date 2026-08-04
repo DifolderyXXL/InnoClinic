@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState} from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     type AvailablePositionsOnDay,
     DateOnly, dateToDateOnly,
@@ -6,24 +6,25 @@ import {
     servicesApi,
     type SpecializationDto
 } from "../../../services/api/ServicesApi.ts";
-import {type OfficeDto} from "../../../services/api/OfficesApi.ts";
-import {profilesApi} from "../../../services/api/ProfilesApi.ts";
+import { type OfficeDto } from "../../../services/api/OfficesApi.ts";
+import { profilesApi } from "../../../services/api/ProfilesApi.ts";
 
 import Select from 'react-select';
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import {appointmentsApi} from "../../../services/api/AppointmentApi.ts";
-import {TimeSlotPicker} from "./TimeSlotPicker.tsx";
-import {OfficeInputFilter, SpecializationInputFilter} from "../Shared/Inputs/OfficeInputFilter.tsx";
-import {useUpdateUrlParams} from "../specific/doctors/DoctorsPage.tsx";
+import { appointmentsApi } from "../../../services/api/AppointmentApi.ts";
+import { TimeSlotPicker } from "./TimeSlotPicker.tsx";
+import { OfficeInputFilter, SpecializationInputFilter } from "../Shared/Inputs/OfficeInputFilter.tsx";
+import { useUpdateUrlParams } from "../specific/doctors/DoctorsPage.tsx";
+import "./MakeAppointmentForm.css";
 
 export interface DoctorProfileDto {
     accountId: string;
     accountFirstName: string;
     accountLastName: string;
-    accountMiddleName: string | null;        
-    accountPhotoId: string | null;           
+    accountMiddleName: string | null;
+    accountPhotoId: string | null;
     photoUrl: string | null;
     dateOfBirth: DateOnly;
     specializationId: number;
@@ -32,17 +33,15 @@ export interface DoctorProfileDto {
     careerStartYear: number;
 }
 
-
-function serviceToString(s: ServiceDto){
+function serviceToString(s: ServiceDto) {
     return `${s.serviceName}`;
 }
 
-function doctorToString(doctor: DoctorProfileDto){
-    return `${doctor.accountFirstName} ${doctor.accountLastName} ${doctor.accountMiddleName}`;
+function doctorToString(doctor: DoctorProfileDto) {
+    return `${doctor.accountFirstName} ${doctor.accountLastName} ${doctor.accountMiddleName || ''}`.trim();
 }
 
-
-export function MakeAppointmentForm(){
+export function MakeAppointmentForm() {
     const { searchParams, updateUrlParams } = useUpdateUrlParams();
 
     const urlOfficeId = searchParams.get("officeId");
@@ -50,24 +49,20 @@ export function MakeAppointmentForm(){
     const urlServiceId = searchParams.get("serviceId") ? Number(searchParams.get("serviceId")) : null;
     const urlDoctorId = searchParams.get("doctorId");
 
-    
     const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const [services, setServices] = useState<ServiceDto[]>([]);
     const [doctors, setDoctors] = useState<DoctorProfileDto[]>([]);
     const [timeSlots, setTimeSlots] = useState<AvailablePositionsOnDay | null>(null);
-    
-    const [specialization, setSpecialization] = useState<SpecializationDto | null>(null);   
-    const [service, setService] = useState<ServiceDto | null>(null);   
-    const [office, setOffice] = useState<OfficeDto | null>(null);
+
+    const [, setSpecialization] = useState<SpecializationDto | null>(null);
+    const [service, setService] = useState<ServiceDto | null>(null);
+    const [, setOffice] = useState<OfficeDto | null>(null);
     const [doctor, setDoctor] = useState<DoctorProfileDto | null>(null);
-    
+
     const [date, setDate] = useState<Date | null>(null);
     const [timeSlot, setTimeSlot] = useState<number | null>(null);
-
-
-
 
     useEffect(() => {
         if (!urlServiceId) { setService(null); return; }
@@ -108,7 +103,7 @@ export function MakeAppointmentForm(){
     }, [urlDoctorId, date]);
 
     async function BookAnAppointment() {
-        if (!urlDoctorId || !urlOfficeId || !date || timeSlot==-1 || !urlServiceId || !urlSpecId) return;
+        if (!urlDoctorId || !urlOfficeId || !date || timeSlot === -1 || timeSlot === null || !urlServiceId || !urlSpecId) return;
 
         setBookingStatus('loading');
         setErrorMessage(null);
@@ -129,76 +124,106 @@ export function MakeAppointmentForm(){
                 setBookingStatus('error');
                 setErrorMessage(result.error?.title || 'Cant book an appointment');
             }
-        } catch (err) {
+        } catch {
             setBookingStatus('error');
             setErrorMessage('Unhandled exception');
         }
     }
-    
+
     return (
-      <div>
-          <SpecializationInputFilter label="Specialization" valueId={urlSpecId} 
-                                     onChange={spec => 
-                                     {
-                setSpecialization(spec);
-                updateUrlParams({ specId: spec?.id ?? null, serviceId: null, doctorId: null, slot: null });
-          }}/>
+        <div className="appointment-form-container">
+            <h2 className="appointment-form-title">Book an Appointment</h2>
 
-          <OfficeInputFilter label="Office" valueId={urlOfficeId}
-                             onChange={off => {
-                                 setOffice(off);
-                                 updateUrlParams({ officeId: off?.id ?? null, doctorId: null, slot: null });
-                             }}/>
+            <div className="form-field">
+                <SpecializationInputFilter
+                    label="Specialization"
+                    valueId={urlSpecId}
+                    onChange={spec => {
+                        setSpecialization(spec);
+                        updateUrlParams({ specId: spec?.id ?? null, serviceId: null, doctorId: null, slot: null });
+                    }}
+                />
+            </div>
 
-          <SearchableSelect options={services}
-                  getLabel={serviceToString}
-                  label="Service"
-                  getKey={o=>o.id}
-                  onChange={s => updateUrlParams({ serviceId: s?.id ?? null, doctorId: null, slot: null })}
-                  value={service}></SearchableSelect>
+            <div className="form-field">
+                <OfficeInputFilter
+                    label="Office"
+                    valueId={urlOfficeId}
+                    onChange={off => {
+                        setOffice(off);
+                        updateUrlParams({ officeId: off?.id ?? null, doctorId: null, slot: null });
+                    }}
+                />
+            </div>
 
+            <SearchableSelect
+                options={services}
+                getLabel={serviceToString}
+                label="Service"
+                getKey={o => o.id}
+                onChange={s => updateUrlParams({ serviceId: s?.id ?? null, doctorId: null, slot: null })}
+                value={service}
+            />
 
-          <SearchableSelect options={doctors}
-                  getLabel={doctorToString}
-                  label="Doctor"
-                  getKey={o=>o.accountId}
-                  onChange={d => updateUrlParams({ doctorId: d?.accountId ?? null, slot: null })}
-                  value={doctor}></SearchableSelect>
+            <SearchableSelect
+                options={doctors}
+                getLabel={doctorToString}
+                label="Doctor"
+                getKey={o => o.accountId}
+                onChange={d => updateUrlParams({ doctorId: d?.accountId ?? null, slot: null })}
+                value={doctor}
+            />
 
-          <DatePicker selected={date} onChange={setDate} />
+            <div className="form-field">
+                <label className="form-label">Select Date</label>
+                <DatePicker
+                    selected={date}
+                    onChange={setDate}
+                    dateFormat="yyyy-MM-dd"
+                    placeholderText="Choose a date"
+                    className="date-picker-input"
+                    wrapperClassName="date-picker-wrapper"
+                />
+            </div>
 
-          {service && timeSlots && (<TimeSlotPicker 
-              selected={timeSlot ?? -1} 
-              positions={timeSlots} 
-              slotAmount={service.slotLength}
-              onChange={x=>setTimeSlot(x)}/> )}
-          
+            {service && timeSlots && (
+                <div className="form-field">
+                    <label className="form-label">Available Time Slots</label>
+                    <TimeSlotPicker
+                        selected={timeSlot ?? -1}
+                        positions={timeSlots}
+                        slotAmount={service.slotLength}
+                        onChange={x => setTimeSlot(x)}
+                    />
+                </div>
+            )}
 
-          <button
-              disabled={!(service && timeSlot != -1 && doctor && date && urlOfficeId && urlSpecId && bookingStatus !== 'loading')}
-              onClick={BookAnAppointment}
-          >
-              Book an appointment
-          </button>
+            <button
+                className="submit-book-btn"
+                disabled={!(service && timeSlot !== -1 && timeSlot !== null && doctor && date && urlOfficeId && urlSpecId && bookingStatus !== 'loading')}
+                onClick={BookAnAppointment}
+            >
+                Book an appointment
+            </button>
 
-          {bookingStatus === 'success' && (
-              <div style={{ color: 'green', margin: '12px 0' }}>
-                  Appointment accepted. 
-              </div>
-          )}
+            {bookingStatus === 'success' && (
+                <div className="status-message success">
+                    Appointment accepted.
+                </div>
+            )}
 
-          {bookingStatus === 'error' && (
-              <div style={{ color: 'red', margin: '12px 0' }}>
-                  Error: {errorMessage}
-              </div>
-          )}
+            {bookingStatus === 'error' && (
+                <div className="status-message error">
+                    Error: {errorMessage}
+                </div>
+            )}
 
-          {bookingStatus === 'loading' && <div>Sending...</div>}
-      </div>  
+            {bookingStatus === 'loading' && (
+                <div className="status-message loading">Sending...</div>
+            )}
+        </div>
     );
 }
-
-
 interface SearchableSelectProps<T extends {}> {
     label?: string;
     options: T[];
@@ -209,19 +234,21 @@ interface SearchableSelectProps<T extends {}> {
     placeholder?: string;
     isClearable?: boolean;
     disabled?: boolean;
+    className?: string; // Добавлен проп для внешней обертки
 }
 
-export function SearchableSelect<T  extends {}>({
-                                        label,
-                                        options,
-                                        value,
-                                        onChange,
-                                        getLabel,
-                                        getKey,
-                                        placeholder,
-                                        isClearable = true,
-                                        disabled = false,
-                                    }: SearchableSelectProps<T>) {
+export function SearchableSelect<T extends {}>({
+                                                   label,
+                                                   options,
+                                                   value,
+                                                   onChange,
+                                                   getLabel,
+                                                   getKey,
+                                                   placeholder,
+                                                   isClearable = true,
+                                                   disabled = false,
+                                                   className,
+                                               }: SearchableSelectProps<T>) {
     const selectOptions = useMemo(() => {
         return (options ?? []).map(item => ({
             value: item,
@@ -235,10 +262,10 @@ export function SearchableSelect<T  extends {}>({
         : null;
 
     return (
-        <div style={{ marginBottom: '12px' }}>
-            {label && <label style={{display: 'block', marginBottom: '4px'}}>{label}</label>}
+        <div className={className || "searchable-select-container"}>
+            {label && <label className="form-label">{label}</label>}
             <Select
-                classNamePrefix="option-select"
+                classNamePrefix="custom-select"
                 options={selectOptions}
                 value={currentValue}
                 onChange={(selected) => onChange(selected?.value ?? null)}

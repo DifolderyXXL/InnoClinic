@@ -1,25 +1,39 @@
+/* Navigation link item */
 .routeLink {
-    color: #fff;
-    background: #515151;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #9090a0;
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
     text-decoration: none;
-    padding: 8px 12px;
-    border-radius: 4px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
     white-space: nowrap;
-    transition: font-size 0.2s ease, filter 0.2s ease, padding 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    user-select: none;
 }
 
+/* Hover state (smooth transform instead of padding stretch) */
 .routeLink:not(.active):hover {
-    padding:  10px  18px  18px  18px;
-    font-size: 1.1em;
+    background-color: #25252e;
+    border-color: #3e3e4d;
+    color: #f0f0f5;
+    transform: translateY(-2px);
 }
 
-
+/* Active state matching dark theme accent */
 .routeLink.active {
-    background: #889a7e;
-    color: #373737;
-    font-weight: bold;
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
 }
 
 .routeLink.active:hover {
-    filter: brightness(1); 
+    background-color: #2563eb;
+    border-color: #2563eb;
 }

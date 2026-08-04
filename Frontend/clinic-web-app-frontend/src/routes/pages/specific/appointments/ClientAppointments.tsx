@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import { type AppointmentDto, appointmentsApi } from "../../../../services/api/AppointmentApi.ts";
 import { Link } from "react-router-dom";
+import { type AppointmentDto, appointmentsApi } from "../../../../services/api/AppointmentApi.ts";
 import { AppointmentCard } from "../../common/Appointment/AppointmentCard.tsx";
+import { PaginatedListView, type PaginatedResult } from "../../common/PaginatedListView.tsx";
 import "./ClientAppointments.css";
-import {PaginatedListView, type PaginatedResult} from "../../common/PaginatedListView.tsx";
 
 const pageSize: number = 50;
 
@@ -23,13 +23,13 @@ export function ClientAppointments() {
                 return {
                     items: [],
                     total: 0,
-                    error: result.error?.title || "Error loading appointments",
+                    error: result.error?.title || "Failed to load appointments",
                 };
             } catch {
                 return {
                     items: [],
                     total: 0,
-                    error: "Unhandled error occurred",
+                    error: "An unexpected error occurred",
                 };
             }
         },

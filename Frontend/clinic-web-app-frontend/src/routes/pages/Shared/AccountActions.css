@@ -1,49 +1,74 @@
 .account-actions-wrapper {
     position: relative;
-    display: inline-block;
-}  
-.dropdown-trigger-btn {
-    height: 100%;
-    cursor: pointer;
-    background: transparent;
-    border: none;
-    color: inherit;
-    padding: 8px;
-    border-radius: 5px;
-}
-.dropdown-trigger-btn:hover{
-    background: rgba(255, 255, 255, 0.1);
+    display: inline-flex;
+    align-items: center;
 }
 
+/* Trigger Button */
+.dropdown-trigger-btn {
+    background: transparent;
+    border: none;
+    color: #9090a0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.dropdown-trigger-btn:hover {
+    color: #f0f0f5;
+    background-color: #22222a;
+}
+
+/* Dropdown Menu Popup */
 .dropdown-menu {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 6px);
     right: 0;
-    
-    display: flex;
-    flex-direction: column;  
-    
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 8px;
+    padding: 6px;
     margin: 0;
-    padding: 0;
     list-style: none;
-    background: #339;
-    border-radius: 5px;
+    min-width: 170px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
+/* Menu Item Buttons */
 .option-btn {
-    display: block;
     width: 100%;
-    box-sizing: border-box;
-    white-space: nowrap; 
-    
-    padding: 10px 20px; 
     text-align: left;
     background: transparent;
-    color: white;
     border: none;
+    color: #e0e0e8;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
 }
 
 .option-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background-color: #22222a;
+    color: #ffffff;
+}
+
+.option-btn.logout-btn {
+    color: #ef4444;
+}
+
+.option-btn.logout-btn:hover {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #f87171;
 }

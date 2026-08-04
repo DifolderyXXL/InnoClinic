@@ -1,9 +1,10 @@
-import {useAuth} from "../../../services/states/userState.tsx";
-import {Link} from "react-router-dom";
-import {AvatarFromSource} from "./Avatar.tsx";
-import {useEffect, useState} from "react";
-import {profilesApi} from "../../../services/api/ProfilesApi.ts";
-import {AccountActions} from "./AccountActions.tsx";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../../services/states/userState.tsx";
+import { AvatarFromSource } from "./Avatar.tsx";
+import { profilesApi } from "../../../services/api/ProfilesApi.ts";
+import { AccountActions } from "./AccountActions.tsx";
+import "./ProfileMinimalBlock.css";
 
 export const ProfileMinimalBlock: React.FC = () => {
     const { state } = useAuth();
@@ -11,11 +12,11 @@ export const ProfileMinimalBlock: React.FC = () => {
 
     useEffect(() => {
         if (state.status === "authorized") {
-            profilesApi.getAccountMe()
-                .then(result => {
+            profilesApi
+                .getAccountMe()
+                .then((result) => {
                     if (result.type === "ok") {
-                        const account = result.value;
-                        setPhotoUrl(account.photoUrl);
+                        setPhotoUrl(result.value.photoUrl);
                     }
                 })
                 .catch(() => setPhotoUrl(null));
@@ -23,44 +24,45 @@ export const ProfileMinimalBlock: React.FC = () => {
             setPhotoUrl(null);
         }
     }, [state.status]);
-    
-    if(state.status === "loading")
-    {
-        return ( 
-            <div style={{minHeight:"60px"}}>
-                
+
+    if (state.status === "loading") {
+        return <div className="profile-minimal-skeleton" />;
+    }
+
+    if (state.status === "authorized") {
+        const email = state.data.getEmail();
+        const roles = state.data.getRoles();
+        const rolesString = Array.isArray(roles) ? roles.join(", ") : String(roles);
+
+        return (
+            <div className="profile-minimal-block">
+                <Link to="/profile" className="profile-link">
+                    <AvatarFromSource
+                        TextIfPhotoNull={email?.[0]?.toUpperCase() ?? "?"}
+                        PhotoUrl={photoUrl}
+                    />
+                    <div className="profile-user-info">
+                        <span className="profile-email">{email}</span>
+                        <span className="profile-role">
+                            Role: <strong>{rolesString}</strong>
+                        </span>
+                    </div>
+                </Link>
+
+                <AccountActions className="profile-actions-wrapper" />
             </div>
         );
     }
 
-    if(state.status === "authorized")
-    {
-        const email = state.data.getEmail();
-        return <div style={{ textDecoration: "none", display: "flex", flexDirection: "row", gap: "16px", alignItems: "center", background: "#444", padding: "5px", borderRadius: "5px"}}>
-            <Link to="/profile" style={{ textDecoration: "none", display: "flex", flexDirection: "row", gap: "16px", alignItems: "center" }}>
-                <AvatarFromSource TextIfPhotoNull={email[0]} PhotoUrl={photoUrl} />
-                
-                <div style={{ display: "flex", flexDirection: "column", gap: "1px"}}>
-                    {email}
-                    <strong style={{ fontSize: "1.2em" }}>Role: <span>{state.data.getRoles().toString()}</span></strong>
-                </div>
-            </Link>
-            <AccountActions style={{height: "100%"}}/>
-        </div>;
+    if (state.status === "unauthorized") {
+        return (
+            <div className="profile-minimal-unauthorized">
+                <AccountActions>
+                    <span className="login-btn-text">LOGIN</span>
+                </AccountActions>
+            </div>
+        );
     }
 
-    if(state.status === "unauthorized")
-    {
-        return <div style={{ display: "flex", flexDirection: "row", gap: "16px", alignItems: "center" }}>
-            <AccountActions>
-                <span>
-                    LOGIN
-                </span>
-            </AccountActions>
-        </div>;
-    }
-    
-    return <>
-        NONE
-    </>
-}
+    return null;
+};

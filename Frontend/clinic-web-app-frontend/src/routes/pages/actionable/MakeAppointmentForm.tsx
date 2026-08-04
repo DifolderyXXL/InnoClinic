@@ -234,7 +234,7 @@ interface SearchableSelectProps<T extends {}> {
     placeholder?: string;
     isClearable?: boolean;
     disabled?: boolean;
-    className?: string; // Добавлен проп для внешней обертки
+    className?: string;
 }
 
 export function SearchableSelect<T extends {}>({

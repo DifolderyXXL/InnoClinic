@@ -248,14 +248,15 @@ export function ClinicAppointments() {
                                         <td>{item.state}</td>
                                         <td>
                                             <div className="action-buttons">
+                                                <button className="btn btn-decline" onClick={() => openCancelModal(item.id)}>
+                                                    Cancel
+                                                </button>
+                                                
                                                 {(item.state === "PendingApproval" || Number(item.state) === AppointmentState.PendingApproval) && (
                                                     <button className="btn btn-approve" onClick={() => approveAppointment(item.id)}>
                                                         Approve
                                                     </button>
                                                 )}
-                                                <button className="btn btn-decline" onClick={() => openCancelModal(item.id)}>
-                                                    Cancel
-                                                </button>
                                             </div>
                                         </td>
                                     </tr>

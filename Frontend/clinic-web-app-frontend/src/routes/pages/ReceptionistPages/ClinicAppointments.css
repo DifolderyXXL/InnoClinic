@@ -95,14 +95,14 @@
     width: 100%;
     overflow-x: auto;
     background-color: #16161a;
-    border: 1px solid #2d2d38; /* Четкий внешний контур */
+    border: 1px solid #2d2d38;
     border-radius: 8px;
 }
 
 /* Таблица с видимой сеткой (Grid) */
 .clinic-appointments-table {
     width: 100%;
-    border-collapse: collapse; /* Формирует цельную сетку */
+    border-collapse: collapse;
     text-align: left;
     font-size: 14px;
     color: #e0e0e8;
@@ -117,19 +117,19 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 12px 14px;
-    border-bottom: 2px solid #2d2d38; /* Нижняя двойная/толстая линия шапки */
-    border-right: 1px solid #282834;  /* Вертикальные разделители колонок */
+    border-bottom: 2px solid #2d2d38;
+    border-right: 1px solid #282834;
 }
 
 .clinic-appointments-table th:last-child {
     border-right: none;
 }
 
-/* Ячейки с горизонтальными и вертикальными линиями сетки */
+
 .clinic-appointments-table td {
     padding: 10px 14px;
-    border-bottom: 1px solid #282834; /* Горизонтальные линии сетки */
-    border-right: 1px solid #282834;  /* Вертикальные линии сетки */
+    border-bottom: 1px solid #282834;
+    border-right: 1px solid #282834;
     vertical-align: middle;
 }
 
@@ -138,14 +138,13 @@
 }
 
 .clinic-appointments-table tbody tr:hover {
-    background-color: #1f1f28; /* Подсветка строки при наведении */
+    background-color: #1f1f28;
 }
 
 .clinic-appointments-table tbody tr:last-child td {
-    border-bottom: none; /* Убираем нижнюю линию у самого последнего ряда */
+    border-bottom: none;
 }
 
-/* Action Buttons */
 .action-buttons {
     display: flex;
     flex-direction: row;

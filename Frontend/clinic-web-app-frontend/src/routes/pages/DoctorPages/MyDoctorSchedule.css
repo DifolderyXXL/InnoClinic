@@ -1,0 +1,121 @@
+/* Container */
+.doctor-schedule-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    color: #f0f0f5;
+}
+
+/* Header & Controls */
+.schedule-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 10px;
+}
+
+.schedule-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #f0f0f5;
+}
+
+.schedule-datepicker-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.schedule-datepicker-field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9090a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* DatePicker Override */
+.schedule-datepicker-field .date-picker-input {
+    height: 38px;
+    padding: 0 12px;
+    background-color: #121214;
+    border: 1px solid #2d2d38;
+    border-radius: 6px;
+    color: #f0f0f5;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.schedule-datepicker-field .date-picker-input:focus {
+    border-color: #3b82f6;
+}
+
+/* Schedule Table Wrapper */
+.schedule-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    background-color: #16161a;
+    border: 1px solid #2d2d38;
+    border-radius: 8px;
+}
+
+/* Schedule Grid Table */
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+    color: #e0e0e8;
+}
+
+.schedule-table th {
+    background-color: #121214;
+    color: #9090a0;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 16px;
+    border-bottom: 2px solid #2d2d38;
+    border-right: 1px solid #282834;
+}
+
+.schedule-table th:last-child {
+    border-right: none;
+}
+
+.schedule-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #282834;
+    border-right: 1px solid #282834;
+    vertical-align: middle;
+}
+
+.schedule-table td:last-child {
+    border-right: none;
+}
+
+.schedule-table tbody tr:hover {
+    background-color: #1f1f28;
+}
+
+.schedule-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.schedule-status-cell {
+    text-align: center;
+    color: #707080;
+    padding: 24px;
+}

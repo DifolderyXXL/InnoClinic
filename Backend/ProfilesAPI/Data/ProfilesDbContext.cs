@@ -55,7 +55,6 @@ public class AccountEntityTypeConfiguration : IEntityTypeConfiguration<Account>
 
         builder.Property(x => x.FirstName).IsRequired();
         builder.Property(x => x.LastName).IsRequired();
-        builder.Property(x => x.MiddleName).IsRequired();
 
         builder.HasOne(x => x.Patient).WithOne(x => x.Account).HasForeignKey<Patient>(p => p.AccountId);
         builder.HasOne(x => x.Doctor).WithOne(x => x.Account).HasForeignKey<Doctor>(p => p.AccountId);

@@ -14,7 +14,6 @@ var blobs = builder.AddAzureStorage("storage")
        .AddBlobs("documentsBlob");
 
 
-       
 var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                   .WithImage("masstransit/rabbitmq", "latest")
                   .WithLifetime(ContainerLifetime.Persistent)

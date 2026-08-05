@@ -138,7 +138,7 @@ public class PhotosController : BaseApiController
     [HasPermission(Permissions.Offices.Manage)]
     [Produces<PhotoCreatedResponse>]
     public async Task<IActionResult> UploadOfficePhoto(
-        IFormFile file,
+        [FromForm] IFormFile file,
         [FromRoute] string officeId,
         [FromServices] IValidator<IFormFile> validator,
         [FromServices] IPublicPhotoStorage tempPhotoStorage,

@@ -6,7 +6,7 @@ namespace OfficesApi.Endpoints.UpdateOffice;
 
 public class Endpoint : IEndpoint
 {
-    public record Request(Guid? PhotoId, string? City, string? Street, string? HouseNumber, string? OfficeNumber, string? RegistryPhoneNumber, string? IsActive);
+    public record Request(Guid? PhotoId, string? City, string? Street, string? HouseNumber, string? OfficeNumber, string? RegistryPhoneNumber, bool? IsActive);
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapPut("/offices/{id}", async (string id, Request request, ICommandHandler<UpdateOfficeCommand> handler, CancellationToken ct) =>
@@ -19,7 +19,7 @@ public class Endpoint : IEndpoint
                 HouseNumber: request.HouseNumber,
                 OfficeNumber: request.OfficeNumber,
                 RegistryPhoneNumber: request.RegistryPhoneNumber,
-                IsActive: bool.TryParse(request.IsActive, out var isActive) && isActive
+                IsActive: request.IsActive
             ), ct);
 
             return result.MapToTypedResult(() => TypedResults.Ok());

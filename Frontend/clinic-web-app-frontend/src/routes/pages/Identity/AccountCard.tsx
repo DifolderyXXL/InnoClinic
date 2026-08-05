@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { profilesApi } from "../../../services/api/ProfilesApi.ts";
 import "./AccountCard.css";
+import { AccountEditCard } from "./AccountEditCard.tsx";
 
 interface AccountCardProps {
     email: string;
@@ -8,25 +9,75 @@ interface AccountCardProps {
     firstName: string;
     lastName: string;
     middleName?: string;
+    photoUrl?: string | null;
+    onUpdateSuccess?: () => void;
 }
 
-export function AccountCard({ email, phoneNumber, firstName, lastName, middleName }: AccountCardProps) {
+export function AccountCard({
+                                email,
+                                phoneNumber,
+                                firstName,
+                                lastName,
+                                middleName,
+                                photoUrl,
+                                onUpdateSuccess,
+                            }: AccountCardProps) {
+    const [isEditing, setIsEditing] = useState(false);
     const fullName = [lastName, firstName, middleName].filter(Boolean).join(" ");
+
+    const handleSuccess = () => {
+        setIsEditing(false);
+        if (onUpdateSuccess) onUpdateSuccess();
+    };
 
     return (
         <div className="account-info-card">
-            <div className="account-info-field">
-                <span className="field-label">Name</span>
-                <span className="field-value">{fullName}</span>
-            </div>
-            <div className="account-info-field">
-                <span className="field-label">Email</span>
-                <span className="field-value">{email}</span>
-            </div>
-            <div className="account-info-field">
-                <span className="field-label">Phone</span>
-                <span className="field-value">{phoneNumber || "—"}</span>
-            </div>
+            <header className="card-header">
+                <h3>Account Details</h3>
+                {!isEditing && (
+                    <button
+                        type="button"
+                        className="edit-btn"
+                        onClick={() => setIsEditing(true)}
+                    >
+                        Edit
+                    </button>
+                )}
+            </header>
+
+            {isEditing ? (
+                <AccountEditCard
+                    firstName={firstName}
+                    lastName={lastName}
+                    middleName={middleName}
+                    phoneNumber={phoneNumber}
+                    photoUrl={photoUrl}
+                    onCancel={() => setIsEditing(false)}
+                    onSuccess={handleSuccess}
+                />
+            ) : (
+                <div className="account-details-body">
+                    {photoUrl && (
+                        <div className="account-photo-wrapper">
+                            <img src={photoUrl} alt="Profile" className="account-avatar-img" />
+                        </div>
+                    )}
+                    <div className="account-info-grid">
+                        <div className="account-info-field">
+                            <span className="field-label">Name</span>
+                            <span className="field-value">{fullName}</span>
+                        </div>
+                        <div className="account-info-field">
+                            <span className="field-label">Email</span>
+                            <span className="field-value">{email}</span>
+                        </div>
+                        <div className="account-info-field">
+                            <span className="field-label">Phone</span>
+                            <span className="field-value">{phoneNumber || "—"}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

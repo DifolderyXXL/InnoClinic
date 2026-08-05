@@ -25,7 +25,18 @@ public class CreatePatientEndpoint : IPatientEndpoint
             var guid = Guid.Parse(user.Id);
             var result = await handler.Handle(new(guid, request.DateOfBirth), ct);
             return result.MapToTypedResult(TypedResults.Created);
-        }).HasPermissions(Permissions.Patients.Manage);
+        }).HasPermissions(Permissions.Patients.ManageOwn);
+        
+        builder.MapPut("/patients/me", async (
+            [FromBody] UpdatePatientRequest request,
+            UserClaimInfo user,
+            ICommandHandler<UpdatePatientCommand> handler,
+            CancellationToken ct) =>
+        {
+            var guid = Guid.Parse(user.Id);
+            var result = await handler.Handle(new UpdatePatientCommand(guid, request.DateOfBirth), ct);
+            return result.MapToTypedResult(TypedResults.Ok);
+        }).HasPermissions(Permissions.Patients.ManageOwn);
     }
 }
 
@@ -54,6 +65,54 @@ public class CreatePatientCommandValidator : AbstractValidator<CreatePatientComm
 {
     public CreatePatientCommandValidator()
     {
-        // RuleFor(x => x.Property).NotEmpty();
+        RuleFor(x => x.Id)
+            .NotEmpty();
+
+        RuleFor(x => x.DateOfBirth)
+            .ValidDateOfBirth();
+    }
+}
+
+public record UpdatePatientRequest(DateOnly DateOfBirth);
+
+public record UpdatePatientCommand(Guid Id, DateOnly DateOfBirth) : ICommand;
+public class UpdatePatientCommandHandler(ProfilesDbContext context) : ICommandHandler<UpdatePatientCommand>
+{
+    public async Task<Result> Handle(UpdatePatientCommand command, CancellationToken ct)
+    {
+        var patient = await context.Patients
+            .FirstOrDefaultAsync(x => x.AccountId == command.Id, ct);
+
+        if (patient == null) 
+            return PatientErrors.NotFound();
+
+        patient.DateOfBirth = command.DateOfBirth;
+
+        await context.SaveChangesAsync(ct);
+
+        return Result.Success();
+    }
+}
+public class UpdatePatientCommandValidator : AbstractValidator<UpdatePatientCommand>
+{
+    public UpdatePatientCommandValidator()
+    {
+        RuleFor(x => x.Id)
+            .NotEmpty();
+
+        RuleFor(x => x.DateOfBirth)
+            .ValidDateOfBirth();
+    }
+}
+
+
+public static class ValidationExtensions
+{
+    public static IRuleBuilderOptions<T, DateOnly> ValidDateOfBirth<T>(
+        this IRuleBuilder<T, DateOnly> ruleBuilder)
+    {
+        return ruleBuilder
+            .LessThan(DateOnly.FromDateTime(DateTime.UtcNow))
+            .WithMessage("Date of birth must be in the past.");
     }
 }

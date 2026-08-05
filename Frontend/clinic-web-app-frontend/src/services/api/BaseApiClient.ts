@@ -18,6 +18,17 @@ export abstract class BaseApiClient {
             body: this.serialize(request)
         }, params)
     }
+    public async postForm<T = any>(
+        path: string,
+        formData: FormData,
+        params: Record<string, any> = {}
+    ): Promise<Result<T>> {
+        return this.request(path, {
+            method: 'POST',
+
+            body: formData
+        }, params);
+    }
 
     public async delete<T = any, TRequest = null>(path: string, request: TRequest | null = null, params: Record<string, any> = {}) : Promise<Result<T>>{
         return this.request(path, { method: 'DELETE', headers: {

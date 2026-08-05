@@ -1,8 +1,9 @@
-import {profilesApi} from "../../../services/api/ProfilesApi.ts";
-import {useEffect, useState} from "react";
-import {PatientCard, PatientCreateCard} from "./PatientCard.tsx";
-import {AccountCard, AccountCreateCard} from "./AccountCard.tsx";
-import {DoctorCard} from "./DoctorCard.tsx";
+import { useEffect, useState } from "react";
+import { profilesApi } from "../../../services/api/ProfilesApi.ts";
+import { PatientCard, PatientCreateCard } from "./PatientCard.tsx";
+import { AccountCard, AccountCreateCard } from "./AccountCard.tsx";
+import { DoctorCard } from "./DoctorCard.tsx";
+import "./ProfilePage.css";
 
 export function ProfilePage() {
     const [profile, setProfile] = useState<any>(null);
@@ -18,10 +19,10 @@ export function ProfilePage() {
             if (result.type === "ok") {
                 setProfile(result.value);
             } else {
-                setError(result.error?.title || "Error");
+                setError(result.error?.title || "Failed to load profile");
             }
-        } catch (err) {
-            setError("Unhandled error");
+        } catch {
+            setError("An unexpected error occurred while loading profile");
         } finally {
             setLoading(false);
         }
@@ -32,19 +33,36 @@ export function ProfilePage() {
     }, []);
 
     if (loading) {
-        return <div style={{ textAlign: 'center', padding: '40px' }}>Loading profile...</div>;
+        return <div className="status-message">Loading profile...</div>;
     }
-    
+
     return (
-        <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center"}}>
-            {error && (<div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>{error}</div>)}
-            {
-                profile && profile.account ? <AccountCard {...profile.account} /> : <AccountCreateCard onSuccess={loadData}/>
-            }
+        <div className="profile-page-container">
+            {error && <div className="status-message error">{error}</div>}
+
+            <section className="profile-section">
+                {profile && profile.account ? (
+                    <AccountCard {...profile.account} />
+                ) : (
+                    <AccountCreateCard onSuccess={loadData} />
+                )}
+            </section>
+
             {profile && (
-                profile.onlyPatient ? <PatientCard {...profile.onlyPatient} /> : <PatientCreateCard onSuccess={loadData}/> 
+                <section className="profile-section">
+                    {profile.onlyPatient ? (
+                        <PatientCard {...profile.onlyPatient} />
+                    ) : (
+                        <PatientCreateCard onSuccess={loadData} />
+                    )}
+                </section>
             )}
-            {profile && profile.onlyDoctor && <DoctorCard {...profile.onlyDoctor} />}
+
+            {profile && profile.onlyDoctor && (
+                <section className="profile-section">
+                    <DoctorCard {...profile.onlyDoctor} />
+                </section>
+            )}
         </div>
     );
 }

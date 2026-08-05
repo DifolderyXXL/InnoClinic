@@ -1,6 +1,6 @@
-/* Fixed Full Width Containers */
-.account-info-card,
-.account-create-card {
+/* Fixed Width Containers */
+.patient-info-card,
+.patient-create-card {
     width: 100%;
     box-sizing: border-box;
     background-color: #18181c;
@@ -13,7 +13,7 @@
     gap: 16px;
 }
 
-/* Header styling */
+/* Card Header with Edit Button Alignment */
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -30,40 +30,15 @@
     color: #f0f0f5;
 }
 
-/* Read-only body structure */
-.account-details-body {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    width: 100%;
-}
-
-.account-photo-wrapper {
-    flex-shrink: 0;
-}
-
-.account-avatar-img {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #2d2d38;
-}
-
-.account-info-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    width: 100%;
-}
-
-.account-info-field {
+/* Patient Info Field */
+.patient-info-field {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    width: 100%;
 }
 
-.account-info-field .field-label {
+.patient-info-field .field-label {
     font-size: 11px;
     font-weight: 600;
     color: #9090a0;
@@ -71,23 +46,16 @@
     letter-spacing: 0.5px;
 }
 
-.account-info-field .field-value {
+.patient-info-field .field-value {
     font-size: 14px;
     font-weight: 500;
     color: #f0f0f5;
 }
 
-/* Form structure */
-.account-create-form {
+/* Forms */
+.patient-create-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    width: 100%;
-}
-
-.form-grid.name-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
     width: 100%;
 }
@@ -121,7 +89,7 @@
     transition: border-color 0.2s ease;
 }
 
-/* Red border on error state */
+/* F-6 Red border on error state */
 .form-group input.has-error {
     border-color: #ef4444 !important;
 }
@@ -140,6 +108,19 @@
     font-size: 12px;
     font-weight: 500;
     margin-top: 2px;
+}
+
+.empty-profile-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.card-status-text {
+    margin: 0;
+    font-size: 14px;
+    color: #9090a0;
 }
 
 /* Buttons */
@@ -203,7 +184,7 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* Status messages */
+/* Global status messages */
 .status-message {
     padding: 10px 14px;
     border-radius: 6px;
@@ -217,10 +198,4 @@ button:disabled {
     background-color: rgba(239, 68, 68, 0.12);
     color: #ef4444;
     border: 1px solid rgba(239, 68, 68, 0.25);
-}
-
-.status-message.success {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.25);
 }

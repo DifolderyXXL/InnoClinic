@@ -111,7 +111,7 @@ public class PhotosController : BaseApiController
     [HasPermission(Permissions.Photos.Manage)]
     [Produces<PhotoCreatedResponse>]
     public async Task<IActionResult> UploadProfilePhoto(
-        IFormFile file,
+        [FromForm] IFormFile file,
         [FromServices] IValidator<IFormFile> validator,
         [FromServices] IUserPhotoStorage tempPhotoStorage,
         CancellationToken ct)

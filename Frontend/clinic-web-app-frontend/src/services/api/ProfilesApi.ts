@@ -48,6 +48,10 @@ export class ProfilesApi extends BaseApiClient {
     public async createPatientMe(date: string): Promise<Result> {
         return this.post("api/v1/patients/me", { dateOfBirth: date });
     }
+
+    public async updatePatientMe(date: string): Promise<Result> {
+        return this.put("api/v1/patients/me", { dateOfBirth: date });
+    }
     
     public async createDoctorMe(date: string): Promise<Result> {
         return this.post("api/v1/doctors/me", { dateOfBirth: date });

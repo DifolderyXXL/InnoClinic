@@ -134,7 +134,7 @@ export class DocumentsApi extends BaseApiClient {
     public async uploadUserAvatar(file: File | Blob): Promise<Result> {
         const formData = new FormData();
         formData.append("file", file);
-        return this.post(`api/v1/Photos/users/avatar`, formData);
+        return this.postForm(`api/v1/Photos/users/avatar`, formData);
     }
 }
 

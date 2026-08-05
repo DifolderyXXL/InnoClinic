@@ -12,4 +12,14 @@
         <h1 class="text-brand mb-0">Verify your mail</h1>
         <p>Confirmation link sent to your mail</p>
     </div>
+    
+    <form method="post" asp-page-handler="Resend" class="mt-4">
+        <input type="hidden" asp-for="Input.Email" />
+        <input type="hidden" asp-for="Input.ReturnUrl" />
+
+        <p>
+            Didn't receive the email? 
+            <button type="submit" class="btn btn-link p-0 align-baseline">Resend Email</button>
+        </p>
+    </form>
 </div>

@@ -1,4 +1,5 @@
 using System.Text;
+using Deunde.IdentityServer.Services.SMTP;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -14,6 +15,7 @@ public class SmptEmailVerificationManager(
     IHttpContextAccessor contextAccessor,
     UserManager<IdentityUser> userManager,
     LinkGenerator linkGenerator,
+    ISmtpClient mailClient, 
     ILogger<SmptEmailVerificationManager> logger) : IEmailVerificationManager
 {
     public async Task SendVerification(IdentityUser user, string returnUrl)
@@ -35,7 +37,15 @@ public class SmptEmailVerificationManager(
             values: new { userId = user.Id, token = encodedToken, returnUrl }
         );
 
-        logger.LogInformation("Email confirmation link generated for user {Email}: {ConfirmLink}", user.Email, approveLink);
+        var result = await mailClient.Send(
+            user.Email, 
+            "Account verification", 
+            $"Verification link: <a href=\"{approveLink}\">Verify</a>");
+        
+        if (result.IsError)
+        {
+            logger.LogError($"Error sending email verification: {result.Error}");
+        }
     }
 
     public async Task<IdentityResult> ConfirmEmailAsync(string userId, string token)

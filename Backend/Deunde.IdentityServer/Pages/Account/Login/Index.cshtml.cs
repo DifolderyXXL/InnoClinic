@@ -145,20 +145,12 @@ public class Index : PageModel
                     return Redirect(Input.ReturnUrl ?? "~/");
                 }
 
-                // request for a local page
-                if (Url.IsLocalUrl(Input.ReturnUrl))
+                if (!string.IsNullOrEmpty(Input.ReturnUrl) && (_interaction.IsValidReturnUrl(Input.ReturnUrl) || Url.IsLocalUrl(Input.ReturnUrl)))
                 {
                     return Redirect(Input.ReturnUrl);
                 }
-                else if (string.IsNullOrEmpty(Input.ReturnUrl))
-                {
-                    return Redirect("~/");
-                }
-                else
-                {
-                    // user might have clicked on a malicious link - should be logged
-                    throw new ArgumentException("invalid return URL");
-                }
+
+                return Redirect("~/");
             }
 
             const string error = "invalid credentials";

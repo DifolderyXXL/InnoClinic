@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 namespace Deunde.IdentityServer.Pages.Account.Register;
 
 [SecurityHeaders]
+[SecurityHeaders]
 [AllowAnonymous]
 public class Index : PageModel
 {
@@ -25,7 +26,7 @@ public class Index : PageModel
     private readonly IEventService _events;
     private readonly IAuthenticationSchemeProvider _schemeProvider;
     private readonly IIdentityProviderStore _identityProviderStore;
-
+    private readonly IEmailVerificationManager _verificationManager;
     public ViewModel View { get; set; } = default!;
 
     [BindProperty]
@@ -37,7 +38,7 @@ public class Index : PageModel
         IIdentityProviderStore identityProviderStore,
         IEventService events,
         UserManager<IdentityUser> userManager,
-        IUserCreateManager userCreateManager)
+        IUserCreateManager userCreateManager, IEmailVerificationManager verificationManager)
     {
         _interaction = interaction;
         _schemeProvider = schemeProvider;
@@ -45,6 +46,7 @@ public class Index : PageModel
         _events = events;
         _userManager = userManager;
         _userCreateManager = userCreateManager;
+        _verificationManager = verificationManager;
     }
 
     public async Task<IActionResult> OnGet(string? returnUrl)
@@ -103,6 +105,20 @@ public class Index : PageModel
 
             if (result.Succeeded)
             {
+                if (!newUser.EmailConfirmed)
+                {
+                    await _verificationManager.SendVerification(newUser, Input.ReturnUrl ?? "~/");
+                }
+
+                if (_userManager.Options.SignIn.RequireConfirmedEmail && !newUser.EmailConfirmed)
+                {
+                    return RedirectToPage("/Account/ConfirmEmailNotice/Index", new 
+                    { 
+                        email = newUser.Email, 
+                        returnUrl = Input.ReturnUrl ?? "~/" 
+                    });
+                }
+                
                 await _events.RaiseAsync(new UserLoginSuccessEvent(newUser.UserName, newUser.Id, newUser.UserName, clientId: context?.Client.ClientId));
                 Telemetry.Metrics.UserLogin(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider);
 

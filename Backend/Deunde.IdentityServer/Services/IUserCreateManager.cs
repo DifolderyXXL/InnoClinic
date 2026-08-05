@@ -4,8 +4,8 @@ namespace Deunde.IdentityServer.Services;
 
 public interface IUserCreateManager
 {
-    Task<IdentityUser> CreateClientExternal(string email);
-    Task<IdentityUser> CreateExternal(string email, string[] roles);
+    Task<IdentityUser> CreateClientExternal(string email, bool isExternalEmailVerified);
+    Task<IdentityUser> CreateExternal(string email, string[] roles, bool isExternalEmailVerified);
     Task<(IdentityUser, IdentityResult)> CreateInternal(string email, string password, string[] roles);
 }
 
@@ -14,17 +14,17 @@ public class UserCreateManager(
 {
     public const string ClientRole = "client";
 
-    public async Task<IdentityUser> CreateClientExternal(string email)
+    public async Task<IdentityUser> CreateClientExternal(string email, bool isExternalEmailVerified)
     {
-        return await CreateExternal(email, [ClientRole]);
+        return await CreateExternal(email, [ClientRole], isExternalEmailVerified);
     }
-    public async Task<IdentityUser> CreateExternal(string email, string[] roles)
+    public async Task<IdentityUser> CreateExternal(string email, string[] roles, bool isExternalEmailVerified)
     {
         var user = new IdentityUser
         {
             UserName = email,
             Email = email,
-            EmailConfirmed = true
+            EmailConfirmed = isExternalEmailVerified
         };
 
         var createResult = await userManager.CreateAsync(user);
@@ -45,7 +45,7 @@ public class UserCreateManager(
         {
             UserName = email,
             Email = email,
-            EmailConfirmed = true
+            EmailConfirmed = false
         };
 
         var createResult = await userManager.CreateAsync(user, password);

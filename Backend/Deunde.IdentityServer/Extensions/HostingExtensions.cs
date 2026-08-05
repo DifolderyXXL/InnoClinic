@@ -79,6 +79,8 @@ internal static class HostingExtensions
 
         builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
+                options.SignIn.RequireConfirmedEmail = true;
+                
                 options.User.RequireUniqueEmail = true;
                 options.Password.RequireDigit = false;
                 options.Password.RequiredLength = 6;
@@ -164,6 +166,8 @@ internal static class HostingExtensions
         builder.Services.AddScoped<IUserCreateManager, UserCreateManager>();
         
         builder.Services.AddSingleton<IAuthorizationHandler, ScopeRequirementHandler>();
+
+        builder.Services.AddScoped<IEmailVerificationManager, SmptEmailVerificationManager>();
 
         // this adds the necessary config for the simple admin/config pages
         {

@@ -1,5 +1,6 @@
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using MicroserviceApiKernel.Results;
 using Microsoft.Extensions.Options;
 
@@ -16,14 +17,22 @@ public class BasicSmtpClient(IOptions<SmtpClientOptions> options) : ISmtpClient
     {
         try
         {
-            using var client = new SmtpClient(options.Value.Host, (int)options.Value.Port);
-            client.EnableSsl = true;
-            client.Credentials = new NetworkCredential(options.Value.Email, options.Value.AppPassword);
+            using var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("noreply", options.Value.Email));
+            message.To.Add (new MailboxAddress (receiverMail, receiverMail));
 
-            using var message = new MailMessage(options.Value.Email, receiverMail, subject, body);
-            message.IsBodyHtml = true;
+            message.Subject = subject ?? string.Empty;
+            message.Body = new TextPart("html")
+            {
+                Text = body ?? string.Empty
+            };
             
-            await client.SendMailAsync(message);
+            using var client = new SmtpClient();
+            await client.ConnectAsync(options.Value.Host, (int)options.Value.Port, SecureSocketOptions.Auto);
+            await client.AuthenticateAsync(options.Value.Email, options.Value.AppPassword);
+            
+            await client.SendAsync (message);
+            await client.DisconnectAsync (true);
             
             return Result.Success();
         }

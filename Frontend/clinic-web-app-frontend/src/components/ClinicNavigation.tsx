@@ -29,6 +29,7 @@ export function ReceptionistNavigation() {
     return (
         <nav className="nav-container">
             <RouteLinkCard to="/clinic-schedule">Clinic schedule</RouteLinkCard>
+            <RouteLinkCard to="/accounts">Accounts</RouteLinkCard>
         </nav>
     );
 }

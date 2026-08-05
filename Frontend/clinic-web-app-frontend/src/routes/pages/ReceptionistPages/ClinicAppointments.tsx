@@ -8,6 +8,23 @@ import { PaginatedListView, type PaginatedResult } from "../common/PaginatedList
 import { useSearchParams } from "react-router";
 import "./ClinicAppointments.css";
 
+// Хелпер для корректного отображения названия статуса
+function formatAppointmentState(state: AppointmentState | string | number): string {
+    if (typeof state === "string" && isNaN(Number(state))) {
+        return state;
+    }
+    const numState = Number(state);
+    switch (numState) {
+        case AppointmentState.Created: return "Created";
+        case AppointmentState.PendingReservation: return "Pending Reservation";
+        case AppointmentState.PendingApproval: return "Pending Approval";
+        case AppointmentState.Approved: return "Approved";
+        case AppointmentState.Confirmed: return "Confirmed";
+        case AppointmentState.Failed: return "Failed";
+        default: return String(state ?? "—");
+    }
+}
+
 export function ClinicAppointments() {
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -90,7 +107,8 @@ export function ClinicAppointments() {
     const approveAppointment = async (id: string) => {
         const res = await appointmentsApi.approveAppointment(id);
         if (res.type === "ok") {
-            setLocalItems(prev => prev.map(item => item.id === id ? { ...item, state: String(AppointmentState.Approved) } : item));
+            // Устанавливаем строковое значение "Approved" вместо enum-индекса
+            setLocalItems(prev => prev.map(item => item.id === id ? { ...item, state: "Approved" } : item));
         }
     };
 
@@ -237,30 +255,37 @@ export function ClinicAppointments() {
                             </thead>
                             <tbody>
                             {localItems.length > 0 ? (
-                                localItems.map((item) => (
-                                    <tr key={item.id}>
-                                        <td>{item.date}</td>
-                                        <td>{item.beginTime ?? `Slot #${item.startSlotIndex}`}</td>
-                                        <td>{item.doctorFullName}</td>
-                                        <td>{item.patientFullName}</td>
-                                        <td>{item.serviceName}</td>
-                                        <td>{item.officeId}</td>
-                                        <td>{item.state}</td>
-                                        <td>
-                                            <div className="action-buttons">
-                                                <button className="btn btn-decline" onClick={() => openCancelModal(item.id)}>
-                                                    Cancel
-                                                </button>
-                                                
-                                                {(item.state === "PendingApproval" || Number(item.state) === AppointmentState.PendingApproval) && (
-                                                    <button className="btn btn-approve" onClick={() => approveAppointment(item.id)}>
-                                                        Approve
+                                localItems.map((item) => {
+                                    const formattedState = formatAppointmentState(item.state);
+                                    const isPendingApproval =
+                                        item.state === "PendingApproval" ||
+                                        Number(item.state) === AppointmentState.PendingApproval;
+
+                                    return (
+                                        <tr key={item.id}>
+                                            <td>{item.date}</td>
+                                            <td>{item.beginTime ?? `Slot #${item.startSlotIndex}`}</td>
+                                            <td>{item.doctorFullName}</td>
+                                            <td>{item.patientFullName}</td>
+                                            <td>{item.serviceName}</td>
+                                            <td>{item.officeId}</td>
+                                            <td>{formattedState}</td>
+                                            <td>
+                                                <div className="action-buttons">
+                                                    <button className="btn btn-decline" onClick={() => openCancelModal(item.id)}>
+                                                        Cancel
                                                     </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+
+                                                    {isPendingApproval && (
+                                                        <button className="btn btn-approve" onClick={() => approveAppointment(item.id)}>
+                                                            Approve
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             ) : (
                                 <tr>
                                     <td colSpan={8} style={{ textAlign: "center", color: "#606070" }}>

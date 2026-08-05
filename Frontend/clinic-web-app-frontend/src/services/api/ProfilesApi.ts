@@ -109,7 +109,10 @@ export class ProfilesApi extends BaseApiClient {
     }
     
     public async getAccounts(page: number = 1, pageSize: number = 50): Promise<Result> {
-        return this.get("api/v1/accounts", { params: { Page: page, PageSize: pageSize } });
+        return this.get("api/v1/accounts", { Page: page, PageSize: pageSize });
+    }
+    public async getAccount(userId: string): Promise<Result> {
+        return this.get(`api/v1/accounts/${userId}`);
     }
 
     public async createAccountMe(data: AccountRequest): Promise<Result> {
@@ -122,6 +125,10 @@ export class ProfilesApi extends BaseApiClient {
 
     public async updateAccountMe(data: UpdateAccountCommand): Promise<Result> {
         return this.put("api/v1/accounts/me", data);
+    }
+
+    public async updateAccount(userId: string, data: UpdateAccountCommand): Promise<Result> {
+        return this.put(`api/v1/accounts/${userId}`, data);
     }
 }
 

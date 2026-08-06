@@ -13,6 +13,14 @@ namespace ProfilesAPI.Endpoints.Accounts.Create;
 public class CreateAccountEndpoint : IAccountEndpoint
 {
     public record AccountRequest(string FirstName, string LastName, string? MiddleName, string? PhoneNumber);
+    public record AdminCreateAccountRequest(
+        string Email, 
+        string FirstName, 
+        string LastName, 
+        string? MiddleName, 
+        string? PhoneNumber,
+        List<string> Roles
+    );
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapPost("/accounts/me", async (
@@ -35,6 +43,24 @@ public class CreateAccountEndpoint : IAccountEndpoint
 
             return result.MapToTypedResult(TypedResults.Created);
         }).RequireAuthorization();
+        
+        builder.MapPost("/accounts", async (
+            [FromBody] AdminCreateAccountRequest request,
+            ICommandHandler<AdminCreateAccountCommand> handler, 
+            CancellationToken ct) =>
+        {
+            var result = await handler.Handle(
+                new(
+                    request.Email,
+                    request.FirstName,
+                    request.LastName,
+                    request.MiddleName,
+                    request.PhoneNumber,
+                    request.Roles
+                ), ct);
+
+            return result.MapToTypedResult(TypedResults.Created);
+        }).HasPermissions(Permissions.Accounts.Manage);
     }
 }
 
@@ -70,7 +96,7 @@ public class CreateAccountCommandValidator : AbstractValidator<CreateAccountComm
     public CreateAccountCommandValidator()
     {
         RuleFor(x => x.Id).NotEqual(Guid.Empty);
-        RuleFor(x => x.FirstName).NotEmpty();
-        RuleFor(x => x.LastName).NotEmpty();
+        RuleFor(x => x.FirstName).ValidPersonName();
+        RuleFor(x => x.LastName).ValidPersonName();
     }
 }

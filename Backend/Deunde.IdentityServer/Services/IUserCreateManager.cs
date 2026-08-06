@@ -20,6 +20,9 @@ public class UserCreateManager(
     }
     public async Task<IdentityUser> CreateExternal(string email, string[] roles, bool isExternalEmailVerified)
     {
+        if (roles.Length == 0) 
+            throw new ArgumentException("Minimum one role is required", nameof(roles));
+        
         var user = new IdentityUser
         {
             UserName = email,
@@ -30,11 +33,11 @@ public class UserCreateManager(
         var createResult = await userManager.CreateAsync(user);
         if (!createResult.Succeeded)
         {
-            throw new InvalidOperationException($"Error while creating user: {createResult.Errors.First().Description}");
+            var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Error while creating user: {errors}");
         }
-
-        foreach (var role in roles)
-            await roleManager.AddUserToRole(user, role);
+        
+        await roleManager.AddUserToRoles(user, roles);
 
         return user;
     }
@@ -54,8 +57,7 @@ public class UserCreateManager(
             return (user, createResult);
         }
 
-        foreach (var role in roles)
-            await roleManager.AddUserToRole(user, role);
+        await roleManager.AddUserToRoles(user, roles);
         
         return (user, createResult);
         

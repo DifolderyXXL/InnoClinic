@@ -22,8 +22,9 @@ builder.Services.AddDbContext<ProfilesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("profilesSqlServer")));
 
 builder.AddCredentialsClient("identityclient");
+builder.AddCredentialsClient<IIdentityServiceClient, IdentityServiceClient>("identityclient");
 
-builder.Services.AddSingleton<IPhotoUrlFactory>(sp => {
+builder.Services.AddSingleton<IGatewayUrlProvider>(sp => {
     var config = sp.GetRequiredService<IConfiguration>();
     var gatewayBaseUrl = config.DiscoverHttps("BffProxy");
 
@@ -32,8 +33,11 @@ builder.Services.AddSingleton<IPhotoUrlFactory>(sp => {
         throw new InvalidOperationException("BffProxy URL not found.");
     }
     
-    return new DocumentsPhotoUrlFactory(gatewayBaseUrl);
+    return new GatewayUrlProvider(gatewayBaseUrl);
 });
+
+builder.Services.AddSingleton<IPhotoUrlFactory, DocumentsPhotoUrlFactory>();
+builder.Services.AddSingleton<IFrontendUrlGenerator, FrontendUrlGenerator>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

@@ -1,3 +1,4 @@
+using Contracts.Notifications;
 using FluentValidation;
 using MassTransit;
 using MicroserviceApiKernel.CQRS;

@@ -8,6 +8,7 @@ using ProfilesAPI.Data;
 using ServiceDefaults;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Contracts.Notifications;
 using ProfilesAPI.Application;
 using ProfilesAPI.Infrastructure;
 
@@ -85,8 +86,6 @@ if (app.Environment.IsDevelopment())
 
     app.MapSwaggerDefaults();
 }
-
-
 
 app.UseCors(PolicyConstants.FRONTEND_BFF_CORS_POLICY);
 

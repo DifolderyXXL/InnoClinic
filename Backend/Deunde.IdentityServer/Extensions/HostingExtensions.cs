@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Deunde.IdentityServer.Data;
 using Deunde.IdentityServer.Services;
 using Deunde.IdentityServer.Services.SMTP;
+using Infrastructure.Mailing.SMTP;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
 using Microsoft.AspNetCore.Authorization;

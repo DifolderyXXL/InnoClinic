@@ -1,3 +1,5 @@
+using Deunde.IdentityServer.Services.SMTP;
+using Infrastructure.Mailing.SMTP;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Worker.Data;
@@ -6,6 +8,10 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddDbContext<NotificationContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("notificationDb")));
+
+builder.Services.Configure<SmtpClientOptions>(
+    builder.Configuration.GetSection(SmtpClientOptions.SectionName));
+builder.Services.AddScoped<ISmtpClient, BasicSmtpClient>();
 
 builder.Services.AddMassTransit(x =>
 {

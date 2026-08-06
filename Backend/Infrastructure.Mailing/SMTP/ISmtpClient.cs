@@ -1,10 +1,11 @@
+using Deunde.IdentityServer.Services.SMTP;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using MimeKit;
 using MicroserviceApiKernel.Results;
 using Microsoft.Extensions.Options;
+using MimeKit;
 
-namespace Deunde.IdentityServer.Services.SMTP;
+namespace Infrastructure.Mailing.SMTP;
 
 public interface ISmtpClient
 {

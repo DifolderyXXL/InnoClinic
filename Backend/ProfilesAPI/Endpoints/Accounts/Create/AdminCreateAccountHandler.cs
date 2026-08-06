@@ -39,7 +39,7 @@ public class AdminCreateAccountCommandHandler(
             return identityResult.Error!;
         }
         
-        var (userId, resetToken) = identityResult.Value!;
+        var (userId, setPasswordLink) = identityResult.Value!;
         var account = new Account
         {
             Id = userId,
@@ -58,7 +58,7 @@ public class AdminCreateAccountCommandHandler(
         var integrationEvent = new UserRegisteredIntegrationEvent(
             account.Id,
             account.Email,
-            resetToken
+            setPasswordLink
         );
 
         await publishEndpoint.Publish(integrationEvent, ct);

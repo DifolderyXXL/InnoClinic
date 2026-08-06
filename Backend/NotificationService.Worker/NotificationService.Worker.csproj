@@ -23,5 +23,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Contracts\Contracts.csproj" />
+      <ProjectReference Include="..\Infrastructure.Mailing\Infrastructure.Mailing.csproj" />
     </ItemGroup>
 </Project>

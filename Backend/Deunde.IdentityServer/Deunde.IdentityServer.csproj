@@ -38,6 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Infrastructure.Mailing\Infrastructure.Mailing.csproj" />
     <ProjectReference Include="..\MicroserviceApiKernel\MicroserviceApiKernel.csproj" />
   </ItemGroup>
 

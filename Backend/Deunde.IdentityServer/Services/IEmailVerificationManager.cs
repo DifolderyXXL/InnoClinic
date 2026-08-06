@@ -1,5 +1,5 @@
 using System.Text;
-using Deunde.IdentityServer.Services.SMTP;
+using Infrastructure.Mailing.SMTP;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 

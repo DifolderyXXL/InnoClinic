@@ -38,6 +38,15 @@ interface UpdateDoctorProfileCommand {
     officeId: string;
 }
 
+export interface AdminCreateAccountRequest {
+    email: string;
+    firstName: string;
+    lastName: string;
+    middleName?: string | null;
+    phoneNumber?: string | null;
+    roles: string[];
+}
+
 export class ProfilesApi extends BaseApiClient {
     protected override readonly middlewarePath = "/profiles";
 
@@ -129,6 +138,10 @@ export class ProfilesApi extends BaseApiClient {
 
     public async updateAccount(userId: string, data: UpdateAccountCommand): Promise<Result> {
         return this.put(`api/v1/accounts/${userId}`, data);
+    }
+
+    public async createAccount(data: AdminCreateAccountRequest): Promise<Result> {
+        return this.post("api/v1/accounts", data);
     }
 }
 

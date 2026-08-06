@@ -22,7 +22,7 @@ public class CreateIdentityUser : IEndpoint
         {
             var result = await handler.Handle(request, ct);
 
-            return result.MapToTypedResult(TypedResults.Created);
+            return result.MapToTypedResult(TypedResults.Ok);
         }).RequireAuthorization(RolePolicy.IdentityServer);
     }
 }
@@ -32,7 +32,7 @@ public record CreateIdentityUserCommand(
     List<string> Roles,
     string? ReturnUrl) : ICommand<CreateIdentityUserResponse>;
 
-public record CreateIdentityUserResponse(string Id, string SetPasswordLink);
+public record CreateIdentityUserResponse(string UserId, string SetPasswordLink);
 
 public class CreateIdentityUserCommandHandler(
     IUserCreateManager createManager, 
@@ -55,6 +55,8 @@ public class CreateIdentityUserCommandHandler(
             var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
             
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken));
+            
+            
             
             var setPasswordLink = linkGenerator.GetUriByPage(
                 httpContext: context,

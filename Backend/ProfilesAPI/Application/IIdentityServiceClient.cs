@@ -2,7 +2,7 @@ using MicroserviceApiKernel.Results;
 
 namespace ProfilesAPI.Application;
 
-public record CreateIdentityUserResponse(Guid UserId, string SetPasswordLink);
+public record CreateIdentityUserResponse(string UserId, string SetPasswordLink);
 
 public interface IIdentityServiceClient
 {

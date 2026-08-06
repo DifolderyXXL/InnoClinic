@@ -95,14 +95,13 @@ public class Index : PageModel
                 await _userManager.UpdateAsync(user);
             }
 
+            await _signInManager.SignOutAsync();
+            
             await _signInManager.SignInAsync(user, isPersistent: false);
 
             if (!string.IsNullOrEmpty(Input.ReturnUrl))
             {
-                if (Url.IsLocalUrl(Input.ReturnUrl) || _interaction.IsValidReturnUrl(Input.ReturnUrl))
-                {
-                    return Redirect(Input.ReturnUrl);
-                }
+                return Redirect(Input.ReturnUrl);
             }
 
             return Redirect("~/");

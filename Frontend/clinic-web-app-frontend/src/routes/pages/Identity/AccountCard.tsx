@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import {type AccountRequest} from "../../../services/api/ProfilesApi.ts";
 import "./AccountCard.css";
 import { AccountEditCard } from "./AccountEditCard.tsx";
-import type {Result} from "../../../services/api/BaseApiClient.ts";
+import type { Result } from "../../../services/api/BaseApiClient.ts";
 
 interface AccountCardProps {
     email: string;
@@ -83,24 +82,50 @@ export function AccountCard({
     );
 }
 
-interface AccountCreateCardProps {
-    onCreate: (data: AccountRequest) => Promise<Result>
+
+export interface BaseAccountFormData {
+    firstName: string;
+    lastName: string;
+    middleName: string | null;
+    phoneNumber: string | null;
+}
+
+interface AccountCreateCardProps<TExtra = Record<string, unknown>> {
+    title?: string;
+    onCreate: (baseData: BaseAccountFormData, extraData: TExtra) => Promise<Result>;
     onSuccess?: () => void;
+    extraInitialState?: TExtra;
+    validateExtra?: (extraData: TExtra) => Record<string, string>;
+    renderExtraFields?: (props: {
+        extraData: TExtra;
+        setExtraData: React.Dispatch<React.SetStateAction<TExtra>>;
+        isCreating: boolean;
+        errors: Record<string, string>;
+    }) => React.ReactNode;
 }
 
 interface FormErrors {
     firstName?: string;
     lastName?: string;
     phoneNumber?: string;
+    [key: string]: string | undefined;
 }
 
 interface TouchedFields {
     firstName?: boolean;
     lastName?: boolean;
     phoneNumber?: boolean;
+    [key: string]: boolean | undefined;
 }
 
-export function AccountCreateCard({ onSuccess, onCreate }: AccountCreateCardProps) {
+export function AccountCreateCard<TExtra = Record<string, unknown>>({
+                                                                        title = "Create Account",
+                                                                        onSuccess,
+                                                                        onCreate,
+                                                                        extraInitialState = {} as TExtra,
+                                                                        validateExtra,
+                                                                        renderExtraFields,
+                                                                    }: AccountCreateCardProps<TExtra>) {
     const [isCreating, setIsCreating] = useState(false);
 
     // Form fields
@@ -108,6 +133,9 @@ export function AccountCreateCard({ onSuccess, onCreate }: AccountCreateCardProp
     const [lastName, setLastName] = useState("");
     const [middleName, setMiddleName] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("+");
+
+    // Dynamic Extra state for extra fields (like Admin Email / Roles)
+    const [extraData, setExtraData] = useState<TExtra>(extraInitialState);
 
     const [touched, setTouched] = useState<TouchedFields>({});
     const [errors, setErrors] = useState<FormErrors>({});
@@ -159,28 +187,40 @@ export function AccountCreateCard({ onSuccess, onCreate }: AccountCreateCardProp
         setApiError(null);
         setSuccess(false);
 
-        setTouched({
+        setTouched((prev) => ({
+            ...prev,
             firstName: true,
             lastName: true,
             phoneNumber: true,
-        });
+        }));
 
         const isFirstNameValid = validateField("firstName", firstName);
         const isLastNameValid = validateField("lastName", lastName);
         const isPhoneValid = validateField("phoneNumber", phoneNumber);
 
-        if (!isFirstNameValid || !isLastNameValid || !isPhoneValid) {
+        // Полиморфная валидация внешних полей
+        const extraErrors = validateExtra ? validateExtra(extraData) : {};
+        const isExtraValid = Object.keys(extraErrors).length === 0;
+
+        if (Object.keys(extraErrors).length > 0) {
+            setErrors((prev) => ({ ...prev, ...extraErrors }));
+        }
+
+        if (!isFirstNameValid || !isLastNameValid || !isPhoneValid || !isExtraValid) {
             return;
         }
 
         setIsCreating(true);
         try {
-            const result = await onCreate({
+            const baseData: BaseAccountFormData = {
                 firstName: firstName.trim(),
                 lastName: lastName.trim(),
                 middleName: middleName.trim() || null,
                 phoneNumber: phoneNumber.trim() || null,
-            });
+            };
+
+            // Делегируем выполнение стратегии через пропс onCreate
+            const result = await onCreate(baseData, extraData);
 
             if (result.type === "error") {
                 setApiError(result.error?.title || "Failed to create account.");
@@ -190,11 +230,13 @@ export function AccountCreateCard({ onSuccess, onCreate }: AccountCreateCardProp
                 setLastName("");
                 setMiddleName("");
                 setPhoneNumber("+");
+                setExtraData(extraInitialState);
                 setTouched({});
                 setErrors({});
                 if (onSuccess) onSuccess();
             }
-        } catch {
+        } catch(e) {
+            console.log(e)
             setApiError("An unexpected error occurred.");
         } finally {
             setIsCreating(false);
@@ -204,10 +246,18 @@ export function AccountCreateCard({ onSuccess, onCreate }: AccountCreateCardProp
     return (
         <div className="account-create-card">
             <header className="card-header">
-                <h3>Create Account</h3>
+                <h3>{title}</h3>
             </header>
 
             <form onSubmit={handleSubmit} className="account-create-form" noValidate>
+                {renderExtraFields &&
+                    renderExtraFields({
+                        extraData,
+                        setExtraData,
+                        isCreating,
+                        errors,
+                    })}
+
                 <div className="form-grid name-grid">
                     {/* F-3 Last Name */}
                     <div className="form-group">

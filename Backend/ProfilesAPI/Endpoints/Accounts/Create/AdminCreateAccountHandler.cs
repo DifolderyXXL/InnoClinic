@@ -42,7 +42,7 @@ public class AdminCreateAccountCommandHandler(
         var (userId, setPasswordLink) = identityResult.Value!;
         var account = new Account
         {
-            Id = userId,
+            Id = Guid.Parse(userId),
             FirstName = command.FirstName,
             LastName = command.LastName,
             MiddleName = command.MiddleName,

@@ -4,6 +4,7 @@ import { PaginatedListView, type PaginatedResult } from "../../common/PaginatedL
 import { profilesApi } from "../../../../services/api/ProfilesApi.ts";
 import { AvatarFromSource } from "../../Shared/Avatar.tsx";
 import "./AccountsPage.css";
+import {RouteLinkCard} from "../../../../components/RouteLinkCard.tsx";
 
 const PAGE_SIZE = 50;
 
@@ -59,6 +60,8 @@ export function AccountsPage() {
             <header className="page-header">
                 <h1>Accounts</h1>
             </header>
+            
+            <RouteLinkCard to={"create"}>Create user</RouteLinkCard>
 
             <PaginatedListView<AccountDto>
                 pageSize={PAGE_SIZE}

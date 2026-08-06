@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { profilesApi } from "../../../services/api/ProfilesApi.ts";
+import {type AccountRequest} from "../../../services/api/ProfilesApi.ts";
 import "./AccountCard.css";
 import { AccountEditCard } from "./AccountEditCard.tsx";
+import type {Result} from "../../../services/api/BaseApiClient.ts";
 
 interface AccountCardProps {
     email: string;
@@ -83,6 +84,7 @@ export function AccountCard({
 }
 
 interface AccountCreateCardProps {
+    onCreate: (data: AccountRequest) => Promise<Result>
     onSuccess?: () => void;
 }
 
@@ -98,7 +100,7 @@ interface TouchedFields {
     phoneNumber?: boolean;
 }
 
-export function AccountCreateCard({ onSuccess }: AccountCreateCardProps) {
+export function AccountCreateCard({ onSuccess, onCreate }: AccountCreateCardProps) {
     const [isCreating, setIsCreating] = useState(false);
 
     // Form fields
@@ -173,7 +175,7 @@ export function AccountCreateCard({ onSuccess }: AccountCreateCardProps) {
 
         setIsCreating(true);
         try {
-            const result = await profilesApi.createAccountMe({
+            const result = await onCreate({
                 firstName: firstName.trim(),
                 lastName: lastName.trim(),
                 middleName: middleName.trim() || null,

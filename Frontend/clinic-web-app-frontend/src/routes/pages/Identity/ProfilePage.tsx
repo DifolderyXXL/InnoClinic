@@ -44,7 +44,7 @@ export function ProfilePage() {
                 {profile && profile.account ? (
                     <AccountCard {...profile.account} />
                 ) : (
-                    <AccountCreateCard onSuccess={loadData} />
+                    <AccountCreateCard onSuccess={loadData} onCreate={profilesApi.createAccountMe}/>
                 )}
             </section>
 

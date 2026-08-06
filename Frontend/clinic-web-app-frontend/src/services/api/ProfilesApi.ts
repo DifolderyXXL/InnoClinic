@@ -9,7 +9,7 @@ interface UpdateAccountCommand {
     photoId?: string | null;
 }
 
-interface AccountRequest {
+export interface AccountRequest {
     firstName: string;
     lastName: string;
     middleName: string | null;
@@ -56,9 +56,9 @@ export class ProfilesApi extends BaseApiClient {
     public async createDoctorMe(date: string): Promise<Result> {
         return this.post("api/v1/doctors/me", { dateOfBirth: date });
     }
-    
-    public async updateRole(userId: string, role: string): Promise<Result> {
-        return this.put("api/v1/accounts/role", { userId, role });
+
+    public async updateRole(userId: string, role: string, action: string): Promise<Result> {
+        return this.put("api/v1/accounts/role", { userId, role, action });
     }
     
     public async getReceptionists(page: number = 1, pageSize: number = 50): Promise<Result> {

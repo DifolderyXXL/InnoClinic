@@ -14,6 +14,7 @@ public class Appointment
 
     public string DoctorFullName { get; set; }
     public string PatientFullName { get; set; }
+    public string PatientEmail { get; set; }
     public string ServiceName { get; set; }
     
     public DateOnly Date { get; set; }

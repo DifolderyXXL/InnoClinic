@@ -83,6 +83,7 @@ public class AppointmentsController(
 
             DoctorFullName = profiles.DoctorFullName,
             PatientFullName = profiles.PatientFullName,
+            PatientEmail = profiles.Email,
             ServiceName = service.ServiceName,
         };
         var result = await appointmentService.AddAppointment(appointment, ct);

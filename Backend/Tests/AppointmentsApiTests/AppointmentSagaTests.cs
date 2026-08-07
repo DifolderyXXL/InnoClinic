@@ -1,6 +1,7 @@
 ﻿using AppointmentsAPI.Controllers;
 using AppointmentsAPI.Data;
 using Contracts.AppointmentContracts;
+using Contracts.Notifications;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,6 +56,8 @@ public class AppointmentSagaTests
         await harness.Bus.Publish(new ReservationConfirmed(appointmentId, reservationId));
         Assert.True(await harness.Consumed.Any<ReservationConfirmed>());
         Assert.NotNull(sagaHarness.Sagas.ContainsInState(appointmentId, sagaHarness.StateMachine, sagaHarness.StateMachine.Final));
+        
+        Assert.True(await harness.Published.Any<UserAppointmentConfirmedIntegrationEvent>());
     }
 
     [Fact]

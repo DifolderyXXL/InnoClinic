@@ -1,29 +1,16 @@
-using Azure.Storage.Blobs;
-using Azure.Storage.Sas;
-using DocumentsAPI.Infrastructure;
-using DocumentsAPI.Infrastructure.Photos;
+using DocumentsAPI.Application;
 using FluentValidation;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions.Endpoints;
 using MicroserviceApiKernel.SharedControllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using StackExchange.Redis;
 
 namespace DocumentsAPI.Controllers;
 
-public static class CacheHelper
-{
-    private const int FromHours = 60 * 60;
-    public const int PublicCacheTime = 6 * FromHours;
-    public const int PublicRestCacheTime = 5 * FromHours;
-
-    public const int SensitiveCacheTime = 3 * FromHours;
-    public const int SensitiveRestCacheTime = 2 * FromHours;
-}
-
 public record PhotoCreatedResponse(Guid PhotoId);
-public class PhotosController : BaseApiController
+
+public class PhotosController(IPhotoFacade photoFacade) : BaseApiController
 {
     [HttpGet("offices/{officeId}/avatar/{photoId:guid}")]
     [AllowAnonymous]
@@ -31,14 +18,12 @@ public class PhotosController : BaseApiController
     public async Task<IActionResult> GetPublicPhoto(
         [FromRoute] string officeId,
         [FromRoute] Guid photoId,
-        [FromServices] IPublicPhotoStorage context,
         CancellationToken ct)
     {
-        var client = context.Repository.GetPhotoClient(officeId, photoId);
+        var photo = await photoFacade.GetPublicPhoto(officeId, photoId, ct);
+        if (photo == null) return NotFound();
 
-        if (!await client.ExistsAsync(ct)) return NotFound();
-
-        return Ok(new { url = client.Uri.ToString() });
+        return Ok(new { url = photo });
     }
 
     [HttpGet("doctors/{doctorId:guid}/avatar/{photoId:guid}")]
@@ -47,27 +32,21 @@ public class PhotosController : BaseApiController
     public async Task<IActionResult> GetDoctorPhoto(
         [FromRoute] Guid doctorId,
         [FromRoute] Guid photoId,
-        [FromServices] IUserPhotoStorage context,
         CancellationToken ct)
     {
-        var client = context.Repository.GetPhotoClient(doctorId.ToString(), photoId);
+        var response = await photoFacade.GetDoctorPhoto(doctorId, photoId, ct);
 
-        if (!await client.ExistsAsync(ct)) return NotFound();
-        if (!await IsPhotoPublic(client, ct)) return Forbid();
-
-        var expireTime = TimeSpan.FromSeconds(CacheHelper.PublicCacheTime);
-        var sasBuilder = new BlobSasBuilder
+        return response.Status switch
         {
-            BlobContainerName = client.BlobContainerName,
-            BlobName = client.Name,
-            Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.Add(expireTime)
+            DoctorPhotoStatus.NotFound => NotFound(),
+            DoctorPhotoStatus.Forbidden => Forbid(),
+            DoctorPhotoStatus.Success => Ok(new 
+            { 
+                url = response.Result!.Url, 
+                expireTimeMillis = response.Result.ExpireTimeMillis 
+            }),
+            _ => BadRequest()
         };
-        sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
-
-        var sasUri = client.GenerateSasUri(sasBuilder);
-
-        return Ok(new { url = sasUri.ToString(), expireTimeMillis = expireTime.TotalMilliseconds });
     }
 
     [HttpGet("users/avatar/{photoId:guid}")]
@@ -75,17 +54,15 @@ public class PhotosController : BaseApiController
     [ResponseCache(Duration = CacheHelper.SensitiveRestCacheTime, Location = ResponseCacheLocation.Client)]
     public async Task<IActionResult> GetProfilePhoto(
         [FromRoute] Guid photoId,
-        [FromServices] IUserPhotoStorage context,
         CancellationToken ct)
     {
         var user = await GetUserClaim();
         if (user == null || !Guid.TryParse(user.Id, out var guid)) return Unauthorized();
 
-        var client = context.Repository.GetPhotoClient(guid.ToString(), photoId);
+        var photo = await photoFacade.GetProfilePhoto(guid, photoId, ct);
+        if (photo == null) return NotFound();
 
-        if (!await client.ExistsAsync(ct)) return NotFound();
-        
-        return Ok(new { url = GenerateSensitiveSasUri(client).ToString() });
+        return Ok(new { url = photo });
     }
     
     [HttpGet("users/{userId:guid}/avatar/{photoId:guid}")]
@@ -94,36 +71,12 @@ public class PhotosController : BaseApiController
     public async Task<IActionResult> GetProfilePhoto(
         [FromRoute] Guid userId,
         [FromRoute] Guid photoId,
-        [FromServices] IUserPhotoStorage context,
         CancellationToken ct)
     {
-        var client = context.Repository.GetPhotoClient(userId.ToString(), photoId);
+        var photo = await photoFacade.GetProfilePhoto(userId, photoId, ct);
+        if (photo == null) return NotFound();
 
-        if (!await client.ExistsAsync(ct)) return NotFound();
-
-        return Ok(new { url = GenerateSensitiveSasUri(client).ToString() });
-    }
-
-    private Uri GenerateSensitiveSasUri(BlobClient client)
-    {
-        var sasBuilder = new BlobSasBuilder
-        {
-            BlobContainerName = client.BlobContainerName,
-            BlobName = client.Name,
-            Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.AddSeconds(CacheHelper.SensitiveCacheTime)
-        };
-        sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
-
-        return client.GenerateSasUri(sasBuilder);
-    }
-
-    private async Task<bool> IsPhotoPublic(BlobClient blobClient, CancellationToken ct)
-    {
-        var tagsResponse = await blobClient.GetTagsAsync(cancellationToken: ct);
-        var tags = tagsResponse.Value.Tags;
-
-        return tags.TryGetValue("public", out var value) && value.Equals("true", StringComparison.OrdinalIgnoreCase);
+        return Ok(new { url = photo });
     }
 
     [HttpPost("users/avatar")]
@@ -132,7 +85,6 @@ public class PhotosController : BaseApiController
     public async Task<IActionResult> UploadProfilePhoto(
         [FromForm] IFormFile file,
         [FromServices] IValidator<IFormFile> validator,
-        [FromServices] IUserPhotoStorage tempPhotoStorage,
         CancellationToken ct)
     {
         var validationResult = await validator.ValidateAsync(file, ct);
@@ -148,7 +100,7 @@ public class PhotosController : BaseApiController
         }
         
         await using var stream = file.OpenReadStream();
-        var guid = await tempPhotoStorage.UploadTempAsync(userId.ToString(), stream, TimeSpan.FromHours(1), ct);
+        var guid = await photoFacade.UploadProfilePhoto(userId, stream, ct);
         
         return Ok(new PhotoCreatedResponse(guid));
     }
@@ -160,7 +112,6 @@ public class PhotosController : BaseApiController
         [FromForm] IFormFile file,
         [FromRoute] string officeId,
         [FromServices] IValidator<IFormFile> validator,
-        [FromServices] IPublicPhotoStorage tempPhotoStorage,
         CancellationToken ct)
     {
         var validationResult = await validator.ValidateAsync(file, ct);
@@ -170,7 +121,7 @@ public class PhotosController : BaseApiController
         }
         
         await using var stream = file.OpenReadStream();
-        var guid = await tempPhotoStorage.UploadTempAsync(officeId, stream, TimeSpan.FromHours(1), ct);
+        var guid = await photoFacade.UploadOfficePhoto(officeId, stream, ct);
         
         return Ok(new PhotoCreatedResponse(guid));
     }
@@ -178,37 +129,19 @@ public class PhotosController : BaseApiController
     [HttpPost("offices/{officeId}/avatar/confirm")]
     [Authorize(Policy = RolePolicy.IdentityServer)]
     public async Task<IActionResult> ConfirmProfilePhoto(
-        string officeId,
+        [FromRoute] string officeId,
         [FromQuery] Guid photoId,
         [FromQuery] Guid? oldPhotoId,
-        [FromServices] IPublicPhotoStorage photoStorage,
-        [FromServices] ILogger<PhotosController> logger,
         CancellationToken ct)
     {
         if (photoId == Guid.Empty) return BadRequest();
-
-        if (oldPhotoId != null)
-        {
-            await photoStorage.DeletePhotoAsync(officeId, oldPhotoId.Value, ct);
-        }
         
-        var isConfirmed = await photoStorage.ConfirmPhotoAsync(officeId, photoId, ct);
+        var isConfirmed = await photoFacade.ConfirmOfficePhotoAsync(officeId, photoId, oldPhotoId, ct);
         if (!isConfirmed)
         {
             return NotFound();
         }
         
-        return Ok(new{ photoId });
-    }
-}
-
-public class UploadProfilePhotoValidator : AbstractValidator<IFormFile>
-{
-    public UploadProfilePhotoValidator()
-    {
-        RuleFor(x => x).NotNull();
-        RuleFor(x => x.Length)
-            .LessThanOrEqualTo(2 * 1024 * 1024)
-            .WithMessage("Max 2MB.");
+        return Ok(new { photoId });
     }
 }

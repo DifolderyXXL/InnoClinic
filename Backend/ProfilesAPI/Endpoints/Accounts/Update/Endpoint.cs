@@ -26,6 +26,16 @@ public class UpdateAccountEndpoint : IAccountEndpoint
             var result = await handler.Handle(command with {Id = guid}, ct);
             return result.MapToTypedResult(TypedResults.Ok);
         }).RequireAuthorization();
+        
+        builder.MapPut("/accounts/{userId:guid}", async (
+            Guid userId,
+            UpdateAccountCommand command,
+            ICommandHandler<UpdateAccountCommand> handler,
+            CancellationToken ct) =>
+        {
+            var result = await handler.Handle(command with {Id = userId}, ct);
+            return result.MapToTypedResult(TypedResults.Ok);
+        }).RequireAuthorization();
     }
 }
 

@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import {PageSelector} from "../Shared/PageSelector.tsx";
+import {useEffect, useState, useCallback, type ReactNode} from "react";
+import { useSearchParams } from "react-router";
+import { PageSelector } from "../Shared/PageSelector.tsx";
 
 export interface PaginatedResult<T> {
     items: T[];
@@ -8,75 +9,93 @@ export interface PaginatedResult<T> {
 }
 
 interface PaginatedListViewProps<T> {
-    currentPage: number;
     pageSize: number;
-    onPageChange: (page: number) => void;
-
     fetchRequest: (page: number) => Promise<PaginatedResult<T>>;
-
-    dependencies: any[];
-
-    renderItems: (items: T[]) => React.ReactNode;
+    renderItems: (items: T[]) => ReactNode;
+    dependencies?: unknown[];
+    pageParamName?: string;
+    syncWithUrl?: boolean;
 }
 
 export function PaginatedListView<T>({
-                                         currentPage,
                                          pageSize,
-                                         onPageChange,
                                          fetchRequest,
-                                         dependencies,
-                                         renderItems
+                                         renderItems,
+                                         dependencies = [],
+                                         pageParamName = "page",
+                                         syncWithUrl = true,
                                      }: PaginatedListViewProps<T>) {
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const urlPage = Number(searchParams.get(pageParamName)) || 1;
+    const [localPage, setLocalPage] = useState(1);
+
+    const currentPage = syncWithUrl ? urlPage : localPage;
+
     const [items, setItems] = useState<T[]>([]);
-    const [total, setTotal] = useState<number>(0);
+    const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const handlePageChange = useCallback(
+        (newPage: number) => {
+            if (syncWithUrl) {
+                const nextParams = new URLSearchParams(searchParams);
+                nextParams.set(pageParamName, String(newPage));
+                setSearchParams(nextParams, { replace: true });
+            } else {
+                setLocalPage(newPage);
+            }
+        },
+        [syncWithUrl, searchParams, setSearchParams, pageParamName]
+    );
 
     useEffect(() => {
         let isMounted = true;
         setLoading(true);
         setError(null);
 
-        fetchRequest(currentPage)
-            .then(result => {
-                if (!isMounted) return;
+        fetchRequest(currentPage).then((res) => {
+            if (!isMounted) return;
 
-                if (result.error) {
-                    setError(result.error);
-                } else {
-                    setItems(result.items);
-                    setTotal(result.total);
-                }
-            })
-            .catch(() => {
-                if (isMounted) setError("Unhandled error occurred");
-            })
-            .finally(() => {
-                if (isMounted) setLoading(false);
-            });
+            if (res.error) {
+                setError(res.error);
+                setItems([]);
+                setTotal(0);
+            } else {
+                setItems(res.items);
+                setTotal(res.total);
+            }
+            setLoading(false);
+        });
 
-        return () => { isMounted = false; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage, ...dependencies]);
+        return () => {
+            isMounted = false;
+        };
+    }, [currentPage, fetchRequest, ...dependencies]);
 
     if (loading) {
-        return <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>;
+        return <div className="status-message">Loading...</div>;
     }
 
     if (error) {
-        return <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>{error}</div>;
+        return <div className="status-message error">{error}</div>;
     }
 
     return (
-        <>
-            {renderItems(items)}
+        <div className="paginated-list-container">
+            <div className="paginated-list-content">
+                {renderItems(items)}
+            </div>
 
-            <PageSelector
-                currentPage={currentPage}
-                pageSize={pageSize}
-                total={total}
-                onPageChange={onPageChange}
-            />
-        </>
+            {total > pageSize && (
+                <PageSelector
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    total={total}
+                    onPageChange={handlePageChange}
+                />
+            )}
+        </div>
     );
 }

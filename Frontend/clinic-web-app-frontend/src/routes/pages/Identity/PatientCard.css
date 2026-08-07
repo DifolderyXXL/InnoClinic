@@ -1,0 +1,201 @@
+/* Fixed Width Containers */
+.patient-info-card,
+.patient-create-card {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 8px;
+    padding: 20px;
+    color: #f0f0f5;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Card Header with Edit Button Alignment */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-bottom: 1px solid #2d2d38;
+    padding-bottom: 12px;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #f0f0f5;
+}
+
+/* Patient Info Field */
+.patient-info-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.patient-info-field .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9090a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.patient-info-field .field-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: #f0f0f5;
+}
+
+/* Forms */
+.patient-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9090a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input {
+    background-color: #121214;
+    border: 1px solid #2d2d38;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #f0f0f5;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    width: 100%;
+    transition: border-color 0.2s ease;
+}
+
+/* F-6 Red border on error state */
+.form-group input.has-error {
+    border-color: #ef4444 !important;
+}
+
+.form-group input:focus {
+    border-color: #3b82f6;
+}
+
+.form-group input.has-error:focus {
+    border-color: #ef4444;
+}
+
+/* Error message text directly under field */
+.field-error-text {
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.empty-profile-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.card-status-text {
+    margin: 0;
+    font-size: 14px;
+    color: #9090a0;
+}
+
+/* Buttons */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.edit-btn {
+    background-color: #d97706;
+    color: #ffffff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.edit-btn:hover {
+    background-color: #b45309;
+}
+
+.submit-btn {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+
+.cancel-btn {
+    background-color: #22222a;
+    color: #f0f0f5;
+    border: 1px solid #2d2d38;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+    background-color: #2a2a34;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Global status messages */
+.status-message {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.status-message.error {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}

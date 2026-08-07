@@ -27,6 +27,7 @@ public class Callback : PageModel
     private readonly IIdentityServerInteractionService _interaction;
     private readonly ILogger<Callback> _logger;
     private readonly IEventService _events;
+    private readonly IEmailVerificationManager _verificationManager;
 
     public Callback(
         IIdentityServerInteractionService interaction,
@@ -35,7 +36,8 @@ public class Callback : PageModel
         UserManager<IdentityUser> userManager,
         IUserCreateManager userCreateManager,
         SignInManager<IdentityUser> signInManager,
-        IRoleResolver roleResolver)
+        IRoleResolver roleResolver, 
+        IEmailVerificationManager verificationManager)
     {
         _interaction = interaction;
         _logger = logger;
@@ -45,6 +47,7 @@ public class Callback : PageModel
 
         _signInManager = signInManager;
         _roleResolver = roleResolver;
+        _verificationManager = verificationManager;
     }
 
     public async Task<IActionResult> OnGet()
@@ -84,18 +87,10 @@ public class Callback : PageModel
         if (user == null)
         {
             bool isEmailVerificationRequired = _userManager.Options.SignIn.RequireConfirmedEmail;
-            bool defaultEmailConfirmed = !isEmailVerificationRequired;
-            // find external user
+    
             user = await _userManager.FindByEmailAsync(email);
             if (user != null)
             {
-                //TODO: security leak, check providers
-
-                // if (!isExternalEmailVerified)
-                // {
-                //     throw new InvalidOperationException("Automatic account linking failed because the external email provider has not verified this email address.");
-                // }
-
                 if (isEmailVerificationRequired && !user.EmailConfirmed)
                 {
                     throw new InvalidOperationException("Automatic account linking failed because the external email is unverified.");
@@ -103,7 +98,7 @@ public class Callback : PageModel
             }
             else
             {
-                user = await _userCreateManager.CreateClientExternal(email);
+                user = await _userCreateManager.CreateClientExternal(email, isExternalEmailVerified);
             }
 
             var addLoginResult = await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, providerKey, providerDisplayName));
@@ -111,6 +106,20 @@ public class Callback : PageModel
             {
                 throw new InvalidOperationException($"Can't bind external login: {addLoginResult.Errors.First().Description}");
             }
+            
+            if (!user.EmailConfirmed)
+            {
+                await _verificationManager.SendVerification(user, result.Properties.Items["returnUrl"] ?? "~/");
+            }
+        }
+        
+        if (_userManager.Options.SignIn.RequireConfirmedEmail && !user.EmailConfirmed)
+        {
+            await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
+
+            var pendingReturnUrl = result.Properties.Items["returnUrl"] ?? "~/";
+
+            return RedirectToPage("/Account/ConfirmEmailNotice/Index", new { email = user.Email, returnUrl = pendingReturnUrl });
         }
 
         // this allows us to collect any additional claims or properties

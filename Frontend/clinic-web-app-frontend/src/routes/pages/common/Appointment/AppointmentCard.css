@@ -1,26 +1,140 @@
-.appointment-card{
-    display: flex;
-    flex-direction: column;
-    background: #444;
-    padding: 5px;
-}
-
-.appointment-header{
-    display: flex;
-    flex-direction: column;
-}
-
-.appointments-list-container{
+/* Container for appointment cards grid */
+.appointments-list-container {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap:5px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    width: 100%;
 }
 
-.appointment-link{
+/* Appointment Link Card wrapper */
+.appointment-link {
     color: inherit;
     text-decoration: none;
     display: flex;
     flex-direction: column;
-    background: #444;
-    padding: 5px;
+    height: 100%;
+}
+
+/* Base Card Styling */
+.appointment-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 10px;
+    padding: 16px;
+    color: #f0f0f5;
+    box-sizing: border-box;
+    height: 100%;
+    transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.appointment-link:hover .appointment-card,
+.appointment-card:hover {
+    border-color: #3e3e4d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+.appointment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #25252e;
+}
+
+.appointment-date {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9090a0;
+}
+
+.appointment-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #25252e;
+    color: #f0f0f5;
+}
+
+/* Status colors */
+.appointment-status.status-approved,
+.appointment-status.status-confirmed {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.appointment-status.status-pendingapproval,
+.appointment-status.status-pendingreservation,
+.appointment-status.status-created {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
+.appointment-status.status-failed,
+.appointment-status.status-declined,
+.appointment-status.status-cancelled {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+/* Body */
+.appointment-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+
+.service-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f0f0f5;
+    line-height: 1.3;
+}
+
+.appointment-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: #9090a0;
+}
+
+.appointment-details p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.appointment-details strong {
+    color: #d0d0dc;
+}
+
+/* Actions */
+.appointment-actions {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid #25252e;
+}
+
+.result-link {
+    display: inline-block;
+    color: #3b82f6;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.result-link:hover {
+    color: #60a5fa;
+    text-decoration: underline;
 }

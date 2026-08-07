@@ -1,0 +1,83 @@
+/* Container block */
+.profile-minimal-block {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 8px;
+    padding: 6px 12px;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.profile-minimal-block:hover {
+    border-color: #383848;
+    background-color: #1e1e24;
+}
+
+/* User link & avatar row */
+.profile-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Text Container */
+.profile-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profile-email {
+    font-size: 13px;
+    font-weight: 500;
+    color: #f0f0f5;
+    line-height: 1.2;
+}
+
+.profile-role {
+    font-size: 11px;
+    color: #9090a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-role strong {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+/* Unauthorized state */
+.profile-minimal-unauthorized {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+
+.login-btn-text {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Skeleton loader state */
+.profile-minimal-skeleton {
+    min-height: 48px;
+    min-width: 180px;
+    background-color: #18181c;
+    border: 1px solid #282834;
+    border-radius: 8px;
+    opacity: 0.6;
+}
+
+.profile-actions-wrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}

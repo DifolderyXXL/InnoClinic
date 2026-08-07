@@ -1,0 +1,32 @@
+@page
+@model Deunde.IdentityServer.Pages.Account.ConfirmEmailNotice.Index
+
+@{
+    Layout = null;
+}
+
+
+<div class="email-verification-page">
+    <div class="lead text-center">
+        <h1 class="text-brand mb-0">Verify your mail</h1>
+        <p>Confirmation link sent to your mail</p>
+    </div>
+    
+    <div class="text-center mt-4">
+        <a asp-page="/Account/Login/Index" 
+           asp-route-returnUrl="@Model.Input.ReturnUrl" 
+           class="btn btn-primary">
+            I've verified my email — Proceed to Login
+        </a>
+    </div>
+    
+    <form method="post" asp-page-handler="Resend" class="mt-4">
+        <input type="hidden" asp-for="Input.Email" />
+        <input type="hidden" asp-for="Input.ReturnUrl" />
+
+        <p>
+            Didn't receive the email? 
+            <button type="submit" class="btn btn-link p-0 align-baseline">Resend Email</button>
+        </p>
+    </form>
+</div>

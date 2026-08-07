@@ -1,0 +1,157 @@
+/* Container & form structure */
+.medical-result-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 10px;
+    padding: 24px;
+    color: #f0f0f5;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #2d2d38;
+    padding-bottom: 12px;
+}
+
+.form-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #f0f0f5;
+}
+
+/* Fieldsets */
+.form-fieldset {
+    background-color: #121214;
+    border: 1px solid #282834;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-fieldset legend {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9090a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 6px;
+}
+
+/* Grid Layout for Names */
+.form-grid.name-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.margin-top-sm {
+    margin-top: 4px;
+}
+
+/* Field Groups */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9090a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group textarea {
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #f0f0f5;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #3b82f6;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.autofill-btn {
+    background-color: #10b981;
+    color: #ffffff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.autofill-btn:hover:not(:disabled) {
+    background-color: #059669;
+}
+
+.submit-btn {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+
+.cancel-btn {
+    background-color: #282834;
+    color: #f0f0f5;
+    border: 1px solid #383848;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+    background-color: #323242;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

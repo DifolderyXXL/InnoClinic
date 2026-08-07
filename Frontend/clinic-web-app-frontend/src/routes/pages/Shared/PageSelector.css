@@ -1,26 +1,79 @@
+/* Numbered Pager (PageSelector) */
+.page-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    background-color: #1e1e24;
+    border-top: 1px solid #2d2d38;
+}
+
+.pager-info {
+    font-size: 13px;
+    color: #9090a0;
+}
+
+.pager-info strong {
+    color: #f0f0f5;
+}
+
+.pager-btn {
+    height: 34px;
+    padding: 0 16px;
+    background-color: #18181c;
+    border: 1px solid #323240;
+    color: #f0f0f5;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.pager-btn:hover:not(:disabled) {
+    background-color: #25252e;
+    border-color: #4d82f3;
+}
+
+.pager-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #282834;
+}
+
+/* Discrete Tabs Selector */
+.discrete-tabs-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+}
+
 .discreteTabButton {
-    color: #fff;
-    background: #515151;
-    text-decoration: none;
-    padding: 8px 12px;
-    border-width: 0;
-    border-radius: 4px;
-    transition: font-size 0.2s ease, filter 0.2s ease, padding 0.2s ease;
+    color: #9090a0;
+    background: #18181c;
+    border: 1px solid #2d2d38;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
 }
 
-.discreteTabButton:not(.active):hover {
-    padding:  8px  12px  12px  12px;
-    font-size: 1em;
+.discreteTabButton:hover:not(.active) {
+    background: #25252e;
+    color: #f0f0f5;
+    border-color: #3e3e4d;
 }
-
 
 .discreteTabButton.active {
-    background: #889a7e;
-    color: #373737;
-    font-weight: bold;
+    background: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+    font-weight: 600;
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
 }
-
-.discreteTabButton.active:hover {
-    filter: brightness(1);
-}
-

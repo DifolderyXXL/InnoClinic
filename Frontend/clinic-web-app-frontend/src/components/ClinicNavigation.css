@@ -1,0 +1,11 @@
+.nav-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 15;
+    overflow: visible;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
 using Duende.IdentityServer;
 using Deunde.IdentityServer.Pages.Admin.ApiScopes;
 using Deunde.IdentityServer.Pages.Admin.Clients;
@@ -12,6 +13,8 @@ using Serilog.Filters;
 using Microsoft.AspNetCore.Identity;
 using Deunde.IdentityServer.Data;
 using Deunde.IdentityServer.Services;
+using Deunde.IdentityServer.Services.SMTP;
+using Infrastructure.Mailing.SMTP;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -79,6 +82,8 @@ internal static class HostingExtensions
 
         builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
+                options.SignIn.RequireConfirmedEmail = true;
+                
                 options.User.RequireUniqueEmail = true;
                 options.Password.RequireDigit = false;
                 options.Password.RequiredLength = 6;
@@ -164,6 +169,11 @@ internal static class HostingExtensions
         builder.Services.AddScoped<IUserCreateManager, UserCreateManager>();
         
         builder.Services.AddSingleton<IAuthorizationHandler, ScopeRequirementHandler>();
+
+        builder.Services.AddScoped<IEmailVerificationManager, SmptEmailVerificationManager>();
+        builder.Services.Configure<SmtpClientOptions>(
+            builder.Configuration.GetSection(SmtpClientOptions.SectionName));
+        builder.Services.AddScoped<ISmtpClient, BasicSmtpClient>();
 
         // this adds the necessary config for the simple admin/config pages
         {

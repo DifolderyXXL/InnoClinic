@@ -26,7 +26,7 @@ export function RequireRole({roles=[], children}: RequireRoleProps){
         false
     )
     
-    if(!containsAnyRole)
+    if(!containsAnyRole && roles?.length > 0)
     {
         return (<></>);
     }

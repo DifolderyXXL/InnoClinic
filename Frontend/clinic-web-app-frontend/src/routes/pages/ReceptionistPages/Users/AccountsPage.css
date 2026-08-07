@@ -1,0 +1,140 @@
+.accounts-page {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    background-color: #121214;
+    color: #f0f0f5;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.page-header h1 {
+    margin: 0 0 12px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #f0f0f5;
+}
+
+.accounts-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+}
+
+/* Ссылка-обертка для карточки */
+.account-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.account-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: #1e1e24;
+    border: 1px solid #2d2d38;
+    border-radius: 8px;
+    box-sizing: border-box;
+    height: 100%;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+
+.account-card:hover {
+    border-color: #3b82f6;
+    background-color: #25252e;
+    transform: translateY(-2px);
+}
+
+.account-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #282834;
+    padding-bottom: 8px;
+}
+
+.account-card-header .avatar-container,
+.account-card-header img {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px !important;
+    flex-shrink: 0;
+}
+
+.account-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.account-name {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f0f0f5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-email {
+    font-size: 11px;
+    color: #9090a0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 8px;
+    font-size: 11px;
+}
+
+.account-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.account-info-row .label {
+    color: #9090a0;
+}
+
+.account-info-row .value {
+    color: #f0f0f5;
+    font-weight: 500;
+}
+
+.status-badge {
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.status-badge.verified {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.unverified {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}

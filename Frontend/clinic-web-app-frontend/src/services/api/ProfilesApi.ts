@@ -9,7 +9,7 @@ interface UpdateAccountCommand {
     photoId?: string | null;
 }
 
-interface AccountRequest {
+export interface AccountRequest {
     firstName: string;
     lastName: string;
     middleName: string | null;
@@ -38,6 +38,15 @@ interface UpdateDoctorProfileCommand {
     officeId: string;
 }
 
+export interface AdminCreateAccountRequest {
+    email: string;
+    firstName: string;
+    lastName: string;
+    middleName?: string | null;
+    phoneNumber?: string | null;
+    roles: string[];
+}
+
 export class ProfilesApi extends BaseApiClient {
     protected override readonly middlewarePath = "/profiles";
 
@@ -48,13 +57,17 @@ export class ProfilesApi extends BaseApiClient {
     public async createPatientMe(date: string): Promise<Result> {
         return this.post("api/v1/patients/me", { dateOfBirth: date });
     }
+
+    public async updatePatientMe(date: string): Promise<Result> {
+        return this.put("api/v1/patients/me", { dateOfBirth: date });
+    }
     
     public async createDoctorMe(date: string): Promise<Result> {
         return this.post("api/v1/doctors/me", { dateOfBirth: date });
     }
-    
-    public async updateRole(userId: string, role: string): Promise<Result> {
-        return this.put("api/v1/accounts/role", { userId, role });
+
+    public async updateRole(userId: string, role: string, action: string): Promise<Result> {
+        return this.put("api/v1/accounts/role", { userId, role, action });
     }
     
     public async getReceptionists(page: number = 1, pageSize: number = 50): Promise<Result> {
@@ -105,7 +118,10 @@ export class ProfilesApi extends BaseApiClient {
     }
     
     public async getAccounts(page: number = 1, pageSize: number = 50): Promise<Result> {
-        return this.get("api/v1/accounts", { params: { Page: page, PageSize: pageSize } });
+        return this.get("api/v1/accounts", { Page: page, PageSize: pageSize });
+    }
+    public async getAccount(userId: string): Promise<Result> {
+        return this.get(`api/v1/accounts/${userId}`);
     }
 
     public async createAccountMe(data: AccountRequest): Promise<Result> {
@@ -118,6 +134,14 @@ export class ProfilesApi extends BaseApiClient {
 
     public async updateAccountMe(data: UpdateAccountCommand): Promise<Result> {
         return this.put("api/v1/accounts/me", data);
+    }
+
+    public async updateAccount(userId: string, data: UpdateAccountCommand): Promise<Result> {
+        return this.put(`api/v1/accounts/${userId}`, data);
+    }
+
+    public async createAccount(data: AdminCreateAccountRequest): Promise<Result> {
+        return this.post("api/v1/accounts", data);
     }
 }
 

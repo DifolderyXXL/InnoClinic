@@ -1,0 +1,55 @@
+/* Layout container */
+.doctor-scheduled-appointment-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.patient-details-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px 0;
+}
+
+.patient-recent-appointments {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+    border-top: 1px solid #282834;
+    padding-top: 16px;
+}
+
+.patient-recent-appointments h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #9090a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Appointments grid */
+.patient-appointments-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-start;
+    align-content: flex-start;
+    width: 100%;
+}
+
+.patient-appointment-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.15s ease;
+}
+
+.patient-appointment-link:hover {
+    transform: translateY(-2px);
+}

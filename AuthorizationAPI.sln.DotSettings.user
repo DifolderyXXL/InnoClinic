@@ -32,6 +32,7 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::97130D18-8E29-41D9-AC80-381DDAE24DE2::net10.0::AppointmentsApiTests.AppointmentSagaTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::22568667-C3F4-4AC1-BDE3-B791F34DF48C::net10.0::ServicesApiTests.SchedulingTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::42E0CD1A-9CE2-42FE-9D45-E04EFC7F4F48::net10.0::IdentityServerTests.SmtpTests.SmtpMessageSend&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	

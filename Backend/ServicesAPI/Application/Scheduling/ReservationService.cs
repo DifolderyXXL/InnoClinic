@@ -34,8 +34,8 @@ public class ReservationService(IReservedTimeWindowStore store, IScheduleSlotsPr
         return ScheduleCalculator.CalculateAvailableGaps(date, reserved, slotAmount);
     }
 
-    public async Task CancelReservation(long reservationId, CancellationToken ct)
+    public async Task CancelReservation(long reservationId, bool force, CancellationToken ct)
     {
-        await store.TryRemove(reservationId, false, ct);
+        await store.TryRemove(reservationId, force, ct);
     }
 }

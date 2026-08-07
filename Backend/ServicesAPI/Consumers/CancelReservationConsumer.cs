@@ -8,6 +8,6 @@ public class CancelReservationConsumer(IReservationService reservationService) :
 {
     public async Task Consume(ConsumeContext<CancelReservation> context)
     {
-        await reservationService.CancelReservation(context.Message.ReservationId, context.CancellationToken);
+        await reservationService.CancelReservation(context.Message.ReservationId, false, context.CancellationToken);
     }
 }

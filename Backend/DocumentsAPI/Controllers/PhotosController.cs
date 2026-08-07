@@ -84,7 +84,28 @@ public class PhotosController : BaseApiController
         var client = context.Repository.GetPhotoClient(guid.ToString(), photoId);
 
         if (!await client.ExistsAsync(ct)) return NotFound();
+        
+        return Ok(new { url = GenerateSensitiveSasUri(client).ToString() });
+    }
+    
+    [HttpGet("users/{userId:guid}/avatar/{photoId:guid}")]
+    [HasPermission(Permissions.Accounts.Read)]
+    [ResponseCache(Duration = CacheHelper.SensitiveRestCacheTime, Location = ResponseCacheLocation.Client)]
+    public async Task<IActionResult> GetProfilePhoto(
+        [FromRoute] Guid userId,
+        [FromRoute] Guid photoId,
+        [FromServices] IUserPhotoStorage context,
+        CancellationToken ct)
+    {
+        var client = context.Repository.GetPhotoClient(userId.ToString(), photoId);
 
+        if (!await client.ExistsAsync(ct)) return NotFound();
+
+        return Ok(new { url = GenerateSensitiveSasUri(client).ToString() });
+    }
+
+    private Uri GenerateSensitiveSasUri(BlobClient client)
+    {
         var sasBuilder = new BlobSasBuilder
         {
             BlobContainerName = client.BlobContainerName,
@@ -94,9 +115,7 @@ public class PhotosController : BaseApiController
         };
         sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
 
-        var sasUri = client.GenerateSasUri(sasBuilder);
-
-        return Ok(new { url = sasUri.ToString() });
+        return client.GenerateSasUri(sasBuilder);
     }
 
     private async Task<bool> IsPhotoPublic(BlobClient blobClient, CancellationToken ct)
@@ -111,7 +130,7 @@ public class PhotosController : BaseApiController
     [HasPermission(Permissions.Photos.Manage)]
     [Produces<PhotoCreatedResponse>]
     public async Task<IActionResult> UploadProfilePhoto(
-        IFormFile file,
+        [FromForm] IFormFile file,
         [FromServices] IValidator<IFormFile> validator,
         [FromServices] IUserPhotoStorage tempPhotoStorage,
         CancellationToken ct)
@@ -138,7 +157,7 @@ public class PhotosController : BaseApiController
     [HasPermission(Permissions.Offices.Manage)]
     [Produces<PhotoCreatedResponse>]
     public async Task<IActionResult> UploadOfficePhoto(
-        IFormFile file,
+        [FromForm] IFormFile file,
         [FromRoute] string officeId,
         [FromServices] IValidator<IFormFile> validator,
         [FromServices] IPublicPhotoStorage tempPhotoStorage,

@@ -21,8 +21,7 @@ export function PatientMedicalResultView({ appointmentId }: PatientMedicalResult
     }, [appointmentId]);
 
     const handleExport = async () => {
-        // Если для пациентов есть отдельный эндпоинт экспорта — замените на documentsApi.exportMyMedicalResult(appointmentId)
-        const result = await documentsApi.exportUserMedicalResult(appointmentId, "");
+        const result = await documentsApi.exportMyMedicalResult(appointmentId);
         if (result.type === "ok" && result.value?.url) {
             window.open(result.value.url, "_blank", "noopener,noreferrer");
         } else {

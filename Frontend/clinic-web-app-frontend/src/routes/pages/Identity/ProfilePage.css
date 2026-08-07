@@ -1,0 +1,43 @@
+.profile-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+    color: #f0f0f5;
+}
+
+.profile-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+
+.profile-section > * {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.status-message {
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    color: #9090a0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.status-message.error {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.25);
+}

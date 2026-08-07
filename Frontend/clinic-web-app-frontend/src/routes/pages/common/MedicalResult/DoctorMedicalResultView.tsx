@@ -1,10 +1,8 @@
 import { documentsApi, type MedicalResultBody } from "../../../../services/api/DocumentsApi.ts";
-import {type ChangeEvent, type SyntheticEvent, useEffect, useState} from "react";
+import { type ChangeEvent, type SyntheticEvent, useEffect, useState } from "react";
 import { CreateMedicalResultForm } from "./CreateMedicalResult.tsx";
-import "./MedicalResultCard.css"
-import {MedicalResultCard} from "./MedicalResultCard.tsx";
-
-
+import { MedicalResultCard } from "./MedicalResultCard.tsx";
+import "./MedicalResultCard.css";
 
 interface DoctorMedicalResultViewProps {
     appointmentId: string;
@@ -38,7 +36,7 @@ export function DoctorMedicalResultView({ appointmentId, userId }: DoctorMedical
         }
     };
 
-    if (isLoadingData) return <div>Loading medical result...</div>;
+    if (isLoadingData) return <div className="status-message">Loading medical result...</div>;
 
     if (isEditing && medicalResult) {
         return (
@@ -72,7 +70,6 @@ export function DoctorMedicalResultView({ appointmentId, userId }: DoctorMedical
         </div>
     );
 }
-
 
 interface UpdateMedicalResultFormProps {
     appointmentId: string;
@@ -136,17 +133,17 @@ export function UpdateMedicalResultForm({
 
     return (
         <form onSubmit={handleSubmit} className="medical-result-form">
-            <header className="form-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <header className="form-header">
                 <h2>Edit Medical Result</h2>
             </header>
 
-            {error && <div className="error-message" style={{ color: "red" }}>{error}</div>}
+            {error && <div className="status-message error">{error}</div>}
 
-            <fieldset className="form-section">
+            <fieldset className="form-fieldset">
                 <legend>Clinical Record</legend>
 
                 <div className="form-group">
-                    <label>Complaints:</label>
+                    <label>Complaints</label>
                     <textarea
                         name="complaints"
                         rows={3}
@@ -156,7 +153,7 @@ export function UpdateMedicalResultForm({
                 </div>
 
                 <div className="form-group">
-                    <label>Diagnosis:</label>
+                    <label>Diagnosis</label>
                     <textarea
                         name="diagnosis"
                         rows={3}
@@ -166,7 +163,7 @@ export function UpdateMedicalResultForm({
                 </div>
 
                 <div className="form-group">
-                    <label>Conclusion:</label>
+                    <label>Conclusion</label>
                     <textarea
                         name="conclusion"
                         rows={4}
@@ -176,7 +173,7 @@ export function UpdateMedicalResultForm({
                 </div>
 
                 <div className="form-group">
-                    <label>Recommendations:</label>
+                    <label>Recommendations</label>
                     <textarea
                         name="recommendations"
                         rows={4}
@@ -186,7 +183,7 @@ export function UpdateMedicalResultForm({
                 </div>
             </fieldset>
 
-            <div className="form-actions" style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+            <div className="form-actions">
                 <button type="submit" className="submit-btn" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : "Update Result"}
                 </button>
@@ -199,4 +196,3 @@ export function UpdateMedicalResultForm({
         </form>
     );
 }
-

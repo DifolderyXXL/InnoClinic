@@ -1,96 +1,76 @@
+import { useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { OfficeFullCard } from "./OfficeCompactCard.tsx";
-import {PageSelector} from "../../Shared/PageSelector.tsx";
-import {useEffect, useState} from "react";
-import {type OfficeDto, officesApi} from "../../../../services/api/OfficesApi.ts";
+import { type OfficeDto, officesApi } from "../../../../services/api/OfficesApi.ts";
+import { PaginatedListView, type PaginatedResult } from "../../common/PaginatedListView.tsx";
+import "./OfficeComponents.css";
 
 export function OfficePage() {
     const [searchParams] = useSearchParams();
     const targetId = searchParams.get("id") || null;
 
     if (targetId == null) {
-        return <div>Not found</div>;
+        return <div className="status-message error">Not found</div>;
     }
 
     return (
-        <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+        <div className="office-details-page">
             <OfficeFullCard officeId={targetId} />
         </div>
     );
 }
 
-const pageSize: number = 50;
+const PAGE_SIZE = 50;
 
 export function OfficesPage() {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const currentPage = Number(searchParams.get("page")) || 1;
-
-    const [offices, setOffices] = useState<OfficeDto[]>([]);
-    const [total, setTotal] = useState<number>(0);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const updateUrlParams = (page: number) => {
-        const nextParams = new URLSearchParams(searchParams);
-        nextParams.set("page", String(page));
-        setSearchParams(nextParams);
-    };
-
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            setError(null);
-
+    const fetchOffices = useCallback(
+        async (page: number): Promise<PaginatedResult<OfficeDto>> => {
             try {
-                const result = await officesApi.getOffices(currentPage, pageSize);
+                const result = await officesApi.getOffices(page, PAGE_SIZE);
+
                 if (result.type === "ok") {
-                    const items = result.value.items || result.value.offices || result.value;
-                    setOffices(Array.isArray(items) ? items : []);
-                    setTotal(result.value.total ?? (Array.isArray(items) ? items.length : 0));
-                } else {
-                    setError(result.error?.title || "Error loading offices");
+                    const data = result.value;
+                    const items = data?.items || data?.offices || (Array.isArray(data) ? data : []);
+                    const total = data?.total ?? items.length;
+
+                    return {
+                        items: Array.isArray(items) ? items : [],
+                        total: typeof total === "number" ? total : 0,
+                    };
                 }
-            } catch (err) {
-                setError("Unhandled error");
-            } finally {
-                setLoading(false);
+
+                return {
+                    items: [],
+                    total: 0,
+                    error: result.error?.title || result.error?.message || "Failed to load offices",
+                };
+            } catch (err: any) {
+                return {
+                    items: [],
+                    total: 0,
+                    error: err?.message || "An unexpected error occurred while loading offices",
+                };
             }
-        };
-
-        loadData();
-    }, [currentPage]);
-
-    if (loading) {
-        return <div style={{ textAlign: 'center', padding: '40px' }}>Loading offices...</div>;
-    }
-
-    if (error) {
-        return <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>{error}</div>;
-    }
+        },
+        []
+    );
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-            <div style={{
-                flex: 1,
-                overflowY: 'auto',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                gap: '16px',
-                padding: '20px'
-            }}>
-                {offices.map((office) => (
-                    <OfficeFullCard
-                        key={office.id}
-                        office={office}
-                        isClickable={true}
-                    />
-                ))}
-            </div>
-
-            <PageSelector
-                pageSize={pageSize}
-                total={total}
-                onPageChange={(page) => updateUrlParams(page)}
+        <div className="offices-page">
+            <PaginatedListView<OfficeDto>
+                pageSize={PAGE_SIZE}
+                fetchRequest={fetchOffices}
+                renderItems={(items) => (
+                    <div className="offices-grid">
+                        {items.map((office) => (
+                            <OfficeFullCard
+                                key={office.id}
+                                office={office}
+                                isClickable={true}
+                            />
+                        ))}
+                    </div>
+                )}
             />
         </div>
     );

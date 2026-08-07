@@ -86,7 +86,8 @@ public class AppointmentsController(
             ServiceName = service.ServiceName,
         };
         var result = await appointmentService.AddAppointment(appointment, ct);
-        if (result.IsError) return BadRequest();
+        if (result.IsError) 
+            return BadRequest(result.Error);
 
         await publishEndpoint.Publish(
             new AppointmentSubmitted(

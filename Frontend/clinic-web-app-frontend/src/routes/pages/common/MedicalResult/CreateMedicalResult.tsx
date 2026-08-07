@@ -1,11 +1,12 @@
-import {type ChangeEvent, type SyntheticEvent, useState} from "react";
+import { type ChangeEvent, type SyntheticEvent, useState } from "react";
 import {
     type CreateMedicalResultRequest,
     documentsApi,
     type UserFullName
 } from "../../../../services/api/DocumentsApi.ts";
-import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
-import {appointmentsApi} from "../../../../services/api/AppointmentApi.ts";
+import { profilesApi } from "../../../../services/api/ProfilesApi.ts";
+import { appointmentsApi } from "../../../../services/api/AppointmentApi.ts";
+import "./CreateMedicalResultForm.css";
 
 interface CreateMedicalResultFormProps {
     appointmentId: string;
@@ -59,7 +60,6 @@ export function CreateMedicalResultForm({
         setError(null);
 
         try {
-            // 1. Fetch appointment details
             const appointmentRes = await appointmentsApi.getMyDoctorAppointmentById(appointmentId);
 
             if (appointmentRes.type !== "ok" || !appointmentRes.value) {
@@ -75,8 +75,6 @@ export function CreateMedicalResultForm({
                 userId: appointment.patientAccountId || prev.userId,
             }));
 
-            
-            // 2. Fetch Doctor details (Name & Specialization)
             if (appointment.doctorAccountId) {
                 const doctorRes = await profilesApi.getDoctorById(appointment.doctorAccountId);
                 if (doctorRes.type === "ok" && doctorRes.value) {
@@ -95,7 +93,6 @@ export function CreateMedicalResultForm({
                 }
             }
 
-            // 3. Fetch Patient details (Name & Date of birth)
             if (appointment.patientAccountId) {
                 const patientRes = await profilesApi.getPatient(appointment.patientAccountId);
                 if (patientRes.type === "ok" && patientRes.value) {
@@ -190,13 +187,12 @@ export function CreateMedicalResultForm({
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <form className="medical-result-form" onSubmit={handleSubmit}>
+            <header className="form-header">
                 <h2>Create Medical Result</h2>
-
-                {/* Кнопка автозаполнения */}
                 <button
                     type="button"
+                    className="autofill-btn"
                     onClick={handleAutofill}
                     disabled={isAutofilling || isSubmitting}
                 >
@@ -204,40 +200,43 @@ export function CreateMedicalResultForm({
                 </button>
             </header>
 
-            {error && <div style={{ color: "red" }}>{error}</div>}
+            {error && <div className="status-message error">{error}</div>}
 
             {/* Doctor Info */}
-            <fieldset>
+            <fieldset className="form-fieldset">
                 <legend>Doctor Information</legend>
-                <div>
-                    <label>Last Name:</label>
-                    <input
-                        type="text"
-                        name="lastName"
-                        value={doctorName.lastName}
-                        onChange={handleDoctorNameChange}
-                    />
+                <div className="form-grid name-grid">
+                    <div className="form-group">
+                        <label>Last Name</label>
+                        <input
+                            type="text"
+                            name="lastName"
+                            value={doctorName.lastName}
+                            onChange={handleDoctorNameChange}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>First Name</label>
+                        <input
+                            type="text"
+                            name="firstName"
+                            value={doctorName.firstName}
+                            onChange={handleDoctorNameChange}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Middle Name</label>
+                        <input
+                            type="text"
+                            name="middleName"
+                            value={doctorName.middleName || ""}
+                            onChange={handleDoctorNameChange}
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label>First Name:</label>
-                    <input
-                        type="text"
-                        name="firstName"
-                        value={doctorName.firstName}
-                        onChange={handleDoctorNameChange}
-                    />
-                </div>
-                <div>
-                    <label>Middle Name:</label>
-                    <input
-                        type="text"
-                        name="middleName"
-                        value={doctorName.middleName || ""}
-                        onChange={handleDoctorNameChange}
-                    />
-                </div>
-                <div>
-                    <label>Specialization:</label>
+
+                <div className="form-group margin-top-sm">
+                    <label>Specialization</label>
                     <input
                         type="text"
                         name="specialization"
@@ -248,37 +247,40 @@ export function CreateMedicalResultForm({
             </fieldset>
 
             {/* Patient Info */}
-            <fieldset>
+            <fieldset className="form-fieldset">
                 <legend>Patient Information</legend>
-                <div>
-                    <label>Last Name:</label>
-                    <input
-                        type="text"
-                        name="lastName"
-                        value={patientName.lastName}
-                        onChange={handlePatientNameChange}
-                    />
+                <div className="form-grid name-grid">
+                    <div className="form-group">
+                        <label>Last Name</label>
+                        <input
+                            type="text"
+                            name="lastName"
+                            value={patientName.lastName}
+                            onChange={handlePatientNameChange}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>First Name</label>
+                        <input
+                            type="text"
+                            name="firstName"
+                            value={patientName.firstName}
+                            onChange={handlePatientNameChange}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Middle Name</label>
+                        <input
+                            type="text"
+                            name="middleName"
+                            value={patientName.middleName || ""}
+                            onChange={handlePatientNameChange}
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label>First Name:</label>
-                    <input
-                        type="text"
-                        name="firstName"
-                        value={patientName.firstName}
-                        onChange={handlePatientNameChange}
-                    />
-                </div>
-                <div>
-                    <label>Middle Name:</label>
-                    <input
-                        type="text"
-                        name="middleName"
-                        value={patientName.middleName || ""}
-                        onChange={handlePatientNameChange}
-                    />
-                </div>
-                <div>
-                    <label>Date of Birth:</label>
+
+                <div className="form-group margin-top-sm">
+                    <label>Date of Birth</label>
                     <input
                         type="date"
                         name="patientDateOfBirth"
@@ -289,10 +291,10 @@ export function CreateMedicalResultForm({
             </fieldset>
 
             {/* Service Info */}
-            <fieldset>
+            <fieldset className="form-fieldset">
                 <legend>Service Details</legend>
-                <div>
-                    <label>Service Name:</label>
+                <div className="form-group">
+                    <label>Service Name</label>
                     <input
                         type="text"
                         name="serviceName"
@@ -303,10 +305,10 @@ export function CreateMedicalResultForm({
             </fieldset>
 
             {/* Clinical Record */}
-            <fieldset>
+            <fieldset className="form-fieldset">
                 <legend>Clinical Record</legend>
-                <div>
-                    <label>Complaints:</label>
+                <div className="form-group">
+                    <label>Complaints</label>
                     <textarea
                         name="complaints"
                         rows={3}
@@ -315,8 +317,8 @@ export function CreateMedicalResultForm({
                     />
                 </div>
 
-                <div>
-                    <label>Diagnosis:</label>
+                <div className="form-group">
+                    <label>Diagnosis</label>
                     <textarea
                         name="diagnosis"
                         rows={3}
@@ -325,33 +327,42 @@ export function CreateMedicalResultForm({
                     />
                 </div>
 
-                <div>
-                    <label>Conclusion:</label>
+                <div className="form-group">
+                    <label>Conclusion</label>
                     <textarea
                         name="conclusion"
-                        rows={4}
+                        rows={3}
                         value={formData.conclusion}
                         onChange={handleInputChange}
                     />
                 </div>
 
-                <div>
-                    <label>Recommendations:</label>
+                <div className="form-group">
+                    <label>Recommendations</label>
                     <textarea
                         name="recommendations"
-                        rows={4}
+                        rows={3}
                         value={formData.recommendations}
                         onChange={handleInputChange}
                     />
                 </div>
             </fieldset>
 
-            <div>
-                <button type="submit" disabled={isSubmitting || isAutofilling}>
+            <div className="form-actions">
+                <button
+                    type="submit"
+                    className="submit-btn"
+                    disabled={isSubmitting || isAutofilling}
+                >
                     {isSubmitting ? "Saving..." : "Save Result"}
                 </button>
                 {onCancel && (
-                    <button type="button" onClick={onCancel} disabled={isSubmitting || isAutofilling}>
+                    <button
+                        type="button"
+                        className="cancel-btn"
+                        onClick={onCancel}
+                        disabled={isSubmitting || isAutofilling}
+                    >
                         Cancel
                     </button>
                 )}

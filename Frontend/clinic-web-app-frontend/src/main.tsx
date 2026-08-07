@@ -18,6 +18,9 @@ import {ClientAppointment} from "./routes/pages/specific/appointments/ClientAppo
 import {DoctorScheduledAppointment, MyDoctorSchedule} from "./routes/pages/DoctorPages/MyDoctorSchedule.tsx";
 import {MedicalResultPage} from "./routes/pages/common/MedicalResult/MedicalResultCard.tsx";
 import {ClinicAppointments} from "./routes/pages/ReceptionistPages/ClinicAppointments.tsx";
+import {AccountsPage} from "./routes/pages/ReceptionistPages/Users/AccountsPage.tsx";
+import {AccountDetailsPage} from "./routes/pages/ReceptionistPages/Users/AccountDetailsPage.tsx";
+import {AccountCreatePage} from "./routes/pages/ReceptionistPages/Users/AccountCreatePage.tsx";
 
 
 createRoot(document.getElementById("root")!).render(
@@ -54,6 +57,10 @@ createRoot(document.getElementById("root")!).render(
             
             
             <Route path="/clinic-schedule" element={<ClinicAppointments/>} />
+            
+            <Route path="/accounts" element={<AccountsPage/>} />
+            <Route path="/accounts/create" element={<AccountCreatePage/>} />
+            <Route path="/accounts/details" element={<AccountDetailsPage/>} />
           </Route>
         </Routes>
       </BrowserRouter>

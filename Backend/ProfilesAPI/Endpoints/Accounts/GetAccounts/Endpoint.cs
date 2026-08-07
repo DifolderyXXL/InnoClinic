@@ -16,6 +16,16 @@ public class Endpoint : IAccountEndpoint
             var result = await handler.Handle(query, ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
+        }).HasPermissions(Permissions.Accounts.Read);
+        
+        builder.MapGet("/accounts/{userId:guid}", async (
+            Guid userId,
+            IQueryHandler<GetAccountById, AccountDto> handler,
+            CancellationToken ct) =>
+        {
+            var result = await handler.Handle(new(userId), ct);
+
+            return result.MapToTypedResult(TypedResults.Ok);
         }).HasPermissions(Permissions.Accounts.ReadOwn);
     }
 }

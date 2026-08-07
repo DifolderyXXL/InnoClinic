@@ -1,85 +1,110 @@
+/* Page Layout */
+.medical-result-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    color: #f0f0f5;
+}
+
+/* Main Card Container */
 .medical-result-card {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    background-color: #2b2b2b;
-    border-radius: 8px;
-    padding: 16px;
-    color: #fff;
+    gap: 16px;
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 10px;
+    padding: 20px;
+    color: #f0f0f5;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .medical-result-header {
-    border-bottom: 1px solid #555;
-    padding-bottom: 8px;
+    border-bottom: 1px solid #2d2d38;
+    padding-bottom: 12px;
 }
 
 .medical-result-title {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #f0f0f5;
 }
 
+/* Sections */
 .medical-result-section {
-    background: #444;
-    padding: 10px 12px;
-    border-radius: 6px;
+    background-color: #121214;
+    border: 1px solid #25252e;
+    padding: 12px 14px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .section-title {
-    margin: 0 0 4px 0;
-    font-size: 0.95rem;
-    text-transform: capitalize;
-    color: #ddd;
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9090a0;
 }
 
 .section-content {
     margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.4;
-    color: #fff;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #e0e0e8;
+    white-space: pre-wrap;
 }
 
+/* Action Section & Buttons */
 .medical-result-actions {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    margin-top: 6px;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.action-buttons-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .download-btn {
-    background-color: #0066cc;
-    color: #fff;
+    background-color: #3b82f6;
+    color: #ffffff;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 9px 18px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .download-btn:hover:not(:disabled) {
-    background-color: #0052a3;
-}
-
-.download-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.error-message {
-    color: #ff4d4d;
-    font-size: 0.85rem;
-    margin-top: 6px;
+    background-color: #2563eb;
 }
 
 .edit-btn {
     background-color: #d97706;
-    color: #fff;
+    color: #ffffff;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 9px 18px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .edit-btn:hover:not(:disabled) {
@@ -87,47 +112,75 @@
 }
 
 button:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
-.autofill-btn:hover:not(:disabled) {
-    background-color: #1b5e20;
+.error-message {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* Medical Result Form & Inputs */
+.medical-result-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .form-actions {
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
+    gap: 12px;
+    margin-top: 12px;
 }
 
 .submit-btn {
-    background-color: #0066cc;
-    color: #fff;
+    background-color: #3b82f6;
+    color: #ffffff;
     border: none;
-    padding: 8px 18px;
-    border-radius: 4px;
+    padding: 9px 18px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
 }
 
 .submit-btn:hover:not(:disabled) {
-    background-color: #0052a3;
+    background-color: #2563eb;
 }
 
 .cancel-btn {
-    background-color: #555;
-    color: #fff;
-    border: none;
-    padding: 8px 18px;
-    border-radius: 4px;
+    background-color: #282834;
+    color: #f0f0f5;
+    border: 1px solid #383848;
+    padding: 9px 18px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
 }
 
 .cancel-btn:hover:not(:disabled) {
-    background-color: #666;
+    background-color: #323242;
+}
+
+.autofill-btn {
+    background-color: #10b981;
+    color: #ffffff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.autofill-btn:hover:not(:disabled) {
+    background-color: #059669;
 }
 
 .form-group,
@@ -140,33 +193,36 @@ button:disabled {
 .form-group label,
 .medical-result-form fieldset label {
     font-size: 0.85rem;
-    color: #bbb;
+    font-weight: 600;
+    color: #9090a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .form-group input,
 .form-group textarea,
 .medical-result-form fieldset input,
 .medical-result-form fieldset textarea {
-    background-color: #222;
-    border: 1px solid #555;
-    border-radius: 4px;
-    padding: 8px 10px;
-    color: #fff;
-    font-size: 0.9rem;
+    background-color: #121214;
+    border: 1px solid #2d2d38;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #f0f0f5;
+    font-size: 14px;
     font-family: inherit;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .medical-result-form fieldset input:focus,
 .medical-result-form fieldset textarea:focus {
-    border-color: #0066cc;
+    border-color: #3b82f6;
 }
 
 .form-group textarea,
 .medical-result-form fieldset textarea {
     resize: vertical;
-    min-height: 70px;
+    min-height: 80px;
 }

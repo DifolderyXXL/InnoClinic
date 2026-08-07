@@ -3,123 +3,156 @@ import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router";
 import type { AppointmentDto } from "../../../services/api/AppointmentApi.ts";
 import {
-  appointmentsApi,
-  AppointmentState,
+    appointmentsApi,
+    AppointmentState,
 } from "../../../services/api/AppointmentApi.ts";
 import { profilesApi } from "../../../services/api/ProfilesApi.ts";
 import { AppointmentCard } from "../common/Appointment/AppointmentCard.tsx";
 import { TitledCard } from "../common/TitledCard.tsx";
 import { PaginatedListView } from "../common/PaginatedListView.tsx";
-import { useUpdateUrlParams } from "../specific/doctors/DoctorsPage.tsx";
-import {PAGE_SIZE, PatientCard, type PatientDto} from "./types.tsx";
+import { PAGE_SIZE, PatientCard, type PatientDto } from "./types.tsx";
+import "./PatientDetail.css";
 
 interface PatientCardByIdProps {
-  id: string;
+    id: string;
 }
 
 export function PatientCardById({ id }: PatientCardByIdProps) {
-  const [patient, setPatient] = useState<PatientDto | null>(null);
+    const [patient, setPatient] = useState<PatientDto | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    profilesApi.getPatient(id).then((result) => {
-      if (result.type === "ok") setPatient(result.value);
-    });
-  }, []);
+    useEffect(() => {
+        setLoading(true);
+        profilesApi.getPatient(id).then((result) => {
+            if (result.type === "ok") {
+                setPatient(result.value);
+            }
+            setLoading(false);
+        }).catch(() => setLoading(false));
+    }, [id]);
 
-  if (patient == null) return <></>;
+    if (loading) {
+        return <div className="status-message">Loading patient info...</div>;
+    }
 
-  return (
-    <TitledCard title="Patient">
-      <PatientCard patient={patient} />
-      <PatientRecentAppointments id={patient.accountId} />
-    </TitledCard>
-  );
+    if (!patient) {
+        return <div className="status-message error">Patient not found</div>;
+    }
+
+    return (
+        <TitledCard title="Patient Details">
+            <div className="patient-details-container">
+                <PatientCard patient={patient} />
+                <PatientRecentAppointments id={patient.accountId} />
+            </div>
+        </TitledCard>
+    );
 }
 
 export function DoctorScheduledAppointment() {
-  const [searchParams] = useSearchParams();
-  const [appointment, setAppointment] = useState<AppointmentDto>();
+    const [searchParams] = useSearchParams();
+    const [appointment, setAppointment] = useState<AppointmentDto | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
-  const targetId = searchParams.get("id") || null;
+    const targetId = searchParams.get("id") || null;
 
-  useEffect(() => {
-    if (targetId == null) return;
+    useEffect(() => {
+        if (!targetId) {
+            setLoading(false);
+            return;
+        }
 
-    appointmentsApi.getMyDoctorAppointmentById(targetId).then((result) => {
-      if (result.type === "ok") setAppointment(result.value);
-    });
-  }, [targetId]);
+        setLoading(true);
+        appointmentsApi.getMyDoctorAppointmentById(targetId).then((result) => {
+            if (result.type === "ok") {
+                setAppointment(result.value);
+            }
+            setLoading(false);
+        }).catch(() => setLoading(false));
+    }, [targetId]);
 
-  return (
-    <div>
-      {appointment && (
-        <>
-          <AppointmentCard appointment={appointment} showResultLink={true}/>
-          <PatientCardById id={appointment.patientAccountId} />
-        </>
-      )}
-    </div>
-  );
+    if (loading) {
+        return <div className="status-message">Loading appointment details...</div>;
+    }
+
+    if (!appointment) {
+        return <div className="status-message error">Appointment not found</div>;
+    }
+
+    return (
+        <div className="doctor-scheduled-appointment-page">
+            <AppointmentCard appointment={appointment} showResultLink={true} />
+            <PatientCardById id={appointment.patientAccountId} />
+        </div>
+    );
 }
 
 interface PatientRecentAppointmentsProps {
-  id: string;
+    id: string;
 }
 
 function PatientRecentAppointments({ id }: PatientRecentAppointmentsProps) {
-  const { searchParams, updateUrlParams } = useUpdateUrlParams();
-  const currentPage = Number(searchParams.get("page")) || 1;
+    const fetchAppointments = async (page: number) => {
+        try {
+            const result = await appointmentsApi.getAppointments(
+                AppointmentState.Confirmed,
+                id,
+                page,
+                PAGE_SIZE,
+            );
 
-  const fetchAppointments = async (page: number) => {
-    const result = await appointmentsApi.getAppointments(
-      AppointmentState.Confirmed,
-      id,
-      page,
-      PAGE_SIZE,
-    );
+            if (result.type === "ok") {
+                return {
+                    items: result.value.items ?? [],
+                    total: result.value.totalCount ?? 0,
+                };
+            }
 
-    if (result.type === "ok") {
-      return { items: result.value.items, total: result.value.totalCount };
-    }
-
-    return {
-      items: [],
-      total: 0,
-      error: result.error?.title || "Failed to load",
+            return {
+                items: [],
+                total: 0,
+                error: result.error?.title || "Failed to load patient appointments",
+            };
+        } catch {
+            return {
+                items: [],
+                total: 0,
+                error: "Unhandled error occurred",
+            };
+        }
     };
-  };
 
-  return (
-    <PaginatedListView
-      currentPage={currentPage}
-      pageSize={PAGE_SIZE}
-      onPageChange={(page) => updateUrlParams({ page: String(page) })}
-      fetchRequest={fetchAppointments}
-      dependencies={[searchParams]}
-      renderItems={(appointments) => (
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "10px",
-            justifyContent: "flex-start",
-            alignContent: "flex-start",
-            padding: "10px",
-          }}
-        >
-          {appointments.map((appointment: AppointmentDto) => (
-            <Link
-              key={appointment.id}
-              to={`/my-schedule/details?id=${appointment.id}`}
-              style={{ textDecoration: "none" }}
-            >
-              <AppointmentCard appointment={appointment} />
-            </Link>
-          ))}
+    return (
+        <div className="patient-recent-appointments">
+            <h4>Confirmed Recent Appointments</h4>
+            <PaginatedListView<AppointmentDto>
+                pageSize={PAGE_SIZE}
+                fetchRequest={fetchAppointments}
+                dependencies={[id]}
+                renderItems={(appointments) => {
+                    if (appointments.length === 0) {
+                        return (
+                            <div className="status-message">
+                                No confirmed appointments for this patient.
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <div className="patient-appointments-grid">
+                            {appointments.map((appointment: AppointmentDto) => (
+                                <Link
+                                    key={appointment.id}
+                                    to={`/my-schedule/details?id=${appointment.id}`}
+                                    className="patient-appointment-link"
+                                >
+                                    <AppointmentCard appointment={appointment} />
+                                </Link>
+                            ))}
+                        </div>
+                    );
+                }}
+            />
         </div>
-      )}
-    />
-  );
+    );
 }

@@ -1,36 +1,39 @@
-import { Outlet } from 'react-router-dom';
-import {ProfileMinimalBlock} from "../routes/pages/Shared/ProfileMinimalBlock.tsx";
-import {ClinicNavigation, DoctorNavigation, ReceptionistNavigation} from "./ClinicNavigation.tsx";
-import {RequireRole, Roles} from "./common/RequireRole.tsx";
+import { Outlet } from "react-router-dom";
+import { ProfileMinimalBlock } from "../routes/pages/Shared/ProfileMinimalBlock.tsx";
+import { ClinicNavigation, DoctorNavigation, ReceptionistNavigation } from "./ClinicNavigation.tsx";
+import { RequireRole, Roles } from "./common/RequireRole.tsx";
+import "./Layout.css";
 
 export function Layout() {
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <header style={{ padding: '10px', background: '#333', color: '#fff' }}>
-                <h1>InnoClinic</h1>
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'  }}>
-                    <div  style={{ display: 'flex', flexDirection: 'column', alignItems:"start" }}>
-                        <ClinicNavigation/>
+        <div className="app-layout">
+            <header className="app-header">
+                <div className="header-brand">
+                    <h1>InnoClinic</h1>
+                </div>
+
+                <div className="header-content">
+                    <nav className="header-navigation">
+                        <ClinicNavigation />
                         <RequireRole roles={[Roles.Doctor]}>
-                            <DoctorNavigation/>
-                        </RequireRole> 
-                        <RequireRole roles={[Roles.Receptionist]}>
-                            <ReceptionistNavigation/>
+                            <DoctorNavigation />
                         </RequireRole>
+                        <RequireRole roles={[Roles.Receptionist]}>
+                            <ReceptionistNavigation />
+                        </RequireRole>
+                    </nav>
+
+                    <div className="header-profile">
+                        <ProfileMinimalBlock />
                     </div>
-                    <ProfileMinimalBlock/>
                 </div>
             </header>
-            <main style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '20px',
-                overflow: 'hidden'
-            }}>
+
+            <main className="app-main">
                 <Outlet />
             </main>
-            <footer style={{ padding: '10px', background: '#333', color: '#fff', textAlign: 'center' }}>
+
+            <footer className="app-footer">
                 © 2026 InnoClinic
             </footer>
         </div>

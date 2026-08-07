@@ -1,0 +1,74 @@
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #121214;
+    color: #f0f0f5;
+}
+
+.app-header {
+    position: relative;
+    z-index: 10;
+    background-color: #18181c;
+    border-bottom: 1px solid #2d2d38;
+    padding: 12px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.header-brand h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #f0f0f5;
+    letter-spacing: 0.5px;
+}
+
+.header-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+}
+
+.header-navigation {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    position: relative;
+    z-index: 20;
+    overflow: visible;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.header-profile {
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 20;
+}
+
+.app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.app-footer {
+    padding: 14px 20px;
+    background-color: #18181c;
+    border-top: 1px solid #2d2d38;
+    color: #9090a0;
+    text-align: center;
+    font-size: 13px;
+}

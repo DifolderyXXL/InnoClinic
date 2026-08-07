@@ -1,0 +1,11 @@
+@page
+@model Deunde.IdentityServer.Pages.Account.SetPassword.ConfirmationModel
+@{
+    ViewData["Title"] = "Password Set Successfully";
+}
+
+<div class="alert alert-success mt-4">
+    <h4>Password updated!</h4>
+    <p>Your password has been set successfully. You can now log into your account.</p>
+    <a asp-page="/Account/Login/Index" class="btn btn-primary">Go to Login</a>
+</div>

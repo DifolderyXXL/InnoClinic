@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-NotificationService.Worker-2be4dca7-798c-4252-80d5-5bfe9bf0fe49</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+
+        <PackageReference Include="MassTransit" Version="8.5.10" />
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.10" />
+        <PackageReference Include="MassTransit.Quartz" Version="8.5.10" />
+        <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.10" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="*" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Contracts\Contracts.csproj" />
+      <ProjectReference Include="..\Infrastructure.Mailing\Infrastructure.Mailing.csproj" />
+    </ItemGroup>
+</Project>

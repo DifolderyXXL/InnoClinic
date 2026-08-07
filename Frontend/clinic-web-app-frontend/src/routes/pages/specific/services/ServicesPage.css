@@ -1,119 +1,256 @@
-.service-card{
-    display: inline-flex;
-    flex-direction: column;
-    background: #444;
-    color: white;
-    padding: 5px;
-}
-
-.services-list{
-    display: inline-flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-left: 20px;
-}
-
-.specialization-group{
-    width: 100%;
-    text-align: left;
-    background: #222;
-    padding: 5px 0px;
-}
-
+/* Services page layout */
 .groups-container {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    gap: 12px;
     width: 100%;
 }
+
+/* Specialization group card */
+.specialization-group {
+    width: 100%;
+    background-color: #1e1e24;
+    border: 1px solid #2d2d38;
+    border-radius: 8px;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.specialization-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background-color: #1e1e24;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #f0f0f5;
+    transition: background-color 0.2s ease;
+}
+
+.specialization-header:hover {
+    background-color: #25252e;
+}
+
+.specialization-header.expanded {
+    border-bottom: 1px solid #2d2d38;
+}
+
+.specialization-header .arrow {
+    font-size: 10px;
+    color: #9090a0;
+    width: 12px;
+}
+
+.specialization-title {
+    flex: 1;
+}
+
+.specialization-count {
+    font-size: 12px;
+    color: #626270;
+    font-weight: 400;
+}
+
+/* Services list container inside group */
+.services-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background-color: #121214;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Service link wrapper */
 .service-link {
-    display: inline-block;
-    transition: transform 0.2s ease;
+    display: block;
+    width: 100%;
     text-decoration: none;
+    color: inherit;
+    box-sizing: border-box;
 }
 
-.service-link:hover {
-    transform: translateX(5px);
+/* Service card item */
+.service-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background-color: #18181c;
+    border: 1px solid #282834;
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: transform 0.15s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.option-select__input{
-    color: white !important;
-}
-.option-select__single-value{
-    color: white !important;
-}
-.option-select__menu{
-    background: #222 !important;
-    color: white !important;
+.service-link:hover .service-card {
+    border-color: #4d82f3;
+    background-color: #202028;
+    transform: translateX(4px);
 }
 
-.option-select__option{
-    background: #444 !important;
-    color: white !important;
+.service-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.service-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #f0f0f5;
+}
+
+.service-status {
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.service-status.active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.service-status.inactive {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.service-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* React Select Theme Customization */
+.option-select__control {
+    background: #18181c !important;
+    border-color: #323240 !important;
+    color: #f0f0f5 !important;
+    border-radius: 6px !important;
+    min-height: 38px !important;
+}
+
+.option-select__input,
+.option-select__single-value {
+    color: #f0f0f5 !important;
+}
+
+.option-select__menu {
+    background: #18181c !important;
+    border: 1px solid #323240 !important;
+    color: #f0f0f5 !important;
+    border-radius: 6px !important;
+    z-index: 20 !important;
+}
+
+.option-select__option {
+    background: #18181c !important;
+    color: #f0f0f5 !important;
+    cursor: pointer !important;
+}
+
+.option-select__option:hover,
+.option-select__option--is-focused {
+    background: #2b2b36 !important;
 }
 
 .option-select__option--is-selected {
-    background: #555 !important;
+    background: #3b82f6 !important;
+    color: #ffffff !important;
 }
 
-.option-select__option:hover {
-    background: #777 !important;
+/* Time Slot Picker Grid & Items */
+.slots-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.option-select__control{
-    background: #333 !important;
-    color: white !important;
+.slots-table th,
+.slots-table td {
+    padding: 4px;
+    border: 1px solid #2d2d38;
+}
+
+.slots-table th {
+    padding: 6px 8px;
+    font-size: 12px;
+    color: #9090a0;
+    background-color: #1e1e24;
 }
 
 .slot-item {
     padding: 4px;
-    border: 1px solid #555;
+    border: 1px solid #323240;
     width: 60px;
-    height: 24px;
+    height: 26px;
     text-align: center;
-    font-size: 10px;
-    cursor: default;
-    transition: background-color 0.15s ease;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
     user-select: none;
 }
 
 .slot-item.available {
-    background-color: #4caf50;
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.4);
     cursor: pointer;
 }
 
 .slot-item.available:hover {
-    background-color: #66bb6a;
-    transform: scale(1.05);
+    background-color: rgba(16, 185, 129, 0.4);
+    transform: scale(1.04);
 }
 
-.slot-item.available.selected {
-    background-color: #ff9800;
+.slot-item.available.selected,
+.slot-item.selected {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    border-color: #3b82f6 !important;
+}
+
+.slot-item.preview {
+    background-color: rgba(245, 158, 11, 0.4) !important;
+    color: #fbbf24 !important;
+    border-color: #f59e0b !important;
 }
 
 .slot-item.unavailable {
-    background-color: #444;
-    cursor: default;
+    background-color: #18181c;
+    color: #505060;
+    border-color: #282834;
+    cursor: not-allowed;
 }
 
-.slot-item.unavailable:hover {
-    background-color: #444;
+/* Services page main container */
+.services-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+    color: #f0f0f5;
 }
 
-.slots-table th {
-    padding: 4px 8px;
-    border: 1px solid #555;
-    font-size: 12px;
+.services-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
-
-.slots-table td {
-    padding: 4px;
-    border: 1px solid #555;
-}
-.slot-item.selected{
-    background-color: #ff963b !important;
-}
-.slot-item.preview {
-    background-color: #ffeb3b !important; 
-}
-

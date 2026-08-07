@@ -1,26 +1,49 @@
-.appointment-card{
+/* Container for client appointment pages */
+.client-appointments-page,
+.client-appointment-details-page {
     display: flex;
     flex-direction: column;
-    background: #444;
-    padding: 5px;
+    gap: 16px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+    color: #f0f0f5;
 }
 
-.appointment-header{
-    display: flex;
-    flex-direction: column;
-}
-
-.appointments-list-container{
+/* List container grid layout */
+.appointments-list-container {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap:5px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    width: 100%;
 }
 
-.appointment-link{
+/* Appointment Link Wrapper */
+.appointment-link {
     color: inherit;
     text-decoration: none;
     display: flex;
     flex-direction: column;
-    background: #444;
-    padding: 5px;
+    height: 100%;
+}
+
+/* Universal status messaging (loading, error, empty) */
+.status-message {
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    background-color: #18181c;
+    border: 1px solid #2d2d38;
+    color: #9090a0;
+    margin: 20px auto;
+    max-width: 400px;
+}
+
+.status-message.error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.25);
 }

@@ -1,11 +1,11 @@
 import { type MedicalResultBody } from "../../../../services/api/DocumentsApi.ts";
-import { useState} from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router";
-import "./MedicalResultCard.css"
-import {MyDoctorAppointmentByIdCard} from "../Appointment/AppointmentCard.tsx";
-import {RequireRole, Roles} from "../../../../components/common/RequireRole.tsx";
-import {DoctorMedicalResultView} from "./DoctorMedicalResultView.tsx";
-import {PatientMedicalResultView} from "./PatientMedicalResultView.tsx";
+import "./MedicalResultCard.css";
+import { MyDoctorAppointmentByIdCard } from "../Appointment/AppointmentCard.tsx";
+import { RequireRole, Roles } from "../../../../components/common/RequireRole.tsx";
+import { DoctorMedicalResultView } from "./DoctorMedicalResultView.tsx";
+import { PatientMedicalResultView } from "./PatientMedicalResultView.tsx";
 
 interface MedicalResultCardProps {
     medicalResult: MedicalResultBody;
@@ -35,7 +35,7 @@ export function MedicalResultCard({ medicalResult, onExport, canEdit = false, on
     return (
         <article className="medical-result-card">
             <header className="medical-result-header">
-                <h2 className="medical-result-title">Medical results</h2>
+                <h2 className="medical-result-title">Medical Results</h2>
             </header>
 
             {complaints && (
@@ -66,25 +66,27 @@ export function MedicalResultCard({ medicalResult, onExport, canEdit = false, on
                 </section>
             )}
 
-            <section className="medical-result-actions" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                <button
-                    type="button"
-                    className="download-btn"
-                    onClick={handleExportClick}
-                    disabled={isLoading}
-                >
-                    {isLoading ? "Downloading..." : "Download (PDF)"}
-                </button>
-
-                {canEdit && onEdit && (
+            <section className="medical-result-actions">
+                <div className="action-buttons-group">
                     <button
                         type="button"
-                        className="edit-btn"
-                        onClick={onEdit}
+                        className="download-btn"
+                        onClick={handleExportClick}
+                        disabled={isLoading}
                     >
-                        Edit
+                        {isLoading ? "Downloading..." : "Download (PDF)"}
                     </button>
-                )}
+
+                    {canEdit && onEdit && (
+                        <button
+                            type="button"
+                            className="edit-btn"
+                            onClick={onEdit}
+                        >
+                            Edit
+                        </button>
+                    )}
+                </div>
 
                 {error && <p className="error-message">{error}</p>}
             </section>
@@ -99,7 +101,7 @@ export function MedicalResultPage() {
     const userId = searchParams.get("userId");
 
     if (!targetId) {
-        return <div className="medical-result-not-found">Not found</div>;
+        return <div className="status-message error">Medical result not found</div>;
     }
 
     return (
@@ -110,7 +112,7 @@ export function MedicalResultPage() {
                 {userId ? (
                     <DoctorMedicalResultView appointmentId={targetId} userId={userId} />
                 ) : (
-                    <div>User ID is missing for Doctor view</div>
+                    <div className="status-message error">User ID is missing for Doctor view</div>
                 )}
             </RequireRole>
 
@@ -120,4 +122,3 @@ export function MedicalResultPage() {
         </div>
     );
 }
-

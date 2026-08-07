@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useMemo, useState } from "react";
 import {
     type AvailablePositionsOnDay,
     getSlotsInHour,
@@ -6,48 +6,40 @@ import {
     timeSpanToMinutes
 } from "../../../services/api/ServicesApi.ts";
 
-interface TimeSlotPickerProps{
+interface TimeSlotPickerProps {
     positions: AvailablePositionsOnDay;
     selected: number;
     slotAmount: number;
     onChange: (value: number) => void;
 }
-export function TimeSlotPicker({positions, selected, slotAmount, onChange}: TimeSlotPickerProps){
+
+export function TimeSlotPicker({ positions, selected, slotAmount, onChange }: TimeSlotPickerProps) {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
     const slotsInHour = getSlotsInHour(positions.timeSlotLength);
     const slotMinute = timeSpanToMinutes(positions.timeSlotLength);
     const hours = Math.ceil(positions.slotAmount / slotsInHour);
-
-    const minuteLabels = Array.from({ length: slotsInHour }, (_, i) =>
-        `${i*slotMinute}-${i*slotMinute+slotMinute}`);
     const dayBeginMinutes = timeSpanToMinutes(positions.dayBeginTime);
 
-    const hourLabels = Array.from({ length: hours }, (_, i) =>
-        `${minutesToTimeSpan(dayBeginMinutes + i*60)}`);
+    const minuteLabels = useMemo(() => {
+        return Array.from({ length: slotsInHour }, (_, i) =>
+            `${i * slotMinute}-${(i + 1) * slotMinute}`
+        );
+    }, [slotsInHour, slotMinute]);
 
-    function isSlotAvailable(slotStartMinutes: number): boolean {
+    const hourLabels = useMemo(() => {
+        return Array.from({ length: hours }, (_, i) =>
+            minutesToTimeSpan(dayBeginMinutes + i * 60)
+        );
+    }, [hours, dayBeginMinutes]);
+
+    const isSlotAvailable = (slotStartMinutes: number): boolean => {
         return positions.availableTimeWindows.some(w => {
             const windowStart = dayBeginMinutes + w.timeSlotStart * slotMinute;
             const windowEnd = windowStart + w.timeSlotSize * slotMinute;
             return slotStartMinutes >= windowStart && slotStartMinutes < windowEnd;
         });
-    }
-
-    const slotsByHour: Record<number, { index: number; startMinutes: number; isAvailable: boolean }[]> = {};
-    hourLabels.forEach((_, idx) => { slotsByHour[idx] = []; });
-
-    for (let i = 0; i < positions.slotAmount; i++) {
-        const startMinutes = dayBeginMinutes + i * slotMinute;
-        const hour = Math.floor(i / slotsInHour);
-        if (slotsByHour[hour]) {
-            slotsByHour[hour].push({
-                index: i,
-                startMinutes,
-                isAvailable: isSlotAvailable(startMinutes),
-            });
-        }
-    }
+    };
 
     const allSlots = useMemo(() => {
         const slots: { index: number; startMinutes: number; isAvailable: boolean }[] = [];
@@ -60,10 +52,24 @@ export function TimeSlotPicker({positions, selected, slotAmount, onChange}: Time
             });
         }
         return slots;
-    }, [positions.slotAmount, positions.availableTimeWindows]);
+    }, [positions.slotAmount, positions.availableTimeWindows, dayBeginMinutes, slotMinute]);
+
+    const slotsByHour = useMemo(() => {
+        const result: Record<number, { index: number; startMinutes: number; isAvailable: boolean }[]> = {};
+        hourLabels.forEach((_, idx) => { result[idx] = []; });
+
+        allSlots.forEach(slot => {
+            const hour = Math.floor(slot.index / slotsInHour);
+            if (result[hour]) {
+                result[hour].push(slot);
+            }
+        });
+
+        return result;
+    }, [allSlots, hourLabels, slotsInHour]);
 
     const isInPreviewRange = (index: number): boolean => {
-        if (hoverIndex === null) return false;
+        if (hoverIndex === null || index < 0) return false;
         if (index < hoverIndex || index >= hoverIndex + slotAmount) return false;
         for (let i = hoverIndex; i < hoverIndex + slotAmount; i++) {
             if (!allSlots[i]?.isAvailable) return false;
@@ -72,66 +78,71 @@ export function TimeSlotPicker({positions, selected, slotAmount, onChange}: Time
     };
 
     const isInSelectedRange = (index: number): boolean => {
+        if (index < 0) return false;
         return index >= selected && index < selected + slotAmount;
     };
 
-    return(
-        <table className="slots-table" style={{ borderCollapse: 'collapse' }}>
-            <thead>
-            <tr>
-                <th style={{ padding: '4px 8px', border: '1px solid #555' }}>Час</th>
-                {minuteLabels.map((min, idx) => (
-                    <th key={idx} style={{ padding: '4px 8px', border: '1px solid #555', fontSize: '12px' }}>
-                        {String(min).padStart(5, '0')}
-                    </th>
-                ))}
-            </tr>
-            </thead>
-            <tbody>
-            {hourLabels.map((hour, idx) => {
-                const slots = slotsByHour[idx] || [];
+    return (
+        <div className="time-slot-picker-container">
+            <table className="slots-table">
+                <thead>
+                <tr>
+                    <th className="slot-header-cell">Hour</th>
+                    {minuteLabels.map((min, idx) => (
+                        <th key={idx} className="slot-header-cell minutes">
+                            {min}
+                        </th>
+                    ))}
+                </tr>
+                </thead>
+                <tbody>
+                {hourLabels.map((hour, idx) => {
+                    const slots = slotsByHour[idx] || [];
+                    const paddedSlots = [...slots];
+                    while (paddedSlots.length < slotsInHour) {
+                        paddedSlots.push({ index: -1, startMinutes: 0, isAvailable: false });
+                    }
 
-                const paddedSlots = [...slots];
-                while (paddedSlots.length < slotsInHour) {
-                    paddedSlots.push({ index: -1, startMinutes: 0, isAvailable: false });
-                }
-                return (
-                    <tr key={hour}>
-                        <td style={{ padding: '4px 8px', border: '1px solid #555', fontWeight: 'bold' }}>
-                            {String(hour).padStart(2, '0')}:00
-                        </td>
-                        {paddedSlots.map((slot, idx) => (
-                            <td
-                                key={`${hour}-${idx}`}
-                                className={`slot-item ${slot.isAvailable ? 'available' : 'unavailable'} 
-                                ${isInSelectedRange(slot.index)? 'selected' : ''} 
-                                ${isInPreviewRange(slot.index) ? 'preview' : ''}`}
-                                onMouseEnter={() => setHoverIndex(slot.index)}
-                                onMouseLeave={() => setHoverIndex(null)}
+                    return (
+                        <tr key={hour}>
+                            <td className="slot-hour-cell">
+                                {hour}
+                            </td>
+                            {paddedSlots.map((slot, slotIdx) => {
+                                const isSelected = isInSelectedRange(slot.index);
+                                const isPreview = isInPreviewRange(slot.index);
 
-                                onClick={() => {
-                                    if (!slot.isAvailable) return;
+                                return (
+                                    <td
+                                        key={`${hour}-${slotIdx}`}
+                                        className={`slot-item ${slot.isAvailable ? 'available' : 'unavailable'} ${isSelected ? 'selected' : ''} ${isPreview ? 'preview' : ''}`}
+                                        onMouseEnter={() => slot.index !== -1 && setHoverIndex(slot.index)}
+                                        onMouseLeave={() => setHoverIndex(null)}
+                                        onClick={() => {
+                                            if (!slot.isAvailable || slot.index === -1) return;
 
-                                    if (hoverIndex !== null && slot.index >= hoverIndex && slot.index < hoverIndex + slotAmount) {
-                                        let allAvailable = true;
-                                        for (let i = hoverIndex; i < hoverIndex + slotAmount; i++) {
-                                            if (!allSlots[i]?.isAvailable) { allAvailable = false; break; }
-                                        }
-                                        if (allAvailable) {
+                                            let allAvailable = true;
+                                            for (let i = slot.index; i < slot.index + slotAmount; i++) {
+                                                if (!allSlots[i]?.isAvailable) {
+                                                    allAvailable = false;
+                                                    break;
+                                                }
+                                            }
 
-                                            onChange(hoverIndex);
-                                            setHoverIndex(null);
-                                            return;
-                                        }
-                                    }
-                                }}
-                                title={slot.isAvailable ? `Слот ${slot.index+1}` : 'Занято'}
-                            />
-                        ))}
-                    </tr>
-                );
-            })}
-            </tbody>
-        </table>
+                                            if (allAvailable) {
+                                                onChange(slot.index);
+                                                setHoverIndex(null);
+                                            }
+                                        }}
+                                        title={slot.isAvailable ? `Slot ${slot.index + 1}` : 'Occupied'}
+                                    />
+                                );
+                            })}
+                        </tr>
+                    );
+                })}
+                </tbody>
+            </table>
+        </div>
     );
 }

@@ -14,7 +14,6 @@ var blobs = builder.AddAzureStorage("storage")
        .AddBlobs("documentsBlob");
 
 
-       
 var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                   .WithImage("masstransit/rabbitmq", "latest")
                   .WithLifetime(ContainerLifetime.Persistent)
@@ -66,6 +65,13 @@ var postgres = builder.AddPostgres("postgres")
        .WithDataVolume();
 var postgresdb = postgres.AddDatabase("appointmentsApiDb");
 var servicesApiDb = postgres.AddDatabase("servicesApiDb");
+
+var notificationServiceDb = postgres.AddDatabase("notificationDb");
+var notificationService = builder.AddProject<Projects.NotificationService_Worker>("NotificationService")
+       .WithReference(notificationServiceDb)
+       .WithReference(rabbitmqServicesApi)
+       .WaitFor(notificationServiceDb)
+       .WaitFor(rabbitmqServicesApi);
 
 var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
        .WithReference(identityServer)

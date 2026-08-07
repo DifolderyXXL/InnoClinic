@@ -5,64 +5,110 @@ import {
     AppointmentState
 } from "../../../services/api/AppointmentApi.ts";
 import { PaginatedListView, type PaginatedResult } from "../common/PaginatedListView.tsx";
+import { useSearchParams } from "react-router";
 import "./ClinicAppointments.css";
 
-export function ClinicAppointments() {
-    // 1. Filter states (AC-7 – AC-11)
-    const [date, setDate] = useState<string>("");
-    const [doctorFullName, setDoctorFullName] = useState<string>("");
-    const [serviceName, setServiceName] = useState<string>("");
-    const [state, setState] = useState<AppointmentState | null>(null);
-    const [officeId, setOfficeId] = useState<string>("");
+// Хелпер для корректного отображения названия статуса
+function formatAppointmentState(state: AppointmentState | string | number): string {
+    if (typeof state === "string" && isNaN(Number(state))) {
+        return state;
+    }
+    const numState = Number(state);
+    switch (numState) {
+        case AppointmentState.Created: return "Created";
+        case AppointmentState.PendingReservation: return "Pending Reservation";
+        case AppointmentState.PendingApproval: return "Pending Approval";
+        case AppointmentState.Approved: return "Approved";
+        case AppointmentState.Confirmed: return "Confirmed";
+        case AppointmentState.Failed: return "Failed";
+        default: return String(state ?? "—");
+    }
+}
 
-    // 2. Pagination & items state
-    const [page, setPage] = useState<number>(1);
+export function ClinicAppointments() {
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const [date, setDate] = useState<string>(searchParams.get("date") || "");
+    const [doctorFullName, setDoctorFullName] = useState<string>(searchParams.get("doctorFullName") || "");
+    const [serviceName, setServiceName] = useState<string>(searchParams.get("serviceName") || "");
+    const [state, setState] = useState<AppointmentState | null>(
+        searchParams.get("state") ? (Number(searchParams.get("state")) as AppointmentState) : null
+    );
+    const [officeId, setOfficeId] = useState<string>(searchParams.get("officeId") || "");
+
     const pageSize = 50;
 
-    const [items, setItems] = useState<AppointmentDto[]>([]);
+    const [localItems, setLocalItems] = useState<AppointmentDto[]>([]);
 
-    // State for Cancel confirmation modal (AC-1, AC-2) & Reason text
     const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
     const [declineReason, setDeclineReason] = useState<string>("");
     const [reasonError, setReasonError] = useState<string | null>(null);
     const [isCancelling, setIsCancelling] = useState<boolean>(false);
 
-    const handleFilterChange = (setter: (val: any) => void, value: any) => {
-        setter(value);
-        setPage(1);
-    };
+    const updateFilter = (newParams: Record<string, string | number | null>) => {
+        const nextParams = new URLSearchParams(searchParams);
 
-    // 3. Adapter function: syncs API response with local `items`
-    const fetchAppointments = useCallback(async (targetPage: number): Promise<PaginatedResult<AppointmentDto>> => {
-        const res = await appointmentsApi.getClinicAppointments({
-            date: date || null,
-            doctorFullName: doctorFullName || null,
-            serviceName: serviceName || null,
-            status: state,
-            officeId: officeId || null,
-            page: targetPage,
-            pageSize
+        Object.entries(newParams).forEach(([key, val]) => {
+            if (val !== null && val !== undefined && val !== "") {
+                nextParams.set(key, String(val));
+            } else {
+                nextParams.delete(key);
+            }
         });
 
-        if (res.type === "ok") {
-            setItems(res.value.items);
+        nextParams.set("page", "1");
+        setSearchParams(nextParams, { replace: true });
+    };
+
+    const resetFilters = () => {
+        setDate("");
+        setDoctorFullName("");
+        setServiceName("");
+        setState(null);
+        setOfficeId("");
+        setSearchParams({ page: "1" }, { replace: true });
+    };
+
+    const fetchAppointments = useCallback(async (targetPage: number): Promise<PaginatedResult<AppointmentDto>> => {
+        try {
+            const res = await appointmentsApi.getClinicAppointments({
+                date: date || null,
+                doctorFullName: doctorFullName || null,
+                serviceName: serviceName || null,
+                status: state,
+                officeId: officeId || null,
+                page: targetPage,
+                pageSize
+            });
+
+            if (res.type === "ok") {
+                const fetchedItems = res.value.items ?? [];
+                setLocalItems(fetchedItems);
+                return {
+                    items: fetchedItems,
+                    total: res.value.totalCount ?? 0
+                };
+            }
+
             return {
-                items: res.value.items,
-                total: res.value.totalCount
+                items: [],
+                total: 0,
+                error: res.error?.title || "Failed to load appointments"
+            };
+        } catch {
+            return {
+                items: [],
+                total: 0,
+                error: "Unhandled error occurred"
             };
         }
-
-        return {
-            items: [],
-            total: 0,
-            error: res.error?.title || "Failed to load appointments"
-        };
     }, [date, doctorFullName, serviceName, state, officeId, pageSize]);
 
     const approveAppointment = async (id: string) => {
         const res = await appointmentsApi.approveAppointment(id);
         if (res.type === "ok") {
-            setItems(prev => prev.map(item => item.id === id ? { ...item, state: String(AppointmentState.Approved) } : item));
+            // Устанавливаем строковое значение "Approved" вместо enum-индекса
+            setLocalItems(prev => prev.map(item => item.id === id ? { ...item, state: "Approved" } : item));
         }
     };
 
@@ -72,25 +118,20 @@ export function ClinicAppointments() {
         setReasonError(null);
     };
 
-    // AC-3: Confirmation handler for deleting / cancelling appointment with Reason
     const handleConfirmCancel = async () => {
         if (!cancelTargetId) return;
 
-        // Validate that reason is provided
         if (!declineReason.trim()) {
             setReasonError("Please provide a reason for cancellation.");
             return;
         }
 
         setIsCancelling(true);
-        // Pass the actual reason entered by the receptionist
         const res = await appointmentsApi.declineAppointment(cancelTargetId, { reason: declineReason.trim() });
         setIsCancelling(false);
 
         if (res.type === "ok") {
-            // AC-3: Remove from table view locally
-            setItems(prev => prev.filter(item => item.id !== cancelTargetId));
-            // AC-3: Close modal dialog
+            setLocalItems(prev => prev.filter(item => item.id !== cancelTargetId));
             setCancelTargetId(null);
             setDeclineReason("");
         } else {
@@ -98,7 +139,6 @@ export function ClinicAppointments() {
         }
     };
 
-    // AC-4: Close modal without changes
     const handleDismissCancel = () => {
         setCancelTargetId(null);
         setDeclineReason("");
@@ -106,19 +146,22 @@ export function ClinicAppointments() {
     };
 
     return (
-        <div>
+        <div className="clinic-appointments-page">
             <h1>Clinic Appointments</h1>
 
-            {/* Filters */}
-            <fieldset>
+            <fieldset className="filters-fieldset">
                 <legend>Filters</legend>
-                <div>
+                <div className="filters-row">
                     <label>
                         Date:
                         <input
                             type="date"
                             value={date}
-                            onChange={(e) => handleFilterChange(setDate, e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setDate(val);
+                                updateFilter({ date: val });
+                            }}
                         />
                     </label>
 
@@ -128,7 +171,11 @@ export function ClinicAppointments() {
                             type="text"
                             placeholder="Search doctor..."
                             value={doctorFullName}
-                            onChange={(e) => handleFilterChange(setDoctorFullName, e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setDoctorFullName(val);
+                                updateFilter({ doctorFullName: val });
+                            }}
                         />
                     </label>
 
@@ -138,7 +185,11 @@ export function ClinicAppointments() {
                             type="text"
                             placeholder="Search service..."
                             value={serviceName}
-                            onChange={(e) => handleFilterChange(setServiceName, e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setServiceName(val);
+                                updateFilter({ serviceName: val });
+                            }}
                         />
                     </label>
 
@@ -148,7 +199,9 @@ export function ClinicAppointments() {
                             value={state ?? ""}
                             onChange={(e) => {
                                 const val = e.target.value;
-                                handleFilterChange(setState, val === "" ? null : Number(val) as AppointmentState);
+                                const newState = val === "" ? null : (Number(val) as AppointmentState);
+                                setState(newState);
+                                updateFilter({ state: newState });
                             }}
                         >
                             <option value="">All States</option>
@@ -167,114 +220,95 @@ export function ClinicAppointments() {
                             type="text"
                             placeholder="Office ID"
                             value={officeId}
-                            onChange={(e) => handleFilterChange(setOfficeId, e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setOfficeId(val);
+                                updateFilter({ officeId: val });
+                            }}
                         />
                     </label>
 
-                    <button type="button" onClick={() => {
-                        setDate("");
-                        setDoctorFullName("");
-                        setServiceName("");
-                        setState(null);
-                        setOfficeId("");
-                        setPage(1);
-                    }}>
+                    <button type="button" onClick={resetFilters}>
                         Reset Filters
                     </button>
                 </div>
             </fieldset>
 
             <PaginatedListView<AppointmentDto>
-                currentPage={page}
                 pageSize={pageSize}
-                onPageChange={setPage}
                 fetchRequest={fetchAppointments}
-                dependencies={[fetchAppointments]}
+                dependencies={[date, doctorFullName, serviceName, state, officeId]}
                 renderItems={() => (
-                    <table border={1} cellPadding={10} cellSpacing={0} style={{ borderColor: "#111" }}>
-                        <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Time / Slot</th>
-                            <th>Doctor</th>
-                            <th>Patient</th>
-                            <th>Service</th>
-                            <th>Office</th>
-                            <th>State</th>
-                            <th>Action</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {items.length > 0 ? (
-                            items.map((item) => (
-                                <tr key={item.id}>
-                                    <td>{item.date}</td>
-                                    <td>{item.beginTime ?? `Slot #${item.startSlotIndex}`}</td>
-                                    <td>{item.doctorFullName}</td>
-                                    <td>{item.patientFullName}</td>
-                                    <td>{item.serviceName}</td>
-                                    <td>{item.officeId}</td>
-                                    <td>{item.state}</td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            {(item.state === "PendingApproval" || Number(item.state) === AppointmentState.PendingApproval) && (
-                                                <button className="btn btn-approve" onClick={() => approveAppointment(item.id)}>
-                                                    Approve
-                                                </button>
-                                            )}
-                                            {/* AC-1: Open Cancel modal dialog */}
-                                            <button className="btn btn-decline" onClick={() => openCancelModal(item.id)}>
-                                                Cancel
-                                            </button>
-                                        </div>
+                    <div className="clinic-table-wrapper">
+                        <table className="clinic-appointments-table">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time / Slot</th>
+                                <th>Doctor</th>
+                                <th>Patient</th>
+                                <th>Service</th>
+                                <th>Office</th>
+                                <th>State</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {localItems.length > 0 ? (
+                                localItems.map((item) => {
+                                    const formattedState = formatAppointmentState(item.state);
+                                    const isPendingApproval =
+                                        item.state === "PendingApproval" ||
+                                        Number(item.state) === AppointmentState.PendingApproval;
+
+                                    return (
+                                        <tr key={item.id}>
+                                            <td>{item.date}</td>
+                                            <td>{item.beginTime ?? `Slot #${item.startSlotIndex}`}</td>
+                                            <td>{item.doctorFullName}</td>
+                                            <td>{item.patientFullName}</td>
+                                            <td>{item.serviceName}</td>
+                                            <td>{item.officeId}</td>
+                                            <td>{formattedState}</td>
+                                            <td>
+                                                <div className="action-buttons">
+                                                    <button className="btn btn-decline" onClick={() => openCancelModal(item.id)}>
+                                                        Cancel
+                                                    </button>
+
+                                                    {isPendingApproval && (
+                                                        <button className="btn btn-approve" onClick={() => approveAppointment(item.id)}>
+                                                            Approve
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan={8} style={{ textAlign: "center", color: "#606070" }}>
+                                        No appointments found
                                     </td>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={8} align="center">No appointments found</td>
-                            </tr>
-                        )}
-                        </tbody>
-                    </table>
+                            )}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             />
 
-            {/* AC-1, AC-2: Confirmation Dialog Window + Reason Input */}
             {cancelTargetId && (
-                <div style={{
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: "rgba(0,0,0,0.5)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: "#fff",
-                        padding: "24px",
-                        borderRadius: "8px",
-                        maxWidth: "420px",
-                        width: "100%",
-                        textAlign: "center"
-                    }}>
-                        {/* AC-1 exact wording */}
-                        <p style={{ fontWeight: 600, marginBottom: "16px" }}>
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <p className="modal-title">
                             Do you really want to cancel the appointment? It will be permanently deleted.
                         </p>
 
-                        {/* Reason Input */}
-                        <div style={{ marginBottom: "16px", textAlign: "left" }}>
-                            <label style={{ display: "block", fontSize: "14px", marginBottom: "4px" }}>
-                                Reason for cancellation:
-                            </label>
+                        <div className="modal-field">
+                            <label>Reason for cancellation:</label>
                             <textarea
-                                rows={3}
-                                style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
                                 placeholder="Enter reason (e.g. Client requested cancellation)..."
                                 value={declineReason}
                                 onChange={(e) => {
@@ -283,17 +317,15 @@ export function ClinicAppointments() {
                                 }}
                             />
                             {reasonError && (
-                                <span style={{ color: "red", fontSize: "12px", display: "block", marginTop: "4px" }}>
+                                <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "2px" }}>
                                     {reasonError}
                                 </span>
                             )}
                         </div>
 
-                        {/* AC-2: Buttons Yes and No */}
-                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+                        <div className="modal-actions">
                             <button
-                                className="btn"
-                                style={{ backgroundColor: "#6b7280", color: "#fff" }}
+                                className="btn btn-secondary"
                                 onClick={handleDismissCancel}
                                 disabled={isCancelling}
                             >

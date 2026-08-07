@@ -24,6 +24,7 @@
     <ProjectReference Include="..\Backend\AppointmentsAPI\AppointmentsAPI.csproj" />
     <ProjectReference Include="..\Backend\Deunde.IdentityServer\Deunde.IdentityServer.csproj" />
     <ProjectReference Include="..\Backend\DocumentsAPI\DocumentsAPI.csproj" />
+    <ProjectReference Include="..\Backend\NotificationService.Worker\NotificationService.Worker.csproj" />
     <ProjectReference Include="..\Backend\OfficesApi\OfficesApi.csproj" />
     <ProjectReference Include="..\Backend\ProfilesAPI\ProfilesAPI.csproj" />
     <ProjectReference Include="..\Backend\ServicesAPI\ServicesAPI.csproj" />

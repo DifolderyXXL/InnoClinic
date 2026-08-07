@@ -27,6 +27,8 @@ public static class DependencyInjection
             services.AddScoped<MedicalResultService>();
             services.AddScoped<IPdfMedicalResultGenerator, QuestPdfMedicalResultGenerator>();
 
+            services.AddScoped<IPhotoFacade, PhotoFacade>();
+            
             services.AddScoped<BlobDbContext>();
             services.AddScoped<MedicalResultsDbContext>();
             

@@ -1,6 +1,8 @@
 using AppointmentsAPI.Controllers;
 using Contracts.AppointmentContracts;
+using Contracts.Notifications;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentsAPI.Data;
 
@@ -11,11 +13,14 @@ public class AppointmentState : SagaStateMachineInstance
     
     public Guid PatientAccountId { get; set; }
     public Guid DoctorAccountId { get; set; }
-    
+
     public long ReservationId { get; set; }
     public DateOnly Date { get; set; }
     public int StartSlotIndex { get; set; }
     public long ServiceId { get; set; }
+    
+    public TimeSpan BeginTime { get; set; }
+    public TimeSpan EndTime { get; set; }
 
     public Guid AppointmentId => CorrelationId;
 }
@@ -119,10 +124,9 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
             When(TimeWindowReserved)
                 .Then(context =>
                 {  
-                    var serviceProvider = context.GetPayload<IServiceProvider>();
-                    var logger = serviceProvider.GetRequiredService<ILogger<AppointmentStateMachine>>();
                     context.Saga.ReservationId = context.Message.ReservationId;
-                    logger.LogWarning("TimeWindowReserved: ReservationId set to {Id}", context.Saga.ReservationId);
+                    context.Saga.BeginTime = context.Message.BeginTime;
+                    context.Saga.EndTime = context.Message.EndTime;
                 })
                 .PublishStateChanged(Models.AppointmentState.PendingApproval)
                 .TransitionTo(WaitingForApproval)   
@@ -141,6 +145,22 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         During(WaitingForReservationConfirmation,
             When(ReservationConfirmed)
                 .PublishStateChanged(Models.AppointmentState.Confirmed)   
+                .PublishAsync(async context =>
+                {
+                    var dbContext = context.GetPayload<IServiceProvider>()
+                        .GetRequiredService<AppointmentDbContext>();
+
+                    var appointment = await dbContext.Appointments.Where(x => x.Id == context.Saga.AppointmentId).AsNoTracking().FirstAsync();
+
+                    return new UserAppointmentConfirmedIntegrationEvent
+                    {
+                        AppointmentId = context.Saga.AppointmentId,
+                        Date = context.Saga.Date,
+                        BeginTime = context.Saga.BeginTime,
+                        EndTime = context.Saga.EndTime,
+                        Email = appointment.PatientEmail
+                    };
+                })
                 .TransitionTo(Completed)
                 .Finalize()
         );

@@ -28,13 +28,10 @@
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AScopeConsumerFactory_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003FUsers_003FEvgeny_003FAppData_003FRoaming_003FJetBrains_003FRider2026_002E1_003Fresharper_002Dhost_003FSourcesCache_003Fb47317af1f57473b8219c834cb9f923e6f75aff79b8a65e6fa4fee618eb3eb_003FScopeConsumerFactory_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AServiceProvider_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003FUsers_003FEvgeny_003FAppData_003FRoaming_003FJetBrains_003FRider2026_002E1_003Fresharper_002Dhost_003FSourcesCache_003Fd7e2ce30531b7a2d56142411c5e51c3d516aafcb44e7628167b959660a65c_003FServiceProvider_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ATask_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003FUsers_003FEvgeny_003FAppData_003FRoaming_003FJetBrains_003FRider2026_002E1_003Fresharper_002Dhost_003FSourcesCache_003F4d431e535966d3e8d58aed86698f4938fdfbde11da876f5c3a222aa8c29b1_003FTask_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7cd3a4be_002Da6ed_002D43a8_002Daac3_002Dcf8f4f305a6e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test1 #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::97130D18-8E29-41D9-AC80-381DDAE24DE2::net10.0::AppointmentsApiTests.AppointmentSagaTests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::22568667-C3F4-4AC1-BDE3-B791F34DF48C::net10.0::ServicesApiTests.SchedulingTests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::42E0CD1A-9CE2-42FE-9D45-E04EFC7F4F48::net10.0::IdentityServerTests.SmtpTests.SmtpMessageSend&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=4ee9df78_002D799c_002D4f24_002Db5d6_002D4a86bed51946/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	
 	
 	
 	

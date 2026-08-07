@@ -12,6 +12,7 @@ public record ValidateAppointmentContextResponse(
     bool IsValid, 
     string DoctorFullName, 
     string PatientFullName, 
+    string Email,
     long DoctorSpecializationId);
 
 public interface IProfilesApiClient

@@ -31,6 +31,7 @@ public record ValidateProfilesResponse(
     bool IsValid, 
     string DoctorFullName, 
     string PatientFullName, 
+    string Email,
     long DoctorSpecializationId);
 
 public class ValidateProfilesCommandHandler(ProfilesDbContext context) 
@@ -56,6 +57,7 @@ public class ValidateProfilesCommandHandler(ProfilesDbContext context)
             IsValid: true,
             DoctorFullName: $"{doctor.Account.LastName} {doctor.Account.FirstName}",
             PatientFullName: $"{patient.Account.LastName} {patient.Account.FirstName}",
+            patient.Account.Email,
             DoctorSpecializationId: doctor.SpecializationId
         );
     }

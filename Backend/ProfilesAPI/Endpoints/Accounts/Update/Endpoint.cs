@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Contracts.DocumentsContracts;
 using FluentValidation;
 using MassTransit;
+using MicroserviceApiKernel;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Extensions;
 using MicroserviceApiKernel.Results;
@@ -35,7 +36,7 @@ public class UpdateAccountEndpoint : IAccountEndpoint
         {
             var result = await handler.Handle(command with {Id = userId}, ct);
             return result.MapToTypedResult(TypedResults.Ok);
-        }).RequireAuthorization();
+        }).HasPermissions(Permissions.Accounts.Manage);
     }
 }
 

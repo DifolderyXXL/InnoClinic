@@ -8,7 +8,7 @@ public class Endpoint : IReceptionistEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/receptionists", async (
+        builder.MapGet("/receptionists/{id:guid}", async (
             [AsParameters] GetReceptionistsQuery query,
             IQueryHandler<GetReceptionistsQuery, GetReceptionistsResponse> handler,
             CancellationToken ct) =>

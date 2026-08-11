@@ -2,9 +2,8 @@ using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using Microsoft.EntityFrameworkCore;
 using ProfilesAPI.Data;
-using ProfilesAPI.Endpoints.User.GetProfiles;
 
-namespace ProfilesAPI.Endpoints.User;
+namespace ProfilesAPI.Endpoints.User.GetProfiles;
 
 public class GetUserProfilesQueryHandler(ProfilesDbContext context) : IQueryHandler<GetUserProfileQuery, GetUserProfileQueryResponse>
 {

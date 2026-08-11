@@ -26,6 +26,19 @@ public class Endpoint : IEndpoint
         .HasPermissions(Permissions.Accounts.ReadOwn)
         .WithDescription("Provides user all available profiles.")
         .Produces<Response>(StatusCodes.Status200OK);
+        
+        builder.MapGet("/profiles/{userId:guid}", async (
+                Guid userId,
+                IQueryHandler<GetUserProfileQuery, GetUserProfileQueryResponse> handler,
+                CancellationToken ct) =>
+            {
+                var result = await handler.Handle(new(userId, ConstantRoles.All), ct);
+
+                return result.MapToTypedResult(x => TypedResults.Ok(new Response(x.Account, x.Patient, x.Doctor, x.Receptionist)));
+            })
+            .HasPermissions(Permissions.Accounts.Read)
+            .WithDescription("Provides user all available profiles.")
+            .Produces<Response>(StatusCodes.Status200OK);
     }
 }
 
@@ -34,4 +47,6 @@ public static class ConstantRoles
     public const string Patient = "client";
     public const string Doctor = "doctor";
     public const string Receptionist = "receptionist";
+
+    public static readonly string[] All = [Patient, Doctor, Receptionist];
 }

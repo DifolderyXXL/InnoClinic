@@ -1,20 +1,202 @@
-/* Services page layout */
-.groups-container {
+.services-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    color: #f0f0f5;
+    box-sizing: border-box;
+}
+
+.services-content,
+.groups-container,
+.spec-list-pool,
+.services-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
     width: 100%;
+    box-sizing: border-box;
 }
 
-/* Specialization group card */
-.specialization-group {
+.services-list {
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid #2d2d38;
+    background-color: #121214;
+}
+
+.categories-header,
+.specialization-actions-header,
+.create-spec-form,
+.spec-pool-item,
+.edit-row,
+.service-info,
+.service-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.specialization-actions-header {
+    justify-content: flex-end;
+}
+
+.general-service-create-wrapper {
+    margin-bottom: 12px;
     width: 100%;
+}
+
+.category-view-container input,
+.service-card input[type="text"],
+.service-card input[type="number"],
+.service-card select,
+.spec-pool-item input[type="text"],
+.create-spec-form input[type="text"] {
+    background: #121214;
+    border: 1px solid #2d2d38;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #f0f0f5;
+    font-size: 13px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.category-view-container input:focus,
+.service-card input:focus,
+.service-card select:focus,
+.spec-pool-item input:focus,
+.create-spec-form input:focus {
+    border-color: #3b82f6;
+}
+
+.category-view-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.category-view-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #f0f0f5;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.category-view-container button,
+.service-card button,
+.service-actions button,
+.modal-content button,
+.create-service-header-btn {
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease, background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.category-view-container button:hover,
+.service-card button:hover,
+.service-actions button:hover,
+.modal-content button:hover,
+.create-service-header-btn:hover {
+    opacity: 0.9;
+}
+
+.create-service-header-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+.create-spec-btn {
+    background: #22222a;
+    color: #f0f0f5;
+    border: 1px solid #2d2d38;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.create-spec-btn:hover {
+    background: #2d2d38;
+}
+
+.create-category-btn {
+    margin: 8px 0;
+    border: 3px dashed #2d2d38;
+}
+
+.create-service-btn {
+    background: transparent;
+    border: 1px dashed #2d2d38;
+    color: #8f8f9d;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.create-service-btn:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.btn-delete,
+.category-view-container button.btn-delete {
+    background-color: #ef4444 !important;
+    color: #ffffff;
+}
+
+.btn-delete:hover,
+.category-view-container button.btn-delete:hover {
+    background-color: #dc2626 !important;
+}
+
+.btn-error,
+.category-view-container button.btn-error {
+    background-color: #ef4444 !important;
+    color: #ffffff;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.specialization-group {
     background-color: #1e1e24;
     border: 1px solid #2d2d38;
     border-radius: 8px;
     overflow: hidden;
+    width: 100%;
     box-sizing: border-box;
-    transition: border-color 0.2s ease;
 }
 
 .specialization-header {
@@ -27,7 +209,6 @@
     user-select: none;
     font-size: 14px;
     font-weight: 600;
-    color: #f0f0f5;
     transition: background-color 0.2s ease;
 }
 
@@ -47,6 +228,7 @@
 
 .specialization-title {
     flex: 1;
+    font-size: 15px;
 }
 
 .specialization-count {
@@ -55,27 +237,6 @@
     font-weight: 400;
 }
 
-/* Services list container inside group */
-.services-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-    background-color: #121214;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* Service link wrapper */
-.service-link {
-    display: block;
-    width: 100%;
-    text-decoration: none;
-    color: inherit;
-    box-sizing: border-box;
-}
-
-/* Service card item */
 .service-card {
     display: flex;
     align-items: center;
@@ -84,26 +245,65 @@
     background-color: #18181c;
     border: 1px solid #282834;
     border-radius: 6px;
+    gap: 12px;
+    width: 100%;
     box-sizing: border-box;
-    transition: transform 0.15s ease, border-color 0.2s ease, background-color 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.service-link:hover .service-card {
-    border-color: #4d82f3;
+.service-card:hover {
+    border-color: #3b82f6;
     background-color: #202028;
-    transform: translateX(4px);
+}
+
+.service-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+    box-sizing: border-box;
+}
+
+.service-card.editing,
+.service-card.creating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: #1c1c22;
+    box-sizing: border-box;
+}
+
+.service-card.editing input[type="text"],
+.service-card.creating input[type="text"] {
+    flex: 2;
+    min-width: 120px;
+}
+
+.service-card.editing input[type="number"],
+.service-card.creating input[type="number"] {
+    flex: 1;
+    min-width: 80px;
+}
+
+.service-card.editing select,
+.service-card.creating select {
+    flex: 1.5;
+    min-width: 140px;
 }
 
 .service-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .service-name {
     font-size: 14px;
     font-weight: 500;
-    color: #f0f0f5;
 }
 
 .service-status {
@@ -131,14 +331,103 @@
     background: rgba(59, 130, 246, 0.1);
     padding: 4px 8px;
     border-radius: 4px;
+    white-space: nowrap;
+    margin-right: 12px;
 }
 
-/* React Select Theme Customization */
-.option-select__control {
+.service-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.close-btn {
+    background: transparent !important;
+    color: #8f8f9d !important;
+    font-size: 16px;
+    padding: 4px 8px !important;
+}
+
+.close-btn:hover {
+    color: #f0f0f5 !important;
+}
+
+.create-spec-form,
+.spec-pool-item .edit-row,
+.spec-pool-item .actions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.create-spec-form input,
+.spec-pool-item .edit-row input {
+    flex: 1;
+}
+
+.spec-pool-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #121214;
+    border: 1px solid #2d2d38;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.option-select__control,
+.option-select__menu,
+.option-select__option {
     background: #18181c !important;
     border-color: #323240 !important;
     color: #f0f0f5 !important;
     border-radius: 6px !important;
+}
+
+.option-select__control {
     min-height: 38px !important;
 }
 
@@ -148,16 +437,11 @@
 }
 
 .option-select__menu {
-    background: #18181c !important;
     border: 1px solid #323240 !important;
-    color: #f0f0f5 !important;
-    border-radius: 6px !important;
     z-index: 20 !important;
 }
 
 .option-select__option {
-    background: #18181c !important;
-    color: #f0f0f5 !important;
     cursor: pointer !important;
 }
 
@@ -171,7 +455,6 @@
     color: #ffffff !important;
 }
 
-/* Time Slot Picker Grid & Items */
 .slots-table {
     width: 100%;
     border-collapse: collapse;
@@ -199,9 +482,9 @@
     font-size: 11px;
     font-weight: 500;
     border-radius: 4px;
-    box-sizing: border-box;
     transition: all 0.15s ease;
     user-select: none;
+    box-sizing: border-box;
 }
 
 .slot-item.available {
@@ -234,23 +517,4 @@
     color: #505060;
     border-color: #282834;
     cursor: not-allowed;
-}
-
-/* Services page main container */
-.services-page-container {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 20px;
-    max-width: 900px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-    color: #f0f0f5;
-}
-
-.services-content {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
 }

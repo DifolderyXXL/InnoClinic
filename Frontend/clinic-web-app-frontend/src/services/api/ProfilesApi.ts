@@ -28,9 +28,6 @@ interface CreateDoctorCommand {
 
 interface UpdateDoctorProfileCommand {
     id: number;
-    firstName: string;
-    lastName: string;
-    middleName: string | null;
     dateOfBirth: string;
     careerStartYear: number;
     specializationId: number;
@@ -54,6 +51,11 @@ export class ProfilesApi extends BaseApiClient {
         return this.get("api/v1/profiles/me");
     }
 
+    public async getProfiles(userId: string): Promise<Result> {
+        return this.get(`api/v1/profiles/${userId}`);
+    }
+
+
     public async createPatientMe(date: string): Promise<Result> {
         return this.post("api/v1/patients/me", { dateOfBirth: date });
     }
@@ -61,6 +63,23 @@ export class ProfilesApi extends BaseApiClient {
     public async updatePatientMe(date: string): Promise<Result> {
         return this.put("api/v1/patients/me", { dateOfBirth: date });
     }
+
+    public async createPatient(userId: string,date: string): Promise<Result> {
+        return this.post(`api/v1/patients/${userId}`, { dateOfBirth: date });
+    }
+
+    public async updatePatient(userId: string, date: string): Promise<Result> {
+        return this.put(`api/v1/patients/${userId}`, { dateOfBirth: date });
+    }
+
+    public async createReceptionist(userId: string, officeId: string): Promise<Result> {
+        return this.post(`api/v1/receptionists/${userId}`, { officeId: officeId });
+    }
+
+    public async updateReceptionist(userId: string, officeId: string): Promise<Result> {
+        return this.put(`api/v1/receptionists/${userId}`, { officeId: officeId });
+    }
+    
     
     public async createDoctorMe(date: string): Promise<Result> {
         return this.post("api/v1/doctors/me", { dateOfBirth: date });
@@ -109,7 +128,7 @@ export class ProfilesApi extends BaseApiClient {
         return this.post(`api/v1/doctors/${id}`, data);
     }
     
-    public async updateDoctor(id: number, data: UpdateDoctorProfileCommand): Promise<Result> {
+    public async updateDoctor(id: string, data: UpdateDoctorProfileCommand): Promise<Result> {
         return this.put(`api/v1/doctors/${id}`, data);
     }
 

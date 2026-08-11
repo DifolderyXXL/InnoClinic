@@ -37,6 +37,26 @@ public class CreatePatientEndpoint : IPatientEndpoint
             var result = await handler.Handle(new UpdatePatientCommand(guid, request.DateOfBirth), ct);
             return result.MapToTypedResult(TypedResults.Ok);
         }).HasPermissions(Permissions.Patients.ManageOwn);
+        
+        builder.MapPost("/patients/{userId:guid}", async (
+            [FromBody] PatientRequest request,
+            Guid userId,
+            ICommandHandler<CreatePatientCommand> handler,
+            CancellationToken ct) =>
+        {
+            var result = await handler.Handle(new(userId, request.DateOfBirth), ct);
+            return result.MapToTypedResult(TypedResults.Created);
+        }).HasPermissions(Permissions.Patients.Manage);
+        
+        builder.MapPut("/patients/{userId:guid}", async (
+            [FromBody] UpdatePatientRequest request,
+            Guid userId,
+            ICommandHandler<UpdatePatientCommand> handler,
+            CancellationToken ct) =>
+        {
+            var result = await handler.Handle(new UpdatePatientCommand(userId, request.DateOfBirth), ct);
+            return result.MapToTypedResult(TypedResults.Ok);
+        }).HasPermissions(Permissions.Patients.Manage);
     }
 }
 

@@ -12,13 +12,24 @@ public class UpdateDoctorProfileEndpoint : IDoctorEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPut("/doctors/{id:long}", async (
-            long id,
+        builder.MapPut("/doctors/{id:guid}", async (
+            Guid id,
             UpdateDoctorProfileCommand request,
+            ProfilesDbContext context,
             ICommandHandler<UpdateDoctorProfileCommand> handler,
             CancellationToken ct) =>
         {
-            var result = await handler.Handle(request with { Id = id }, ct);
+            long doctorId = await context.Doctors
+                .Where(x => x.AccountId == id)
+                .Select(x => x.Id)
+                .FirstOrDefaultAsync(ct);
+
+            if (doctorId == 0)
+            {
+                return TypedResults.NotFound("No doctor profile associated with this account.");
+            }
+            
+            var result = await handler.Handle(request with { Id = doctorId }, ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
         }).HasPermissions(Permissions.Doctors.Manage);

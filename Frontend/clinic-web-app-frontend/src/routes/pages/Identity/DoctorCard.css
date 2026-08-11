@@ -1,0 +1,28 @@
+.doctor-card-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.doctor-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.doctor-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.doctor-info-item .label {
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 500;
+}
+
+.doctor-info-item .value {
+    font-size: 1rem;
+    font-weight: 600;
+}

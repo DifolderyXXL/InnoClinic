@@ -223,3 +223,61 @@
     color: #10b981;
     border: 1px solid rgba(16, 185, 129, 0.25);
 }
+
+.account-role-card {
+    background: #18181c;
+    border: 1px solid #2d2d38;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.current-roles-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.roles-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.role-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #22222a;
+    border: 1px solid #3b82f6;
+    color: #f0f0f5;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.remove-role-btn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-role-btn:hover {
+    color: #dc2626;
+}
+
+.no-roles {
+    color: #8f8f9d;
+    font-size: 13px;
+    font-style: italic;
+}

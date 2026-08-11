@@ -23,7 +23,7 @@ var rabbitmqServicesApi = builder.AddRabbitMQ("ServicesApiBus")
                         displayText: "RabbitMQ Dashboard"
                     );
 
-var mongo = builder.AddMongoDB("mongo", 53460)
+var mongo = builder.AddMongoDB("mongo")
        .WithDataVolume()
        .WithLifetime(ContainerLifetime.Persistent);
 

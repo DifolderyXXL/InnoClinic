@@ -22,6 +22,7 @@ public record OnlyDoctorDto(
     DateOnly DateOfBirth,
     string OfficeId,
     long CareerStartYear,
+    long SpecializationId,
     string SpecializationName
 );
 
@@ -66,6 +67,7 @@ public static class DtoConverters
             doctor.DateOfBirth,
             doctor.OfficeId,
             doctor.CareerStartYear,
+            doctor.Specialization.Id,
             doctor.Specialization?.SpecializationName ?? "Unknown"
         );
     }

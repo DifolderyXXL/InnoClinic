@@ -6,7 +6,6 @@ public class UpdateDoctorProfileCommandValidator : AbstractValidator<UpdateDocto
 {
     public UpdateDoctorProfileCommandValidator()
     {
-        RuleFor(x => x.FirstName).NotEmpty();
-        RuleFor(x => x.LastName).NotEmpty();
+
     }
 }

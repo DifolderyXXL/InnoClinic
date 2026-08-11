@@ -4,6 +4,8 @@ import { PatientCard, PatientCreateCard } from "./PatientCard.tsx";
 import { AccountCard, AccountCreateCard } from "./AccountCard.tsx";
 import { DoctorCard } from "./DoctorCard.tsx";
 import "./ProfilePage.css";
+import {OfficeAddress} from "../specific/offices/OfficeCompactCard.tsx";
+import {RequireRole, Roles} from "../../../components/common/RequireRole.tsx";
 
 export function ProfilePage() {
     const [profile, setProfile] = useState<any>(null);
@@ -48,21 +50,47 @@ export function ProfilePage() {
                 )}
             </section>
 
-            {profile && (
-                <section className="profile-section">
-                    {profile.onlyPatient ? (
-                        <PatientCard {...profile.onlyPatient} />
-                    ) : (
-                        <PatientCreateCard onSuccess={loadData} />
-                    )}
-                </section>
-            )}
+            <RequireRole roles={[Roles.Patient]}>
+                {profile && (
+                    <section className="profile-section">
+                        {profile.onlyPatient ? (
+                            <PatientCard {...profile.onlyPatient} />
+                        ) : (
+                            <PatientCreateCard onSubmit={dob => profilesApi.createPatientMe(dob)} onSuccess={loadData} />
+                        )}
+                    </section>
+                )}
+            </RequireRole>
 
             {profile && profile.onlyDoctor && (
                 <section className="profile-section">
                     <DoctorCard {...profile.onlyDoctor} />
                 </section>
             )}
+            
+            <RequireRole roles={[Roles.Receptionist]}>
+                <ReceptionistProfilePage officeId={profile.onlyReceptionist?.officeId}/>
+            </RequireRole>
+        </div>
+    );
+}
+
+interface ReceptionistProfilePageProps {
+    officeId: string | null | undefined;
+}
+
+export function ReceptionistProfilePage({ officeId }: ReceptionistProfilePageProps) {
+    return (
+        <div className="patient-create-card">
+            <header className="card-header">
+                <h3>Receptionist Profile</h3>
+            </header>
+            <div className="profile-section">
+                <div className="info-item">
+                    <span className="label">Office</span>
+                    <OfficeAddress officeId={officeId} />
+                </div>
+            </div>
         </div>
     );
 }

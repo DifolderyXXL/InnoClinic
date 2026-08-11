@@ -1,11 +1,7 @@
 using ProfilesAPI.Application;
+using IGatewayUrlProvider = ServiceDefaults.IGatewayUrlProvider;
 
 namespace ProfilesAPI.Infrastructure;
-
-public class GatewayUrlProvider(string baseUrl) : IGatewayUrlProvider
-{
-    public string BaseUrl { get; } = baseUrl;
-}
 
 public class DocumentsPhotoUrlFactory(IGatewayUrlProvider gatewayUrlProvider) : IPhotoUrlFactory
 {

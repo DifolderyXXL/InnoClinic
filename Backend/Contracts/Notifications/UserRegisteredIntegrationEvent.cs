@@ -14,3 +14,15 @@ public class UserAppointmentConfirmedIntegrationEvent
     public TimeSpan EndTime { get; set; }
     public string Email { get; set; }
 }
+
+public record MedicalResultUpdatedIntegrationEvent(
+    Guid AppointmentId,
+    DateTimeOffset UpdateStamp,
+    string DoctorName,
+    string Specialization,
+    string ServiceName,
+    string Complaints,
+    string Conclusion,
+    string Diagnosis,
+    string Recommendations
+);

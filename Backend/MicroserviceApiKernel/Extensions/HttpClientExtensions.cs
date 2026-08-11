@@ -23,6 +23,9 @@ public static class HttpClientExtensions
             {
                 builder.Configuration.GetSection($"Clients:{name}").Bind(client);
             });
+        
+        builder.Services.AddHttpClient(ClientCredentialsClientName.Parse(name))
+            .AddServiceDiscovery();
     }
     public static void AddCredentialsClient(this IHostApplicationBuilder builder, string name)
     {
@@ -31,7 +34,8 @@ public static class HttpClientExtensions
         builder.Services.AddClientCredentialsHttpClient(
             name, 
             ClientCredentialsClientName.Parse(name), 
-            client => ConfigureClient(client, builder.Configuration, name));
+            client => ConfigureClient(client, builder.Configuration, name))
+            .AddServiceDiscovery();
     }
     
     public static void AddCredentialsClient<TInterface, TImplementation>(this IHostApplicationBuilder builder, string name) 
@@ -41,6 +45,7 @@ public static class HttpClientExtensions
 
         builder.Services.AddHttpClient<TInterface, TImplementation>(
                 client => ConfigureClient(client, builder.Configuration, name))
-            .AddClientCredentialsTokenHandler(ClientCredentialsClientName.Parse(name));
+            .AddClientCredentialsTokenHandler(ClientCredentialsClientName.Parse(name))
+            .AddServiceDiscovery();;
     }
 }

@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 builder.AddMicroserviceDefaults("/appointments");
+builder.Services.AddIdentityAuthorizationPolicies();
 
 builder.Services.AddControllers();
 

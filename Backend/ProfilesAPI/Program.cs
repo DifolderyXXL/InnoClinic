@@ -11,6 +11,7 @@ using System.Security.Claims;
 using Contracts.Notifications;
 using ProfilesAPI.Application;
 using ProfilesAPI.Infrastructure;
+using IGatewayUrlProvider = ServiceDefaults.IGatewayUrlProvider;
 
 
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
@@ -25,17 +26,7 @@ builder.Services.AddDbContext<ProfilesDbContext>(options =>
 builder.AddCredentialsClient("identityclient");
 builder.AddCredentialsClient<IIdentityServiceClient, IdentityServiceClient>("identityclient");
 
-builder.Services.AddSingleton<IGatewayUrlProvider>(sp => {
-    var config = sp.GetRequiredService<IConfiguration>();
-    var gatewayBaseUrl = config.DiscoverHttps("BffProxy");
-
-    if (string.IsNullOrWhiteSpace(gatewayBaseUrl))
-    {
-        throw new InvalidOperationException("BffProxy URL not found.");
-    }
-    
-    return new GatewayUrlProvider(gatewayBaseUrl);
-});
+builder.Services.AddGatewayUrlProvider();
 
 builder.Services.AddSingleton<IPhotoUrlFactory, DocumentsPhotoUrlFactory>();
 builder.Services.AddSingleton<IFrontendUrlGenerator, FrontendUrlGenerator>();

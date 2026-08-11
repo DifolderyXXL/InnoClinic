@@ -29,7 +29,7 @@ export function DoctorCard({ dateOfBirth, officeId, careerStartYear, specializat
                 </div>
 
                 <div className="doctor-info-item">
-                    <span className="label">Office ID</span>
+                    <span className="label">Office</span>
                     <span className="value"><OfficeAddress officeId={officeId}/></span>
                 </div>
 

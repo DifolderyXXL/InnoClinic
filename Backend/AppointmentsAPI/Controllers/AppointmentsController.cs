@@ -44,7 +44,9 @@ public class AppointmentsController(
             return Unauthorized();
         }
 
-        var profilesResultTask = profilesApiClient.ValidateAppointmentContextAsync(new(command.DoctorAccountId, patientId, command.OfficeId), ct);
+        var profilesResultTask =
+            profilesApiClient.ValidateAppointmentContextAsync(new(command.DoctorAccountId, patientId, command.OfficeId),
+                ct);
         var serviceResultTask = servicesApiClient.GetService(command.ServiceId, ct);
 
         await Task.WhenAll(profilesResultTask, serviceResultTask);
@@ -87,7 +89,7 @@ public class AppointmentsController(
             ServiceName = service.ServiceName,
         };
         var result = await appointmentService.AddAppointment(appointment, ct);
-        if (result.IsError) 
+        if (result.IsError)
             return BadRequest(result.Error);
 
         await publishEndpoint.Publish(
@@ -141,7 +143,7 @@ public class AppointmentsController(
         var items = await context.QueryClinicAppointmentsAsync(filter, pagination, ct);
         return Ok(items);
     }
-    
+
     [HttpGet]
     [HasPermission(Permissions.Appointments.Read)]
     public async Task<IActionResult> GetAppointments(
@@ -150,9 +152,9 @@ public class AppointmentsController(
         [FromQuery] PaginationParameters pagination,
         CancellationToken ct = default)
     {
-        var items = await context.QueryAppointmentsAsync(pagination, ct, state, 
+        var items = await context.QueryAppointmentsAsync(pagination, ct, state,
             patientId: patientId);
-        
+
         return Ok(items);
     }
 
@@ -169,8 +171,8 @@ public class AppointmentsController(
         {
             return Unauthorized();
         }
-        
-        var items = await context.QueryAppointmentsAsync(pagination, ct, state, 
+
+        var items = await context.QueryAppointmentsAsync(pagination, ct, state,
             patientId: clientId);
 
         return Ok(items);
@@ -191,8 +193,8 @@ public class AppointmentsController(
             return Unauthorized();
         }
 
-        var items = await context.QueryAppointmentsAsync(pagination, ct, state, 
-            doctorId:doctorId);
+        var items = await context.QueryAppointmentsAsync(pagination, ct, state,
+            doctorId: doctorId);
 
         return Ok(items);
     }
@@ -210,14 +212,14 @@ public class AppointmentsController(
         {
             return Unauthorized();
         }
-        
+
         var query = context.Appointments.AsNoTracking();
-        
+
         var item = await query
             .Where(x => x.Id == id && x.PatientAccountId == clientId)
             .Select(AppointmentDtoHelper.ProjectToDto)
             .FirstOrDefaultAsync(ct);
-        
+
         if (item == null)
         {
             return NotFound();
@@ -239,12 +241,41 @@ public class AppointmentsController(
         {
             return Unauthorized();
         }
-        
+
         var query = context.Appointments.AsNoTracking();
-        
+
         var item = await query
             .Where(x => x.Id == id && x.DoctorAccountId == clientId)
             .Select(AppointmentDtoHelper.ProjectToDto)
+            .FirstOrDefaultAsync(ct);
+
+        if (item == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(item);
+    }
+
+    [HttpGet("{id:guid}")]
+    [Authorize(RolePolicy.IdentityServer)]
+    [ProducesResponseType(typeof(AppointmentInformationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAppointmentInfo(
+        [FromRoute] Guid id,
+        CancellationToken ct = default)
+    {
+        var query = context.Appointments.AsNoTracking();
+
+        var item = await query
+            .Where(x => x.Id == id)
+            .Select(a => new AppointmentInformationDto
+            {
+                PatientEmail = a.PatientEmail,
+                Date = a.Date,
+                BeginTime = a.BeginTime,
+                EndTime = a.EndTime,
+            })
             .FirstOrDefaultAsync(ct);
         
         if (item == null)
@@ -254,6 +285,16 @@ public class AppointmentsController(
 
         return Ok(item);
     }
+
+    public class AppointmentInformationDto
+    {
+        public string PatientEmail { get; init; }
+        public DateOnly Date { get; init; }
+
+        public TimeSpan? BeginTime { get; init; }
+        public TimeSpan? EndTime { get; init; }
+    }
+
 }
 
 public record ClinicAppointmentsFilterParameters(

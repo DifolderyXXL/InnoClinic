@@ -1,6 +1,8 @@
+using Contracts.Notifications;
 using DocumentsAPI.Application;
 using DocumentsAPI.Infrastructure;
 using DocumentsAPI.Models;
+using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions.Endpoints;
 using MicroserviceApiKernel.Results;
@@ -20,7 +22,7 @@ public class CreateMedicalResultRequest : MedicalResultBody
     public DateOnly PatientDateOfBirth { get; set; }
 }
 
-public class MedicalResultsController : BaseApiController
+public class MedicalResultsController(ILogger<MedicalResultsController> logger) : BaseApiController
 {
     [HttpGet("appointments/{appointmentId:guid}/me/export")]
     [HasPermission(Permissions.MedicalResults.ReadOwn)]
@@ -93,6 +95,7 @@ public class MedicalResultsController : BaseApiController
         [FromBody] CreateMedicalResultRequest request,
         [FromServices] MedicalResultsDbContext context,
         [FromServices] MedicalResultService medicalResultService,
+        IPublishEndpoint publishEndpoint,
         CancellationToken ct)
     {
         var user = await GetUserClaim();
@@ -121,6 +124,15 @@ public class MedicalResultsController : BaseApiController
             return Conflict();
         }
         
+        try
+        {
+            await publishEndpoint.Publish(medicalResult.ToEvent(), ct);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error while sending notification");
+        }
+        
         return Created();
     }
     
@@ -130,6 +142,7 @@ public class MedicalResultsController : BaseApiController
         [FromRoute] Guid appointmentId,
         [FromBody] MedicalResultBody medicalResultBody,
         [FromServices] MedicalResultsDbContext context,
+        IPublishEndpoint publishEndpoint,
         CancellationToken ct)
     {
         var result = await context.GetByAppointmentIdAsync(appointmentId, ct);
@@ -151,6 +164,16 @@ public class MedicalResultsController : BaseApiController
         {
             return Conflict();
         }
+
+        try
+        {
+            await publishEndpoint.Publish(medicalResult.ToEvent(), ct);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error while sending notification");
+        }
+        
         
         return Ok();
     }
@@ -215,5 +238,19 @@ public static class MedicalResultsHelper
         }
 
         return null;
+    }
+
+    public static MedicalResultUpdatedIntegrationEvent ToEvent(this MedicalResult result)
+    {
+        return new(result.AppointmentId,
+            result.UpdateStamp,
+            result.DoctorName.ToString(),
+            result.Specialization,
+            result.ServiceName,
+            result.Complaints,
+            result.Conclusion,
+            result.Diagnosis,
+            result.Recommendations
+            );
     }
 }

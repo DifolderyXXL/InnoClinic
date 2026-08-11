@@ -1,9 +1,5 @@
 namespace ProfilesAPI.Application;
 
-public interface IGatewayUrlProvider
-{
-    public string BaseUrl { get; }
-}
 
 public interface IPhotoUrlFactory
 {

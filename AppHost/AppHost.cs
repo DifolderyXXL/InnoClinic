@@ -1,3 +1,5 @@
+using Projects;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var cache = builder.AddRedis("cache");
@@ -66,12 +68,7 @@ var postgres = builder.AddPostgres("postgres")
 var postgresdb = postgres.AddDatabase("appointmentsApiDb");
 var servicesApiDb = postgres.AddDatabase("servicesApiDb");
 
-var notificationServiceDb = postgres.AddDatabase("notificationDb");
-var notificationService = builder.AddProject<Projects.NotificationService_Worker>("NotificationService")
-       .WithReference(notificationServiceDb)
-       .WithReference(rabbitmqServicesApi)
-       .WaitFor(notificationServiceDb)
-       .WaitFor(rabbitmqServicesApi);
+
 
 var servicesAPI = builder.AddProject<Projects.ServicesAPI>("ServicesAPI")
        .WithReference(identityServer)
@@ -90,6 +87,14 @@ var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("Appointments
        .WithExternalHttpEndpoints()
        .WaitFor(postgresdb);
 
+var notificationServiceDb = postgres.AddDatabase("notificationDb");
+var notificationService = builder.AddProject<Projects.NotificationService_Worker>("NotificationService")
+       .WithReference(notificationServiceDb)
+       .WithReference(rabbitmqServicesApi)
+       .WithReference(appointmentsAPI)
+       .WithReference(identityServer)
+       .WaitFor(notificationServiceDb)
+       .WaitFor(rabbitmqServicesApi);
 
 var officesAPI = builder.AddProject<Projects.OfficesApi>("OfficesAPI")
        .WithReference(identityServer)

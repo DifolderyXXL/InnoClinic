@@ -7,9 +7,11 @@ public record AppointmentSubmitted(
     Guid AppointmentId,
     Guid PatientAccountId,
     Guid DoctorAccountId,
+    string PatientEmail,
     DateOnly Date,
     int StartSlotIndex,
-    long ServiceId);
+    long ServiceId,
+    bool IsCreatedByAdmin);
 public record TimeWindowReserved(Guid AppointmentId, long ReservationId, TimeSpan BeginTime, TimeSpan EndTime);
 public record ReservationFailed(Guid AppointmentId);
 public record AppointmentApproved(Guid AppointmentId);

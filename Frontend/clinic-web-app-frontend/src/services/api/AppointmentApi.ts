@@ -53,15 +53,19 @@ export class AppointmentsApi extends BaseApiClient {
     protected override readonly middlewarePath = "/appointments";
 
     public async bookAppointment(command: BookAppointmentCommand): Promise<Result> {
-        return this.post("api/v1/Appointments/book", command);
+        return this.post("api/v1/Appointments", command);
+    }
+
+    public async bookAppointmentForUser(userId: string, command: BookAppointmentCommand): Promise<Result> {
+        return this.post(`api/v1/Appointments/users/${userId}`, command);
     }
 
     public async approveAppointment(id: string): Promise<Result> {
-        return this.post(`api/v1/Appointments/approve-book/${id}`);
+        return this.post(`api/v1/Appointments/${id}/approve`);
     }
 
     public async declineAppointment(id: string, command: DeclineCommand): Promise<Result> {
-        return this.post(`api/v1/Appointments/decline-book/${id}`, command);
+        return this.post(`api/v1/Appointments/${id}/decline`, command);
     }
 
     public async getAppointments(
@@ -70,7 +74,7 @@ export class AppointmentsApi extends BaseApiClient {
         page?: number,
         pageSize?: number
     ): Promise<Result> {
-        return this.get("api/v1/Appointments", 
+        return this.get("api/v1/Appointments",
             { state, Page: page, PageSize: pageSize, patientId },
         );
     }
@@ -81,7 +85,7 @@ export class AppointmentsApi extends BaseApiClient {
         pageSize?: number,
         skip?: number
     ): Promise<Result> {
-        return this.get("api/v1/Appointments/me/doctor", 
+        return this.get("api/v1/Appointments/me/doctor",
             { state, Page: page, PageSize: pageSize, Skip: skip },
         );
     }

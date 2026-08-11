@@ -13,6 +13,8 @@ public class AppointmentState : SagaStateMachineInstance
     
     public Guid PatientAccountId { get; set; }
     public Guid DoctorAccountId { get; set; }
+    
+    public string PatientEmail { get; set; }
 
     public long ReservationId { get; set; }
     public DateOnly Date { get; set; }
@@ -23,6 +25,8 @@ public class AppointmentState : SagaStateMachineInstance
     public TimeSpan EndTime { get; set; }
 
     public Guid AppointmentId => CorrelationId;
+    
+    public bool IsCreatedByAdmin { get; set; }
 }
 
 public class AppointmentSagaStateChanged
@@ -50,6 +54,19 @@ public static class AppointmentStateMachineExtension
     {
         return source.PublishAsync(context => context.Init<AppointmentSagaStateChanged>(
             new AppointmentSagaStateChanged{AppointmentId = context.Saga.CorrelationId, State = state}));
+    }
+    
+    public static EventActivityBinder<TInstance, TData> ApproveAppointment<TInstance, TData>(
+        this EventActivityBinder<TInstance, TData> source,
+        State waitingForConfirmationState)
+        where TInstance : AppointmentState
+        where TData : class
+    {
+        return source
+            .PublishAsync(context => context.Init<ProcessReservationConfirmation>(
+                new ProcessReservationConfirmation(context.Saga.AppointmentId, context.Saga.ReservationId)))
+            .PublishStateChanged(Models.AppointmentState.Approved)
+            .TransitionTo(waitingForConfirmationState);
     }
 }
 
@@ -104,9 +121,11 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context.Saga.CorrelationId = context.Message.AppointmentId;
                     context.Saga.PatientAccountId = context.Message.PatientAccountId;
                     context.Saga.DoctorAccountId = context.Message.DoctorAccountId;
+                    context.Saga.PatientEmail = context.Message.PatientEmail;
                     context.Saga.Date = context.Message.Date;
                     context.Saga.StartSlotIndex = context.Message.StartSlotIndex;
                     context.Saga.ServiceId = context.Message.ServiceId;
+                    context.Saga.IsCreatedByAdmin = context.Message.IsCreatedByAdmin;
                 })
                 .PublishStateChanged(Models.AppointmentState.PendingReservation)
                 .PublishAsync(context => context.Init<ProcessReservation>(new ProcessReservation
@@ -128,39 +147,32 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context.Saga.BeginTime = context.Message.BeginTime;
                     context.Saga.EndTime = context.Message.EndTime;
                 })
-                .PublishStateChanged(Models.AppointmentState.PendingApproval)
-                .TransitionTo(WaitingForApproval)   
+                .IfElse(
+                    context => context.Saga.IsCreatedByAdmin,
+                    thenBinder => thenBinder.ApproveAppointment(WaitingForReservationConfirmation),
+                    elseBinder => elseBinder
+                        .PublishStateChanged(Models.AppointmentState.PendingApproval)
+                        .TransitionTo(WaitingForApproval)
+                )
             );
         
         During(WaitingForApproval,
             When(AppointmentApproved)
-                .PublishAsync(
-                    context => context.Init<ProcessReservationConfirmation>(
-                        new ProcessReservationConfirmation(context.Saga.AppointmentId, context.Saga.ReservationId))
-                )
-                .PublishStateChanged(Models.AppointmentState.Approved)
-                .TransitionTo(WaitingForReservationConfirmation)
+                .ApproveAppointment(WaitingForReservationConfirmation)
         );
         
         During(WaitingForReservationConfirmation,
             When(ReservationConfirmed)
                 .PublishStateChanged(Models.AppointmentState.Confirmed)   
-                .PublishAsync(async context =>
-                {
-                    var dbContext = context.GetPayload<IServiceProvider>()
-                        .GetRequiredService<AppointmentDbContext>();
-
-                    var appointment = await dbContext.Appointments.Where(x => x.Id == context.Saga.AppointmentId).AsNoTracking().FirstAsync();
-
-                    return new UserAppointmentConfirmedIntegrationEvent
+                .PublishAsync(context => context.Init<UserAppointmentConfirmedIntegrationEvent>(
+                    new UserAppointmentConfirmedIntegrationEvent
                     {
                         AppointmentId = context.Saga.AppointmentId,
                         Date = context.Saga.Date,
                         BeginTime = context.Saga.BeginTime,
                         EndTime = context.Saga.EndTime,
-                        Email = appointment.PatientEmail
-                    };
-                })
+                        Email = context.Saga.PatientEmail
+                    }))
                 .TransitionTo(Completed)
                 .Finalize()
         );

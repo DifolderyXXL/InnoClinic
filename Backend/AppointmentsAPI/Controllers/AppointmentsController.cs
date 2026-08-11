@@ -7,6 +7,7 @@ using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions.Endpoints;
 using MicroserviceApiKernel.Extensions.Queryable;
+using MicroserviceApiKernel.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +30,7 @@ public class AppointmentsController(
     private async ValueTask<UserClaimParserResult?> GetUserClaim() => await UserClaimParser.Parse(HttpContext);
 
     [HttpPost]
-    [Route("book")]
-    [HasPermission(Permissions.Appointments.Manage)]
+    [HasPermission(Permissions.Appointments.ManageOwn)]
     [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
     public async Task<IActionResult> BookAppointment(
         [FromBody] BookAppointmentCommand command,
@@ -44,32 +44,79 @@ public class AppointmentsController(
             return Unauthorized();
         }
 
-        var profilesResultTask =
-            profilesApiClient.ValidateAppointmentContextAsync(new(command.DoctorAccountId, patientId, command.OfficeId),
-                ct);
-        var serviceResultTask = servicesApiClient.GetService(command.ServiceId, ct);
+        var result = await ExecuteBookingAsync(
+            patientId,
+            command,
+            false,
+            profilesApiClient,
+            servicesApiClient,
+            ct);
 
-        await Task.WhenAll(profilesResultTask, serviceResultTask);
+        if (result.IsError)
+            return BadRequest(result.Error);
 
-        var profilesResult = await profilesResultTask;
-        var serviceResult = await serviceResultTask;
+        return Accepted(result.Value);
+    }
+    
+    [HttpPost]
+    [Route("users/{userId:guid}")]
+    [HasPermission(Permissions.Appointments.Manage)]
+    [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
+    public async Task<IActionResult> BookAppointment(
+        [FromRoute] Guid userId,
+        [FromBody] BookAppointmentCommand command,
+        [FromServices] IProfilesApiClient profilesApiClient,
+        [FromServices] IServicesApiClient servicesApiClient,
+        CancellationToken ct)
+    {
+        var result = await ExecuteBookingAsync(
+            userId,
+            command,
+            true,
+            profilesApiClient,
+            servicesApiClient,
+            ct);
 
-        if (profilesResult.IsError)
-            return BadRequest(profilesResult.Error);
-        if (serviceResult.IsError)
-            return BadRequest(serviceResult.Error);
+        if (result.IsError)
+            return BadRequest(result.Error);
+
+        return Accepted(result.Value);
+    }
+    
+    private async Task<Result<Guid>> ExecuteBookingAsync(
+        Guid patientId,
+        BookAppointmentCommand command,
+        bool isCreatedByAdmin,
+        IProfilesApiClient profilesApiClient,
+        IServicesApiClient servicesApiClient,
+        CancellationToken ct)
+    {
+        var profilesTask = profilesApiClient.ValidateAppointmentContextAsync(
+            new(command.DoctorAccountId, patientId, command.OfficeId), ct);
+        
+        var serviceTask = servicesApiClient.GetService(command.ServiceId, ct);
+
+        await Task.WhenAll(profilesTask, serviceTask);
+
+        var profilesResult = await profilesTask;
+        var serviceResult = await serviceTask;
+
+        if (profilesResult.IsError) return profilesResult.Error;
+        if (serviceResult.IsError) return serviceResult.Error;
 
         var profiles = profilesResult.Value!;
         var service = serviceResult.Value!;
 
         if (command.SpecializationId != service.SpecializationId)
         {
-            return BadRequest("Selected specialization does not match the requested service.");
+            return Error.Validation("Booking.SpecializationMismatch", 
+                "Selected specialization does not match the requested service.");
         }
 
         if (profiles.DoctorSpecializationId != service.SpecializationId)
         {
-            return BadRequest("Doctor's specialization does not match the requested service.");
+            return Error.Validation("Booking.DoctorSpecializationMismatch", 
+                "Doctor's specialization does not match the requested service.");
         }
 
         var appointment = new Appointment
@@ -88,25 +135,27 @@ public class AppointmentsController(
             PatientEmail = profiles.Email,
             ServiceName = service.ServiceName,
         };
+
         var result = await appointmentService.AddAppointment(appointment, ct);
-        if (result.IsError)
-            return BadRequest(result.Error);
+        if (result.IsError) return result.Error;
 
         await publishEndpoint.Publish(
             new AppointmentSubmitted(
                 result.Value,
                 patientId,
                 command.DoctorAccountId,
+                profiles.Email,
                 command.Date,
                 command.StartSlotIndex,
-                command.ServiceId), ct);
+                command.ServiceId,
+                isCreatedByAdmin), ct);
+
         await context.SaveChangesAsync(ct);
 
-        return Accepted(result.Value);
+        return result.Value;
     }
 
-    [HttpPost]
-    [Route("approve-book/{id:guid}")]
+    [HttpPost("{id:guid}/approve")]
     [HasPermission(Permissions.Appointments.Manage)]
     public async Task<IActionResult> ApproveAppointment(
         [FromRoute] Guid id,
@@ -118,8 +167,7 @@ public class AppointmentsController(
         return Accepted();
     }
 
-    [HttpPost]
-    [Route("decline-book/{id:guid}")]
+    [HttpPost("{id:guid}/decline")]
     [HasPermission(Permissions.Appointments.Manage)]
     public async Task<IActionResult> DeclineAppointment(
         [FromRoute] Guid id,
@@ -319,20 +367,8 @@ public static class AppointmentExtensions
         return query
             // 1. Сортировка по времени приема
             .OrderByDescending(a => a.Date)
-            
             .ThenBy(a => a.StartSlotIndex) 
-            
-            // 2. AC-12: Фамилия доктора (первое слово в DoctorFullName)
-            .ThenBy(a => a.DoctorFullName.Substring(0, a.DoctorFullName.IndexOf(" ") == -1 
-                ? a.DoctorFullName.Length 
-                : a.DoctorFullName.IndexOf(" ")))
-                
-            // 3. AC-13: Имя доктора (второе слово в DoctorFullName)
-            .ThenBy(a => a.DoctorFullName.Contains(" ") 
-                ? a.DoctorFullName.Substring(a.DoctorFullName.IndexOf(" ") + 1).TrimStart() 
-                : string.Empty)
-                
-            // 4. AC-14: Название услуги
+            .ThenBy(a => a.DoctorFullName)
             .ThenBy(a => a.ServiceName);
     }
 

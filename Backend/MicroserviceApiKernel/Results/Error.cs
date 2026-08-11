@@ -42,6 +42,21 @@ public class Error
         string className = Path.GetFileNameWithoutExtension(filePath);
         return new Error($"{className}.{memberName}", type);
     }
+    
+    public static Error Validation(
+        string errorName, 
+        string errorDescription, 
+        IDictionary<string, string[]>? validationResults = null) 
+        => new(errorName, errorDescription, ErrorType.Validation, validationResults);
+
+    public static Error NotFound(string errorName, string errorDescription) 
+        => new(errorName, errorDescription, ErrorType.NotFound);
+
+    public static Error Conflict(string errorName, string errorDescription) 
+        => new(errorName, errorDescription, ErrorType.Conflict);
+
+    public static Error Failure(string errorName, string errorDescription) 
+        => new(errorName, errorDescription, ErrorType.Internal);
 }
 
 public abstract class DomainErrors<T>

@@ -20,10 +20,45 @@ public class UserAppointmentConfirmedIntegrationEventConsumer(ISmtpClient mailCl
 {
     public async Task Consume(ConsumeContext<UserAppointmentConfirmedIntegrationEvent> context)
     {
+        var m = context.Message;
+        var dateFormatted = m.Date.ToString("dd.MM.yyyy");
+        var timeFormatted = $"{m.BeginTime:hh\\:mm} - {m.EndTime:hh\\:mm}";
+
+        var emailSubject = "INNO-CLINIC: Appointment Confirmed";
+        var emailBody = $$"""
+                          <!DOCTYPE html>
+                          <html>
+                          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                              <h2>Appointment Confirmed</h2>
+                              <p>Dear <strong>{{m.PatientName}}</strong>, your appointment has been successfully booked.</p>
+
+                              <hr style="border: none; border-top: 1px solid #ccc; margin: 15px 0;" />
+
+                              <p>
+                                  <strong>Date:</strong> {{dateFormatted}}<br/>
+                                  <strong>Time:</strong> {{timeFormatted}}
+                              </p>
+
+                              <p>
+                                  <strong>Doctor:</strong> {{m.DoctorName}}<br/>
+                                  <strong>Specialization & Category:</strong> {{m.SpecializationName}} ({{m.CategoryName}})<br/>
+                                  <strong>Service:</strong> {{m.ServiceName}}
+                              </p>
+
+                              <hr style="border: none; border-top: 1px solid #ccc; margin: 15px 0;" />
+
+                              <p style="font-size: 13px; color: #666;">
+                                  If you need to reschedule or cancel your appointment, please use your personal account.
+                              </p>
+                          </body>
+                          </html>
+                          """;
+
         await mailClient.Send(
-            context.Message.Email, 
-            "INNO-CLINIC Appointment", 
-            $"Appointment created and confirmed. Date: {context.Message.Date} on [{context.Message.BeginTime}-{context.Message.EndTime}]");
+            m.PatientEmail, 
+            emailSubject, 
+            emailBody
+        );
     }
 }
 

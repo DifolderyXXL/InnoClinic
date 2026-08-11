@@ -164,14 +164,10 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         During(WaitingForReservationConfirmation,
             When(ReservationConfirmed)
                 .PublishStateChanged(Models.AppointmentState.Confirmed)   
-                .PublishAsync(context => context.Init<UserAppointmentConfirmedIntegrationEvent>(
-                    new UserAppointmentConfirmedIntegrationEvent
+                .PublishAsync(context => context.Init<AppointmentConfirmedIntegrationEvent>(
+                    new AppointmentConfirmedIntegrationEvent
                     {
                         AppointmentId = context.Saga.AppointmentId,
-                        Date = context.Saga.Date,
-                        BeginTime = context.Saga.BeginTime,
-                        EndTime = context.Saga.EndTime,
-                        Email = context.Saga.PatientEmail
                     }))
                 .TransitionTo(Completed)
                 .Finalize()

@@ -134,6 +134,8 @@ public class AppointmentsController(
             PatientFullName = profiles.PatientFullName,
             PatientEmail = profiles.Email,
             ServiceName = service.ServiceName,
+            CategoryName = service.CategoryName,
+            SpecializationName = service.SpecializationName,
         };
 
         var result = await appointmentService.AddAppointment(appointment, ct);

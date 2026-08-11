@@ -9,7 +9,8 @@ public record AppointmentSubmitted(
     DateOnly Date,
     int StartSlotIndex,
     long ServiceId,
-    bool IsCreatedByAdmin);
+    bool IsCreatedByAdmin
+    );
 
 public record TimeWindowReserved(Guid AppointmentId, long ReservationId, TimeSpan BeginTime, TimeSpan EndTime);
 public record ReservationFailed(Guid AppointmentId);
@@ -65,4 +66,9 @@ public class CancelReservation
     }
 
     public long ReservationId { get; init; }
+}
+
+public record AppointmentConfirmedIntegrationEvent
+{
+    public Guid AppointmentId { get; init; }
 }

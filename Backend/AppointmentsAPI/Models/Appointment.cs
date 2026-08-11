@@ -16,6 +16,8 @@ public class Appointment
     public string PatientFullName { get; set; }
     public string PatientEmail { get; set; }
     public string ServiceName { get; set; }
+    public string CategoryName { get; set; }
+    public string SpecializationName { get; set; }
     
     public DateOnly Date { get; set; }
     public int StartSlotIndex { get; set; }

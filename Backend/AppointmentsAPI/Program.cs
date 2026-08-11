@@ -36,6 +36,7 @@ builder.Services.AddMassTransit(x =>
         o.UseBusOutbox();
     });
     
+    x.AddConsumer<AppointmentConfirmedConsumer>();
     x.AddConsumer<AppointmentStateChangedConsumer>();
     x.AddConsumer<AppointmentTimeWindowReservedSyncConsumer>();
     

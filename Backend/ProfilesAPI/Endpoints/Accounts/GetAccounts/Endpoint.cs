@@ -26,6 +26,6 @@ public class Endpoint : IAccountEndpoint
             var result = await handler.Handle(new(userId), ct);
 
             return result.MapToTypedResult(TypedResults.Ok);
-        }).HasPermissions(Permissions.Accounts.ReadOwn);
+        }).HasPermissions(Permissions.Accounts.Read);
     }
 }

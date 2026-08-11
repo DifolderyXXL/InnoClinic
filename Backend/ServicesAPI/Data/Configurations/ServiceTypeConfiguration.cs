@@ -14,10 +14,12 @@ public class ServiceTypeConfiguration : IEntityTypeConfiguration<Service>
 
         builder.HasOne(x => x.ServiceCategory)
             .WithMany(c => c.Services)
-            .HasForeignKey(x => x.CategoryId);
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(x => x.Specialization)
             .WithMany(c => c.Services)
-            .HasForeignKey(x => x.SpecializationId);
+            .HasForeignKey(x => x.SpecializationId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

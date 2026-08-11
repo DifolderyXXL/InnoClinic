@@ -1,6 +1,3 @@
-// ============ Request/Response DTOs ============
-// (These types mirror the OpenAPI schemas; adjust as needed for your project)
-
 import {BaseApiClient, type Result} from "./BaseApiClient";
 
 export interface CreateCategoryCommand {
@@ -45,7 +42,7 @@ export interface UpdateServiceCommand {
 export interface CategoryDto {
     id: number | string;
     categoryName: string;
-    timeSlotSize: number | string;
+    timeSlotSize: number;
 }
 
 export interface GetCategoriesResponse {

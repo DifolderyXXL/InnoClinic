@@ -12,8 +12,9 @@ export type Role = typeof Roles[keyof typeof Roles];
 interface RequireRoleProps{
     roles?: Role[];
     children?: React.ReactNode;
+    fallback?: React.ReactNode;
 }
-export function RequireRole({roles=[], children}: RequireRoleProps){
+export function RequireRole({roles=[], children, fallback}: RequireRoleProps){
     const context = useAuth()
     if(context.state.status !== "authorized")
     {
@@ -28,7 +29,7 @@ export function RequireRole({roles=[], children}: RequireRoleProps){
     
     if(!containsAnyRole && roles?.length > 0)
     {
-        return (<></>);
+        return (<>{fallback}</>);
     }
     
     return (

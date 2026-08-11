@@ -17,7 +17,10 @@ using Deunde.IdentityServer.Services.SMTP;
 using Infrastructure.Mailing.SMTP;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Deunde.IdentityServer.Extensions;
 
@@ -67,9 +70,11 @@ internal static class HostingExtensions
         builder.Services.AddRazorPages()
             .AddRazorRuntimeCompilation();
 
-        
         builder.Services.AddApiVersioning();
         builder.Services.AddEndpoints(typeof(HostingExtensions).Assembly);
+        
+        builder.AddOpenApiReversedThroughProxy("/identity");
+        builder.AddSwaggerDefaults();
 
 
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -94,6 +99,7 @@ internal static class HostingExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
+        var identityServerUrl =  "https://localhost:6001";
         var isBuilder = builder.Services
             .AddIdentityServer(options =>
             {
@@ -109,6 +115,10 @@ internal static class HostingExtensions
                 {
                     options.Diagnostics.ChunkSize = 1024 * 1024 * 10; // 10 MB
                 }
+                options.IssuerUri = identityServerUrl;
+                
+                options.UserInteraction.LoginUrl = "/Account/Login";
+                options.UserInteraction.LogoutUrl = "/Account/Logout";
             })
             .AddAspNetIdentity<IdentityUser>()
             // this adds the config data from DB (clients, resources, CORS)
@@ -139,6 +149,10 @@ internal static class HostingExtensions
 
         // Adds configuration to use Duende's Demo IdentityServer instance.
         builder.Services.AddAuthentication()
+            .AddLocalApi(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.ExpectedScope = "api";
+            })
             .AddOpenIdConnect("oidc", "Duende Demo", options =>
             {
                 options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
@@ -162,6 +176,7 @@ internal static class HostingExtensions
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
             });
+        builder.Services.AddAuthorization();
 
         
         builder.Services.AddScoped<IRoleResolver, RoleResolver>();
@@ -184,6 +199,7 @@ internal static class HostingExtensions
             });
 
             builder.Services.AddIdentityAuthorizationPolicies();
+            builder.Services.AddApiAuthorizationPolicies();
 
             // builder.Services.AddTransient<ClientRepository>();
             // builder.Services.AddTransient<IdentityScopeRepository>();
@@ -218,6 +234,12 @@ internal static class HostingExtensions
         {
             app.UseDeveloperExceptionPage();
         }
+        
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        });
+
 
         // Content Security Policy options
         app.Use(async (context, next) =>

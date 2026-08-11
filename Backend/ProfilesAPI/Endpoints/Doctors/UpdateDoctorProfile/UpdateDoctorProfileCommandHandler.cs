@@ -11,9 +11,6 @@ namespace ProfilesAPI.Endpoints.Doctors.UpdateDoctorProfile;
 
 public record UpdateDoctorProfileCommand(
     long Id,
-    string FirstName,
-    string LastName,
-    string? MiddleName,
     DateOnly DateOfBirth,
     long CareerStartYear,
     long SpecializationId,
@@ -34,11 +31,7 @@ public class UpdateDoctorProfileCommandHandler(ProfilesDbContext context, IPubli
         {
             return SpecializationErrors.SpecializationNotFound();
         }
-
-        doctor.Account.FirstName = command.FirstName;
-        doctor.Account.LastName = command.LastName;
-        doctor.Account.MiddleName = command.MiddleName;
-
+        
         doctor.DateOfBirth = command.DateOfBirth;
         doctor.OfficeId = command.OfficeId;
         doctor.Specialization = specialization;

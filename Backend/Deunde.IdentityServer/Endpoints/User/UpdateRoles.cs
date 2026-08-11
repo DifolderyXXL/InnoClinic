@@ -5,30 +5,35 @@ using MicroserviceApiKernel.Results;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MicroserviceApiKernel.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+
 namespace Deunde.IdentityServer.Endpoints.User;
 
 public class UpdateRoles : IEndpoint
 {
-    public class RoleRequest
-    {
-        public string UserId { get; set; } = default!;
-        public string Role { get; set; } = default!;
-    }
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/role", async ([FromBody] RoleRequest request, ICommandHandler<AssignUserRoleCommand> handler, CancellationToken ct) =>
+        builder.MapPost("/users/{userId}/{role}", async (string userId, string role, ICommandHandler<AssignUserRoleCommand> handler, CancellationToken ct) =>
         {
-            var result = await handler.Handle(new(request.UserId, request.Role), ct);
+            var result = await handler.Handle(new(userId, role), ct);
 
-            return result.MapToTypedResult(() => TypedResults.Ok());
-        }).RequireAuthorization(RolePolicy.IdentityServer);
+            return result.MapToTypedResult(TypedResults.Ok);
+        }).HasPermissions(Permissions.Accounts.Manage)
+        .RequireAuthorization(new AuthorizeAttribute 
+        { 
+            AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme 
+        });
 
-        builder.MapDelete("/role", async ([FromBody] RoleRequest request, ICommandHandler<RemoveUserRoleCommand> handler, CancellationToken ct) =>
+        builder.MapDelete("/users/{userId}/{role}", async (string userId, string role, ICommandHandler<RemoveUserRoleCommand> handler, CancellationToken ct) =>
         {
-            var result = await handler.Handle(new(request.UserId, request.Role), ct);
-
-            return result.MapToTypedResult(() => TypedResults.Ok());
-        }).RequireAuthorization(RolePolicy.IdentityServer);
+            var result = await handler.Handle(new(userId, role), ct);
+            return result.MapToTypedResult(TypedResults.Ok);
+        }).HasPermissions(Permissions.Accounts.Manage)
+        .RequireAuthorization(new AuthorizeAttribute 
+        { 
+            AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme 
+        });;
     }
 }
 public record AssignUserRoleCommand(string UserId, string Role) : ICommand;

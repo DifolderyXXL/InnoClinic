@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { profilesApi } from "../../../services/api/ProfilesApi.ts";
 import { PatientEditCard } from "./PatientEditCard.tsx";
 import "./PatientCard.css";
 
@@ -46,11 +45,11 @@ export function PatientCard({ dateOfBirth, onUpdateSuccess }: PatientCardProps) 
 }
 
 interface PatientCreateCardProps {
+    onSubmit: (dateOfBirth: string) => Promise<{ type: "ok" } | { type: "error"; error?: { title: string } }>;
     onSuccess?: () => void;
 }
 
-export function PatientCreateCard({ onSuccess }: PatientCreateCardProps) {
-    const [isCreating, setIsCreating] = useState(false);
+export function PatientCreateCard({ onSubmit, onSuccess }: PatientCreateCardProps) {    const [isCreating, setIsCreating] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [dobInput, setDobInput] = useState("");
 
@@ -83,7 +82,7 @@ export function PatientCreateCard({ onSuccess }: PatientCreateCardProps) {
 
         setIsSubmitting(true);
         try {
-            const result = await profilesApi.createPatientMe(dobInput);
+            const result = await onSubmit(dobInput);
 
             if (result.type === "error") {
                 setApiError(result.error?.title || "Failed to create patient profile.");

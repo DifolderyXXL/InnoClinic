@@ -86,7 +86,7 @@ public static class AuthorizationExtension
                     .AddRequirements(
                         new ScopeRequirement("identity"))
                     );
-    }
+    } 
     
     public static IServiceCollection AddAppAuthorization(this IServiceCollection services)
     {

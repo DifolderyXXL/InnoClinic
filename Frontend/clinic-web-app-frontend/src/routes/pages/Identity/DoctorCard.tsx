@@ -1,7 +1,9 @@
+import "./DoctorCard.css";
+import {OfficeAddress} from "../specific/offices/OfficeCompactCard.tsx";
 
 interface DoctorCardProps {
     dateOfBirth: string;
-    officeId: number;
+    officeId: string;
     careerStartYear: number;
     specializationName: string;
 }
@@ -9,27 +11,39 @@ interface DoctorCardProps {
 export function DoctorCard({ dateOfBirth, officeId, careerStartYear, specializationName }: DoctorCardProps) {
     const formattedDate = dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : "—";
 
-    const currentYear = 2026;
+    const currentYear = new Date().getFullYear();
     const experience = careerStartYear > 0 && careerStartYear <= currentYear
         ? currentYear - careerStartYear
         : 0;
 
     return (
-        <div style={{ display: "flex", flexDirection: "row", gap: "16px", padding: "20px", background: "#222", color: "#fff", borderRadius: "8px", alignItems: "center" }}>
-            <div>
-                <strong>Specialization:</strong> <span style={{ color: "#889a7e" }}>{specializationName}</span>
-            </div>
-            <div style={{ width: "1px", height: "20px", backgroundColor: "#444" }} />
-            <div>
-                <strong>Office ID:</strong> {officeId}
-            </div>
-            <div style={{ width: "1px", height: "20px", backgroundColor: "#444" }} />
-            <div>
-                <strong>Experience:</strong> {experience > 0 ? `${experience} yrs` : "Career Start"}
-            </div>
-            <div style={{ width: "1px", height: "20px", backgroundColor: "#444" }} />
-            <div>
-                <strong>Birthday:</strong> {formattedDate}
+        <div className="account-details-card profile-form-card">
+            <header className="card-header">
+                <h3>Doctor Profile</h3>
+            </header>
+
+            <div className="doctor-info-grid">
+                <div className="doctor-info-item">
+                    <span className="label">Specialization</span>
+                    <span className="value">{specializationName || "—"}</span>
+                </div>
+
+                <div className="doctor-info-item">
+                    <span className="label">Office ID</span>
+                    <span className="value"><OfficeAddress officeId={officeId}/></span>
+                </div>
+
+                <div className="doctor-info-item">
+                    <span className="label">Experience</span>
+                    <span className="value">
+                        {experience > 0 ? `${experience} yrs` : "Career Start"}
+                    </span>
+                </div>
+
+                <div className="doctor-info-item">
+                    <span className="label">Birthday</span>
+                    <span className="value">{formattedDate}</span>
+                </div>
             </div>
         </div>
     );

@@ -11,6 +11,7 @@ public static class DoctorErrors
 }
 
 
+
 public static class SpecializationErrors
 {
     public static Error SpecializationNotFound() => Error.Create(ErrorType.NotFound);

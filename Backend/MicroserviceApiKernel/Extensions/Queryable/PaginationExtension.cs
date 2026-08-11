@@ -64,4 +64,18 @@ public static class PaginationExtensions
 
         return new PagedResponse<TDestination>(items, pagination.Page, pagination.PageSize , totalCount);
     }
+    
+    public static async Task<PagedResponse<TSource>> ToPagedResponseAsync<TSource>(
+        this IQueryable<TSource> query,
+        PaginationParameters pagination,
+        CancellationToken ct = default)
+    {
+        var totalCount = await query.LongCountAsync(ct);
+
+        var items = await query
+            .Pagination(pagination)
+            .ToListAsync(ct);
+
+        return new PagedResponse<TSource>(items, pagination.Page, pagination.PageSize , totalCount);
+    }
 }

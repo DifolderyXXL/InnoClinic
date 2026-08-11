@@ -7,10 +7,10 @@ namespace ServicesAPI.Application.Scheduling;
 
 public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<ReservedTimeWindowStore>? logger) : IReservedTimeWindowStore
 {
-    public async Task<List<ReservedTimeWindow>> GetReservedWindows(Guid doctorId, DateOnly date, CancellationToken ct)
+    public async Task<List<ReservedTimeWindow>> GetReservedWindows(Guid doctorId, Guid patientId, DateOnly date, CancellationToken ct)
         => await context.ReservedTimeWindows
             .AsNoTracking()
-            .Where(x => x.Date == date && x.DoctorId == doctorId)
+            .Where(x => x.Date == date && (x.DoctorId == doctorId || x.PatientId == patientId))
             .ToListAsync(cancellationToken: ct);
     
 

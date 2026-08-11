@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServicesAPI.Data;
@@ -11,9 +12,11 @@ using ServicesAPI.Data;
 namespace ServicesAPI.Migrations
 {
     [DbContext(typeof(ServicesDbContext))]
-    partial class ServicesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260811114650_PatientIdToReservation")]
+    partial class PatientIdToReservation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,8 +229,6 @@ namespace ServicesAPI.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DoctorId", "Date");
-
-                    b.HasIndex("PatientId", "Date");
 
                     b.ToTable("ReservedTimeWindows");
                 });

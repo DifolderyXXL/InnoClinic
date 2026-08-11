@@ -2,19 +2,18 @@ using AppointmentsAPI.Controllers;
 using Contracts.AppointmentContracts;
 using Contracts.Notifications;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentsAPI.Data;
 
 public class AppointmentState : SagaStateMachineInstance
 {
     public Guid CorrelationId { get; set; }
-    public string CurrentState { get; set; }
+    public string CurrentState { get; set; } = null!;
     
     public Guid PatientAccountId { get; set; }
     public Guid DoctorAccountId { get; set; }
     
-    public string PatientEmail { get; set; }
+    public string PatientEmail { get; set; } = null!;
 
     public long ReservationId { get; set; }
     public DateOnly Date { get; set; }
@@ -44,7 +43,7 @@ public static class AppointmentStateMachineExtension
         where TData : class
     {
         return source.PublishAsync(context => context.Init<AppointmentSagaStateChanged>(
-            new AppointmentSagaStateChanged{AppointmentId = context.Saga.CorrelationId, State = state}));
+            new AppointmentSagaStateChanged { AppointmentId = context.Saga.CorrelationId, State = state }));
     }
     
     public static EventActivityBinder<TInstance> PublishStateChanged<TInstance>(
@@ -53,7 +52,7 @@ public static class AppointmentStateMachineExtension
         where TInstance : class, SagaStateMachineInstance
     {
         return source.PublishAsync(context => context.Init<AppointmentSagaStateChanged>(
-            new AppointmentSagaStateChanged{AppointmentId = context.Saga.CorrelationId, State = state}));
+            new AppointmentSagaStateChanged { AppointmentId = context.Saga.CorrelationId, State = state }));
     }
     
     public static EventActivityBinder<TInstance, TData> ApproveAppointment<TInstance, TData>(
@@ -80,7 +79,6 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
     public Event<AppointmentDeclined> AppointmentDeclined { get; private set; } = null!;
     public Event<ReservationConfirmed> ReservationConfirmed { get; private set; } = null!;
     
-    
     public AppointmentStateMachine()
     {
         Event(() => AppointmentSubmitted, x => x.CorrelateById(e => e.Message.AppointmentId));
@@ -97,7 +95,6 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
             (state, context) => state.ReservationId == context.Message.ReservationId 
         ));
         
-        
         InstanceState(x => x.CurrentState);
         
         During(WaitingForApproval, WaitingForReservationConfirmation,
@@ -105,10 +102,12 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                 .PublishAsync(context => context.Init<CancelReservation>(new CancelReservation(context.Saga.ReservationId)))
                 .TransitionTo(Failed) 
         );
+
         DuringAny(
             When(ReservationFailed)
                 .TransitionTo(Failed) 
         );
+
         During(WaitingForApproval, WaitingForReservationConfirmation,
             When(ReservationExpired)
                 .TransitionTo(Failed) 
@@ -134,7 +133,8 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context.Saga.DoctorAccountId,
                     context.Saga.Date,
                     context.Saga.StartSlotIndex,
-                    context.Saga.ServiceId
+                    context.Saga.ServiceId,
+                    context.Saga.PatientAccountId
                 )))
                 .TransitionTo(ProcessingReservation)   
         );
@@ -154,7 +154,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                         .PublishStateChanged(Models.AppointmentState.PendingApproval)
                         .TransitionTo(WaitingForApproval)
                 )
-            );
+        );
         
         During(WaitingForApproval,
             When(AppointmentApproved)
@@ -186,8 +186,8 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
     }
 
     public State ProcessingReservation { get; private set; } = null!;
-    public State WaitingForApproval { get; private set; }= null!;
-    public State WaitingForReservationConfirmation { get; private set; }= null!;
-    public State Completed { get; private set; }= null!;
-    public State Failed { get; private set; }= null!;
+    public State WaitingForApproval { get; private set; } = null!;
+    public State WaitingForReservationConfirmation { get; private set; } = null!;
+    public State Completed { get; private set; } = null!;
+    public State Failed { get; private set; } = null!;
 }

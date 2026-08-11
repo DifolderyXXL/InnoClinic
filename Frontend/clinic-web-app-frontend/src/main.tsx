@@ -21,6 +21,7 @@ import {ClinicAppointments} from "./routes/pages/ReceptionistPages/ClinicAppoint
 import {AccountsPage} from "./routes/pages/ReceptionistPages/Users/AccountsPage.tsx";
 import {AccountDetailsPage} from "./routes/pages/ReceptionistPages/Users/AccountDetailsPage.tsx";
 import {AccountCreatePage} from "./routes/pages/ReceptionistPages/Users/AccountCreatePage.tsx";
+import {RequireRole, Roles} from "./components/common/RequireRole.tsx";
 
 
 createRoot(document.getElementById("root")!).render(
@@ -45,7 +46,13 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/view-offices/details" element={<OfficePage/>} />
             
             <Route path="/view-services" element={<ServicesPage/>} />
-            <Route path="/make-appointment" element={<MakeAppointmentForm/>} />
+            <Route path="/make-appointment" element={
+              <RequireRole roles={[Roles.Receptionist]} fallback={
+                <MakeAppointmentForm/>
+              }>
+                <MakeAppointmentForm isAdmin={true}/>
+              </RequireRole>
+              } />
             <Route path="/my-appointments" element={<ClientAppointments/>} />
             <Route path="/my-appointments/details" element={<ClientAppointment/>} />
             

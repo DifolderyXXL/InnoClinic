@@ -15,13 +15,14 @@ public class GetAvailablePositionsOnDayEndpoint : IEndpoint
             async Task<Results<BadRequest<string>, Ok<AvailablePositionsOnDayResponse>>> (
                 [FromRoute] Guid doctorId,
                 [FromQuery] DateOnly dateOnly,
+                [FromQuery] Guid? patientId,
                 UserClaimInfo userInfo,
                 IOptions<ScheduleOptions> options,
                 IReservationService service,
                 CancellationToken ct) =>
             {
-                var guid = Guid.Parse(userInfo.Id);
-                var positions = await service.GetAvailablePositionsOnDay(doctorId, guid, dateOnly, ct);
+                var targetPatientId = patientId ?? Guid.Parse(userInfo.Id);
+                var positions = await service.GetAvailablePositionsOnDay(doctorId, targetPatientId, dateOnly, ct);
 
                 var timeWindows = positions.Select(x => new AvailableTimeWindowDto(
                     x.TimeSlotStart,

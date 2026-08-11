@@ -15,7 +15,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { appointmentsApi } from "../../../services/api/AppointmentApi.ts";
 import { TimeSlotPicker } from "./TimeSlotPicker.tsx";
-import { OfficeInputFilter, SpecializationInputFilter } from "../Shared/Inputs/OfficeInputFilter.tsx";
+import {OfficeInputFilter, PatientInputFilter, SpecializationInputFilter} from "../Shared/Inputs/OfficeInputFilter.tsx";
 import { useUpdateUrlParams } from "../specific/doctors/DoctorsPage.tsx";
 import "./MakeAppointmentForm.css";
 
@@ -33,6 +33,25 @@ export interface DoctorProfileDto {
     careerStartYear: number;
 }
 
+export interface PatientProfileDto {
+    id?: string;
+    accountId?: string;
+    firstName?: string;
+    lastName?: string;
+    middleName?: string | null;
+    email?: string;
+    accountFirstName?: string;
+    accountLastName?: string;
+    accountMiddleName?: string | null;
+    accountEmail?: string;
+}
+
+export interface MakeAppointmentFormProps {
+    isAdmin?: boolean;
+    initialPatientId?: string;
+    onSuccess?: () => void;
+}
+
 function serviceToString(s: ServiceDto) {
     return `${s.serviceName}`;
 }
@@ -41,13 +60,14 @@ function doctorToString(doctor: DoctorProfileDto) {
     return `${doctor.accountFirstName} ${doctor.accountLastName} ${doctor.accountMiddleName || ''}`.trim();
 }
 
-export function MakeAppointmentForm() {
+export function MakeAppointmentForm({ isAdmin = false, initialPatientId, onSuccess }: MakeAppointmentFormProps) {
     const { searchParams, updateUrlParams } = useUpdateUrlParams();
 
     const urlOfficeId = searchParams.get("officeId");
     const urlSpecId = searchParams.get("specId") ? Number(searchParams.get("specId")) : null;
     const urlServiceId = searchParams.get("serviceId") ? Number(searchParams.get("serviceId")) : null;
     const urlDoctorId = searchParams.get("doctorId");
+    const urlUserId = searchParams.get("userId") || initialPatientId;
 
     const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -60,6 +80,7 @@ export function MakeAppointmentForm() {
     const [service, setService] = useState<ServiceDto | null>(null);
     const [, setOffice] = useState<OfficeDto | null>(null);
     const [doctor, setDoctor] = useState<DoctorProfileDto | null>(null);
+    const [patient, setPatient] = useState<PatientProfileDto | null>(null);
 
     const [date, setDate] = useState<Date | null>(null);
     const [timeSlot, setTimeSlot] = useState<number | null>(null);
@@ -97,29 +118,36 @@ export function MakeAppointmentForm() {
 
     useEffect(() => {
         if (!urlDoctorId || !date) { setTimeSlots(null); return; }
-        servicesApi.getAvailableDoctorSlots(urlDoctorId, date).then(res => {
+        servicesApi.getAvailableDoctorSlots(urlDoctorId, date, patient?.accountId).then(res => {
             if (res.type === "ok") setTimeSlots(res.value);
         });
-    }, [urlDoctorId, date]);
+    }, [urlDoctorId, date, patient]);
 
     async function BookAnAppointment() {
+        const targetPatientId = patient?.accountId || patient?.id || urlUserId;
         if (!urlDoctorId || !urlOfficeId || !date || timeSlot === -1 || timeSlot === null || !urlServiceId || !urlSpecId) return;
+        if (isAdmin && !targetPatientId) return;
 
         setBookingStatus('loading');
         setErrorMessage(null);
 
+        const command = {
+            doctorAccountId: urlDoctorId,
+            officeId: urlOfficeId,
+            date: dateToDateOnly(date),
+            startSlotIndex: timeSlot,
+            serviceId: urlServiceId,
+            specializationId: urlSpecId
+        };
+
         try {
-            const result = await appointmentsApi.bookAppointment({
-                doctorAccountId: urlDoctorId,
-                officeId: urlOfficeId,
-                date: dateToDateOnly(date),
-                startSlotIndex: timeSlot,
-                serviceId: urlServiceId,
-                specializationId: urlSpecId
-            });
+            const result = isAdmin && targetPatientId
+                ? await appointmentsApi.bookAppointmentForUser(targetPatientId, command)
+                : await appointmentsApi.bookAppointment(command);
 
             if (result.type === "ok") {
                 setBookingStatus('success');
+                onSuccess?.();
             } else {
                 setBookingStatus('error');
                 setErrorMessage(result.error?.title || 'Cant book an appointment');
@@ -130,9 +158,36 @@ export function MakeAppointmentForm() {
         }
     }
 
+    const isSubmitDisabled = !(
+        service &&
+        timeSlot !== -1 &&
+        timeSlot !== null &&
+        doctor &&
+        date &&
+        urlOfficeId &&
+        urlSpecId &&
+        (!isAdmin || patient || urlUserId) &&
+        bookingStatus !== 'loading'
+    );
+
     return (
         <div className="appointment-form-container">
-            <h2 className="appointment-form-title">Book an Appointment</h2>
+            <h2 className="appointment-form-title">
+                {isAdmin ? "Book an Appointment for Patient" : "Book an Appointment"}
+            </h2>
+
+            {isAdmin && (
+                <div className="form-field">
+                    <PatientInputFilter
+                        label="Patient"
+                        valueId={urlUserId}
+                        onChange={p => {
+                            setPatient(p);
+                            updateUrlParams({ userId: p?.accountId || p?.id || null });
+                        }}
+                    />
+                </div>
+            )}
 
             <div className="form-field">
                 <SpecializationInputFilter
@@ -200,7 +255,7 @@ export function MakeAppointmentForm() {
 
             <button
                 className="submit-book-btn"
-                disabled={!(service && timeSlot !== -1 && timeSlot !== null && doctor && date && urlOfficeId && urlSpecId && bookingStatus !== 'loading')}
+                disabled={isSubmitDisabled}
                 onClick={BookAnAppointment}
             >
                 Book an appointment
@@ -224,6 +279,7 @@ export function MakeAppointmentForm() {
         </div>
     );
 }
+
 interface SearchableSelectProps<T extends {}> {
     label?: string;
     options: T[];

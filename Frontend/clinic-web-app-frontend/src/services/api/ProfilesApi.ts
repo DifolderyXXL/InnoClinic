@@ -93,8 +93,8 @@ export class ProfilesApi extends BaseApiClient {
         return this.get("api/v1/receptionists", { Page: page, PageSize: pageSize } );
     }
 
-    public async getPatients(page: number = 1, pageSize: number = 50): Promise<Result> {
-        return this.get("api/v1/patients", { Page: page, PageSize: pageSize });
+    public async getPatients(page: number = 1, pageSize: number = 50, searchQuery: string | null = null): Promise<Result> {
+        return this.get("api/v1/patients", { Page: page, PageSize: pageSize, SearchQuery: searchQuery });
     }
 
     public async getPatient(id: string): Promise<Result> {

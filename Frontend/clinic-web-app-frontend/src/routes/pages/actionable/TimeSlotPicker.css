@@ -1,0 +1,209 @@
+/* Fixed-size Container */
+.appointment-form-container {
+    width: 540px;
+    min-height: 620px; /* Задаем постоянную минимальную высоту */
+    margin: 20px auto;
+    padding: 24px;
+    background-color: #1e1e24;
+    border: 1px solid #2d2d38;
+    border-radius: 12px;
+    color: #f0f0f5;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.appointment-form-title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #f0f0f5;
+    border-bottom: 1px solid #2d2d38;
+    padding-bottom: 12px;
+}
+
+/* Fields & Labels */
+.form-field,
+.searchable-select-container {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #9090a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* DatePicker Dark Theme Overrides */
+.date-picker-wrapper {
+    width: 100%;
+}
+
+.date-picker-input {
+    width: 100%;
+    padding: 10px 12px;
+    background-color: #18181c;
+    border: 1px solid #323240;
+    border-radius: 6px;
+    color: #f0f0f5;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.date-picker-input:focus {
+    border-color: #4d82f3;
+}
+
+.react-datepicker {
+    background-color: #18181c !important;
+    border: 1px solid #323240 !important;
+    color: #f0f0f5 !important;
+    font-family: inherit !important;
+}
+
+.react-datepicker__header {
+    background-color: #1e1e24 !important;
+    border-bottom: 1px solid #323240 !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker-time__header,
+.react-datepicker-year-header,
+.react-datepicker__day-name {
+    color: #f0f0f5 !important;
+}
+
+.react-datepicker__day {
+    color: #f0f0f5 !important;
+    border-radius: 0 !important;
+}
+
+.react-datepicker__day:hover {
+    background-color: #2b2b36 !important;
+}
+
+.react-datepicker__day--selected {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    border-radius: 0 !important;
+}
+
+.react-datepicker__day--disabled {
+    color: #505060 !important;
+}
+
+/* React Select Theme Overrides */
+.custom-select__control {
+    background-color: #18181c !important;
+    border-color: #323240 !important;
+    border-radius: 6px !important;
+    min-height: 42px !important;
+    box-shadow: none !important;
+}
+
+.custom-select__control:hover,
+.custom-select__control--is-focused {
+    border-color: #4d82f3 !important;
+}
+
+.custom-select__single-value,
+.custom-select__input-container {
+    color: #f0f0f5 !important;
+}
+
+/* Меню выносится поверх всех элементов */
+.custom-select__menu {
+    background-color: #18181c !important;
+    border: 1px solid #323240 !important;
+    border-radius: 6px !important;
+    z-index: 9999 !important;
+}
+
+.custom-select__option {
+    background-color: #18181c !important;
+    color: #f0f0f5 !important;
+    cursor: pointer !important;
+}
+
+.custom-select__option--is-focused {
+    background-color: #2b2b36 !important;
+}
+
+.custom-select__option--is-selected {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+}
+
+.custom-select__placeholder {
+    color: #626270 !important;
+}
+
+/* Submit button pinned at bottom */
+.submit-book-btn {
+    width: 100%;
+    margin-top: auto; /* Прижимает кнопку к низу фиксированной формы */
+    padding: 12px 16px;
+    background-color: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.submit-book-btn:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+
+.submit-book-btn:active:not(:disabled) {
+    transform: scale(0.99);
+}
+
+.submit-book-btn:disabled {
+    background-color: #2d2d38;
+    color: #505060;
+    cursor: not-allowed;
+}
+
+/* Status messaging */
+.status-message {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.status-message.success {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-message.error {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-message.loading {
+    color: #9090a0;
+}
+
+.slot-item.whitelisted {
+    background-color: #f59e0b !important;
+    border: 1px solid #d97706;
+}

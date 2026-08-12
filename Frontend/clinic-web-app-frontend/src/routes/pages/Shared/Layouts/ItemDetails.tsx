@@ -5,9 +5,10 @@ interface ItemDetailsProps<T = any> {
     provider: (id: string) => Promise<any>;
     extractor: (result: any) => T | null;
     children: (item: T) => React.ReactNode;
+    onChange: (item: T|null) => void;
 }
 
-export function ItemDetails<T = any>({ provider, extractor, children }: ItemDetailsProps<T>) {
+export function ItemDetails<T = any>({ provider, extractor, children, onChange }: ItemDetailsProps<T>) {
     const [searchParams] = useSearchParams();
     const [detail, setDetail] = useState<T | null>(null);
     const [loading, setLoading] = useState(true);
@@ -22,7 +23,11 @@ export function ItemDetails<T = any>({ provider, extractor, children }: ItemDeta
 
         setLoading(true);
         provider(targetId)
-            .then((res) => setDetail(extractor(res)))
+            .then((res) => {
+                const item = extractor(res);
+                setDetail(item);
+                onChange?.(item);
+            })
             .catch(() => setDetail(null))
             .finally(() => setLoading(false));
     }, [targetId]);

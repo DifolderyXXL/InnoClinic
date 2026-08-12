@@ -30,6 +30,27 @@ public class AppointmentsController(
     private async ValueTask<UserClaimParserResult?> GetUserClaim() => await UserClaimParser.Parse(HttpContext);
 
     [HttpPost]
+    [Route("{id:guid}/reschedule")]
+    [HasPermission(Permissions.Appointments.Manage)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    public async Task<IActionResult> RescheduleAppointment(
+        [FromRoute] Guid id,
+        [FromBody] RescheduleCommand command,
+        CancellationToken ct)
+    {
+        await publishEndpoint.Publish(
+            new AppointmentRescheduleRequested(id, command.NewDate, command.NewStartSlotIndex), 
+            ct);
+
+        await context.SaveChangesAsync(ct);
+
+        return Accepted(new { Message = "Reschedule request accepted for processing." });
+    }
+
+    public record RescheduleCommand(DateOnly NewDate, int NewStartSlotIndex);
+    
+    
+    [HttpPost]
     [HasPermission(Permissions.Appointments.ManageOwn)]
     [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
     public async Task<IActionResult> BookAppointment(
@@ -101,8 +122,8 @@ public class AppointmentsController(
         var profilesResult = await profilesTask;
         var serviceResult = await serviceTask;
 
-        if (profilesResult.IsError) return profilesResult.Error;
-        if (serviceResult.IsError) return serviceResult.Error;
+        if (profilesResult.IsError) return profilesResult.Error!;
+        if (serviceResult.IsError) return serviceResult.Error!;
 
         var profiles = profilesResult.Value!;
         var service = serviceResult.Value!;
@@ -139,7 +160,7 @@ public class AppointmentsController(
         };
 
         var result = await appointmentService.AddAppointment(appointment, ct);
-        if (result.IsError) return result.Error;
+        if (result.IsError) return result.Error!;
 
         await publishEndpoint.Publish(
             new AppointmentSubmitted(
@@ -159,6 +180,7 @@ public class AppointmentsController(
 
     [HttpPost("{id:guid}/approve")]
     [HasPermission(Permissions.Appointments.Manage)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
     public async Task<IActionResult> ApproveAppointment(
         [FromRoute] Guid id,
         CancellationToken ct)

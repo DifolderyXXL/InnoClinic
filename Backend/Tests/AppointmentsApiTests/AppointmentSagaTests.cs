@@ -57,7 +57,7 @@ public class AppointmentSagaTests
         Assert.True(await harness.Consumed.Any<ReservationConfirmed>());
         Assert.NotNull(sagaHarness.Sagas.ContainsInState(appointmentId, sagaHarness.StateMachine, sagaHarness.StateMachine.Final));
         
-        Assert.True(await harness.Published.Any<UserAppointmentConfirmedIntegrationEvent>());
+        Assert.True(await harness.Published.Any<AppointmentConfirmedIntegrationEvent>());
     }
 
     [Fact]

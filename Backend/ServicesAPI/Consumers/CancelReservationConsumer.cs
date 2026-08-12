@@ -4,10 +4,10 @@ using ServicesAPI.Application.Scheduling;
 
 namespace ServicesAPI.Consumers;
 
-public class CancelReservationConsumer(IReservationService reservationService) : IConsumer<CancelReservation>
+public class CancelReservationConsumer(IReservationLifecycleManager reservationLifecycleManager) : IConsumer<CancelReservation>
 {
     public async Task Consume(ConsumeContext<CancelReservation> context)
     {
-        await reservationService.CancelReservation(context.Message.ReservationId, false, context.CancellationToken);
+        await reservationLifecycleManager.CancelAsync(context.Message.ReservationId, false, context.CancellationToken);
     }
 }

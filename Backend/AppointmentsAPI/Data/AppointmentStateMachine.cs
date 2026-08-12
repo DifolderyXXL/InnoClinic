@@ -79,6 +79,11 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
     public Event<AppointmentDeclined> AppointmentDeclined { get; private set; } = null!;
     public Event<ReservationConfirmed> ReservationConfirmed { get; private set; } = null!;
     
+    
+    public Event<AppointmentRescheduleRequested> RescheduleRequested { get; private set; } = null!;
+    public Event<AppointmentRescheduled> RescheduleCompleted { get; private set; } = null!;
+    public Event<AppointmentRescheduleFailed> RescheduleFailed { get; private set; } = null!;
+    
     public AppointmentStateMachine()
     {
         Event(() => AppointmentSubmitted, x => x.CorrelateById(e => e.Message.AppointmentId));
@@ -87,6 +92,10 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         Event(() => ReservationFailed, x => x.CorrelateById(e => e.Message.AppointmentId));
         Event(() => TimeWindowReserved, x => x.CorrelateById(e => e.Message.AppointmentId));
 
+        Event(() => RescheduleRequested, x => x.CorrelateById(e => e.Message.AppointmentId));
+        Event(() => RescheduleCompleted, x => x.CorrelateById(e => e.Message.AppointmentId));
+        Event(() => RescheduleFailed, x => x.CorrelateById(e => e.Message.AppointmentId));
+        
         Event(() => ReservationExpired, x => x.CorrelateBy(
             (state, context) => state.ReservationId == context.Message.ReservationId 
         ));
@@ -97,7 +106,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         
         InstanceState(x => x.CurrentState);
         
-        During(WaitingForApproval, WaitingForReservationConfirmation,
+        During(WaitingForApproval,  ProcessingRescheduling, WaitingForReservationConfirmation,
             When(AppointmentDeclined)
                 .PublishAsync(context => context.Init<CancelReservation>(new CancelReservation(context.Saga.ReservationId)))
                 .TransitionTo(Failed) 
@@ -158,7 +167,35 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         
         During(WaitingForApproval,
             When(AppointmentApproved)
-                .ApproveAppointment(WaitingForReservationConfirmation)
+                .ApproveAppointment(WaitingForReservationConfirmation),
+            When(RescheduleRequested)
+                .PublishAsync(context => context.Init<ProcessRescheduleReservation>(new ProcessRescheduleReservation
+                (
+                    context.Saga.AppointmentId,
+                    context.Saga.ReservationId,
+                    context.Saga.DoctorAccountId,
+                    context.Saga.PatientAccountId,
+                    context.Message.NewDate,
+                    context.Message.NewStartSlotIndex,
+                    context.Saga.ServiceId
+                )))
+                .TransitionTo(ProcessingRescheduling)
+        );
+        
+        During(ProcessingRescheduling,
+            When(RescheduleCompleted)
+                .Then(context =>
+                {
+                    context.Saga.Date = context.Message.NewDate;
+                    context.Saga.StartSlotIndex = context.Message.NewStartSlotIndex;
+                    context.Saga.BeginTime = context.Message.NewBeginTime;
+                    context.Saga.EndTime = context.Message.NewEndTime;
+                })
+                .PublishStateChanged(Models.AppointmentState.PendingApproval)
+                .TransitionTo(WaitingForApproval),
+
+            When(RescheduleFailed)
+                .TransitionTo(WaitingForApproval)
         );
         
         During(WaitingForReservationConfirmation,
@@ -183,6 +220,7 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
 
     public State ProcessingReservation { get; private set; } = null!;
     public State WaitingForApproval { get; private set; } = null!;
+    public State ProcessingRescheduling { get; private set; } = null!;
     public State WaitingForReservationConfirmation { get; private set; } = null!;
     public State Completed { get; private set; } = null!;
     public State Failed { get; private set; } = null!;

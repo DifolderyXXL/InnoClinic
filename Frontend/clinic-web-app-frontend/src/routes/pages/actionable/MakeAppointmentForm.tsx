@@ -141,8 +141,8 @@ export function MakeAppointmentForm({ isAdmin = false, initialPatientId, onSucce
         };
 
         try {
-            const result = isAdmin && targetPatientId
-                ? await appointmentsApi.bookAppointmentForUser(targetPatientId, command)
+            const result = isAdmin
+                ? await appointmentsApi.bookAppointmentForUser(targetPatientId!, command)
                 : await appointmentsApi.bookAppointment(command);
 
             if (result.type === "ok") {

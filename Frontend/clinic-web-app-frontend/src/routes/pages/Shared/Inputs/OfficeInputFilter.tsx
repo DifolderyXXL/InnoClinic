@@ -156,7 +156,7 @@ export function PatientInputFilter({
         }
 
         const foundInList = patients.find(
-            p => (p.accountId && p.accountId === valueId) || (p.id && p.id === valueId)
+            p => (p.accountId && p.accountId === valueId)
         );
 
         if (foundInList) {

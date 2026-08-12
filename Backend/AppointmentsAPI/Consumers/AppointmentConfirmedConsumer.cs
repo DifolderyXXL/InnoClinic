@@ -18,7 +18,7 @@ public class AppointmentConfirmedConsumer(
 
         if (appointment == null) return;
 
-        await publishEndpoint.Publish<UserAppointmentConfirmedIntegrationEvent>(new UserAppointmentConfirmedIntegrationEvent
+        await publishEndpoint.Publish(new UserAppointmentConfirmedIntegrationEvent
         {
             PatientEmail = appointment.PatientEmail,
             PatientName = appointment.PatientFullName,
@@ -32,5 +32,25 @@ public class AppointmentConfirmedConsumer(
         });
 
         await db.SaveChangesAsync(context.CancellationToken);
+    }
+}
+
+
+public class AppointmentRescheduledConsumer(
+    AppointmentDbContext db) : IConsumer<AppointmentRescheduled>
+{
+    public async Task Consume(ConsumeContext<AppointmentRescheduled> context)
+    {
+        var message = context.Message;
+
+        await db.Appointments
+            .Where(a => a.Id == message.AppointmentId)
+            .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(a => a.ReservationId, message.NewReservationId)
+                    .SetProperty(a => a.Date, message.NewDate)
+                    .SetProperty(a => a.StartSlotIndex, message.NewStartSlotIndex)
+                    .SetProperty(a => a.BeginTime, message.NewBeginTime)
+                    .SetProperty(a => a.EndTime, message.NewEndTime),
+                context.CancellationToken);
     }
 }

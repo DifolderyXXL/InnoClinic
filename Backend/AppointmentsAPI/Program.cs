@@ -2,6 +2,7 @@ using AppointmentsAPI.Consumers;
 using AppointmentsAPI.Controllers;
 using AppointmentsAPI.Data;
 using AppointmentsAPI.Services;
+using Contracts.AppointmentContracts;
 using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
@@ -39,6 +40,7 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<AppointmentConfirmedConsumer>();
     x.AddConsumer<AppointmentStateChangedConsumer>();
     x.AddConsumer<AppointmentTimeWindowReservedSyncConsumer>();
+    x.AddConsumer<AppointmentRescheduledConsumer>();
     
     x.UsingRabbitMq((context, cfg) =>
     {

@@ -5,7 +5,8 @@ using ServicesAPI.Models;
 
 namespace ServicesAPI.Application.Scheduling;
 
-public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<ReservedTimeWindowStore>? logger) : IReservedTimeWindowStore
+public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<ReservedTimeWindowStore>? logger) 
+    : IReservedTimeWindowStore, IReservationLifecycleManager
 {
     public async Task<List<ReservedTimeWindow>> GetReservedWindows(Guid doctorId, Guid patientId, DateOnly date, CancellationToken ct)
         => await context.ReservedTimeWindows
@@ -19,7 +20,7 @@ public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<Reserved
         await context.ReservedTimeWindows.AddAsync(reservation, ct);
     }
 
-    public async Task<bool> TryConfirm(long reservationId, CancellationToken ct)
+    public async Task<bool> ConfirmAsync(long reservationId, CancellationToken ct)
     {
         try
         {
@@ -35,7 +36,7 @@ public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<Reserved
         }
     }
 
-    public async Task<bool> TryRemove(long reservationId, bool force, CancellationToken ct)
+    public async Task<bool> CancelAsync(long reservationId, bool force, CancellationToken ct)
     {
         try
         {
@@ -55,6 +56,24 @@ public class ReservedTimeWindowStore(ServicesDbContext context, ILogger<Reserved
         catch (Exception ex)
         {
             logger?.LogError(ex, "Error on removing reservation {@ReservationId}", reservationId);
+            return false;
+        }
+    }
+
+    public async Task<bool> RescheduleAsync(long reservationId, DateOnly date, int startSlotIndex, CancellationToken ct)
+    {
+        try
+        {
+            int rowsAffected = await context.ReservedTimeWindows.Where(x => x.Id == reservationId && !x.IsConfirmed)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.StartSlotIndex, startSlotIndex)
+                    .SetProperty(x => x.Date, date), ct);
+            
+            return rowsAffected > 0;
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Error on rescheduling reservation {@ReservationId}", reservationId);
             return false;
         }
     }

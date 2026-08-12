@@ -5,10 +5,9 @@ import {
     AppointmentState
 } from "../../../services/api/AppointmentApi.ts";
 import { PaginatedListView, type PaginatedResult } from "../common/PaginatedListView.tsx";
-import { useSearchParams } from "react-router";
+import {useNavigate, useSearchParams} from "react-router";
 import "./ClinicAppointments.css";
 
-// Хелпер для корректного отображения названия статуса
 function formatAppointmentState(state: AppointmentState | string | number): string {
     if (typeof state === "string" && isNaN(Number(state))) {
         return state;
@@ -26,6 +25,7 @@ function formatAppointmentState(state: AppointmentState | string | number): stri
 }
 
 export function ClinicAppointments() {
+    const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [date, setDate] = useState<string>(searchParams.get("date") || "");
@@ -107,7 +107,6 @@ export function ClinicAppointments() {
     const approveAppointment = async (id: string) => {
         const res = await appointmentsApi.approveAppointment(id);
         if (res.type === "ok") {
-            // Устанавливаем строковое значение "Approved" вместо enum-индекса
             setLocalItems(prev => prev.map(item => item.id === id ? { ...item, state: "Approved" } : item));
         }
     };
@@ -262,7 +261,8 @@ export function ClinicAppointments() {
                                         Number(item.state) === AppointmentState.PendingApproval;
 
                                     return (
-                                        <tr key={item.id}>
+                                        
+                                        <tr key={item.id} onClick={_=>navigate(`details?id=${item.id}`)}>
                                             <td>{item.date}</td>
                                             <td>{item.beginTime ?? `Slot #${item.startSlotIndex}`}</td>
                                             <td>{item.doctorFullName}</td>
@@ -272,12 +272,18 @@ export function ClinicAppointments() {
                                             <td>{formattedState}</td>
                                             <td>
                                                 <div className="action-buttons">
-                                                    <button className="btn btn-decline" onClick={() => openCancelModal(item.id)}>
+                                                    <button className="btn btn-decline" onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openCancelModal(item.id);
+                                                    }}>
                                                         Cancel
                                                     </button>
 
                                                     {isPendingApproval && (
-                                                        <button className="btn btn-approve" onClick={() => approveAppointment(item.id)}>
+                                                        <button className="btn btn-approve" onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            approveAppointment(item.id);
+                                                        }}>
                                                             Approve
                                                         </button>
                                                     )}

@@ -117,7 +117,7 @@ export function MakeAppointmentForm({ isAdmin = false, initialPatientId, onSucce
     }, [urlSpecId, urlOfficeId]);
 
     useEffect(() => {
-        if (!urlDoctorId || !date || !patient) { setTimeSlots(null); return; }
+        if (!urlDoctorId || !date || (isAdmin && !patient)) { setTimeSlots(null); return; }
         servicesApi.getAvailableDoctorSlots(urlDoctorId, date, patient?.accountId).then(res => {
             if (res.type === "ok") setTimeSlots(res.value);
         });

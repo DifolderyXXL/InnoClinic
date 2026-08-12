@@ -306,6 +306,29 @@ public class AppointmentsController(
         return Ok(items);
     }
 
+    [HttpGet("{id:guid}")]
+    [HasPermission(Permissions.Appointments.Read)]
+    [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAppointment(
+        [FromRoute] Guid id,
+        CancellationToken ct = default)
+    {
+        var query = context.Appointments.AsNoTracking();
+
+        var item = await query
+            .Where(x => x.Id == id)
+            .Select(AppointmentDtoHelper.ProjectToDto)
+            .FirstOrDefaultAsync(ct);
+
+        if (item == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(item);
+    }
+    
     [HttpGet("{id:guid}/me/client")]
     [HasPermission(Permissions.Appointments.ReadOwn)]
     [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
@@ -364,7 +387,7 @@ public class AppointmentsController(
         return Ok(item);
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id:guid}/info")]
     [Authorize(RolePolicy.IdentityServer)]
     [ProducesResponseType(typeof(AppointmentInformationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

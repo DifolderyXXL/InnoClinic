@@ -139,6 +139,7 @@
 
 .clinic-appointments-table tbody tr:hover {
     background-color: #1f1f28;
+    cursor: pointer;
 }
 
 .clinic-appointments-table tbody tr:last-child td {

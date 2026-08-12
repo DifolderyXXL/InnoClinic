@@ -114,6 +114,10 @@ export class AppointmentsApi extends BaseApiClient {
         );
     }
 
+    public async getAppointmentById(id: string): Promise<Result> {
+        return this.get(`api/v1/Appointments/${id}`);
+    }
+
     public async getMyClientAppointmentById(id: string): Promise<Result> {
         return this.get(`api/v1/Appointments/${id}/me/client`);
     }

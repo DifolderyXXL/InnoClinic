@@ -22,6 +22,7 @@ import {AccountsPage} from "./routes/pages/ReceptionistPages/Users/AccountsPage.
 import {AccountDetailsPage} from "./routes/pages/ReceptionistPages/Users/AccountDetailsPage.tsx";
 import {AccountCreatePage} from "./routes/pages/ReceptionistPages/Users/AccountCreatePage.tsx";
 import {RequireRole, Roles} from "./components/common/RequireRole.tsx";
+import {ClinicAppointmentDetails} from "./routes/pages/ReceptionistPages/ClinicAppointmentDetails.tsx";
 
 
 createRoot(document.getElementById("root")!).render(
@@ -64,6 +65,7 @@ createRoot(document.getElementById("root")!).render(
             
             
             <Route path="/clinic-schedule" element={<ClinicAppointments/>} />
+            <Route path="/clinic-schedule/details" element={<ClinicAppointmentDetails/>} />
             
             <Route path="/accounts" element={<AccountsPage/>} />
             <Route path="/accounts/create" element={<AccountCreatePage/>} />

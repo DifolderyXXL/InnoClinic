@@ -3,16 +3,36 @@ import { AppointmentCard } from "../common/Appointment/AppointmentCard.tsx";
 import { ItemDetails } from "../Shared/Layouts/ItemDetails.tsx";
 import { useEffect, useState } from "react";
 import { RescheduleModal } from "./RescheduleModal.tsx";
+import { CancelAppointmentModal } from "./CancelAppointmentModal.tsx";
 import { DateOnly, dateToDateOnly, servicesApi } from "../../../services/api/ServicesApi.ts";
 
 export function ClinicAppointmentDetails() {
     const [item, setItem] = useState<AppointmentDto | null>(null);
     const [cancelId, setCancelId] = useState<string | null>(null);
     const [reason, setReason] = useState("");
+    const [reasonError, setReasonError] = useState<string | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
     const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
     const [slotLength, setSlotLength] = useState<number>(1);
 
-    const isPending = item && (item.state === "PendingApproval" || Number(item.state) === AppointmentState.PendingApproval);
+    const getNumericState = (stateValue: string | number): number => {
+        if (typeof stateValue === "number") return stateValue;
+
+        const stateMap: Record<string, number> = {
+            Created: AppointmentState.Created,
+            PendingReservation: AppointmentState.PendingReservation,
+            PendingApproval: AppointmentState.PendingApproval,
+            Approved: AppointmentState.Approved,
+            Failed: AppointmentState.Failed,
+            Confirmed: AppointmentState.Confirmed,
+        };
+
+        return stateMap[stateValue] ?? Number(stateValue);
+    };
+
+    const currentStateNumber = item ? getNumericState(item.state) : null;
+    const canManageAppointment = currentStateNumber !== null && currentStateNumber <= AppointmentState.PendingApproval;
+    const isPending = currentStateNumber === AppointmentState.PendingApproval;
 
     useEffect(() => {
         if (!item?.serviceId) return;
@@ -32,11 +52,24 @@ export function ClinicAppointmentDetails() {
     };
 
     const handleCancel = async () => {
-        if (!item || !reason.trim()) return;
-        const res = await appointmentsApi.declineAppointment(item.id, { reason });
+        if (!item) return;
+
+        if (!reason.trim()) {
+            setReasonError("Please provide a reason for cancellation.");
+            return;
+        }
+
+        setIsCancelling(true);
+        const res = await appointmentsApi.declineAppointment(item.id, { reason: reason.trim() });
+        setIsCancelling(false);
+
         if (res.type === "ok") {
             setItem({ ...item, state: "Failed" });
             setCancelId(null);
+            setReason("");
+            setReasonError(null);
+        } else {
+            alert(res.error?.title || "Failed to cancel appointment");
         }
     };
 
@@ -77,19 +110,25 @@ export function ClinicAppointmentDetails() {
                     <div>
                         <AppointmentCard appointment={current} showResultLink={false} />
 
-                        <div className="action-buttons" style={{ marginTop: 12, display: "flex", gap: "8px" }}>
-                            <button className="btn btn-secondary" onClick={() => setIsRescheduleOpen(true)}>
-                                Reschedule
-                            </button>
-                            <button className="btn btn-decline" onClick={() => setCancelId(current.id)}>
-                                Cancel
-                            </button>
-                            {isPending && (
-                                <button className="btn btn-approve" onClick={handleApprove}>
-                                    Approve
+                        {canManageAppointment && (
+                            <div className="action-buttons" style={{ marginTop: 12, display: "flex", gap: "8px" }}>
+                                <button className="btn btn-secondary" onClick={() => setIsRescheduleOpen(true)}>
+                                    Reschedule
                                 </button>
-                            )}
-                        </div>
+                                <button className="btn btn-decline" onClick={() => {
+                                    setCancelId(current.id);
+                                    setReason("");
+                                    setReasonError(null);
+                                }}>
+                                    Cancel
+                                </button>
+                                {isPending && (
+                                    <button className="btn btn-approve" onClick={handleApprove}>
+                                        Approve
+                                    </button>
+                                )}
+                            </div>
+                        )}
 
                         <RescheduleModal
                             isOpen={isRescheduleOpen}
@@ -102,19 +141,22 @@ export function ClinicAppointmentDetails() {
                             onSubmit={handleRescheduleSubmit}
                         />
 
-                        {cancelId && (
-                            <div className="modal-overlay">
-                                <div className="modal-content">
-                                    <textarea
-                                        value={reason}
-                                        onChange={(e) => setReason(e.target.value)}
-                                        placeholder="Reason for cancellation..."
-                                    />
-                                    <button onClick={handleCancel}>Confirm</button>
-                                    <button onClick={() => setCancelId(null)}>Close</button>
-                                </div>
-                            </div>
-                        )}
+                        <CancelAppointmentModal
+                            isOpen={!!cancelId}
+                            reason={reason}
+                            reasonError={reasonError}
+                            isCancelling={isCancelling}
+                            onReasonChange={(val) => {
+                                setReason(val);
+                                if (reasonError) setReasonError(null);
+                            }}
+                            onConfirm={handleCancel}
+                            onDismiss={() => {
+                                setCancelId(null);
+                                setReason("");
+                                setReasonError(null);
+                            }}
+                        />
                     </div>
                 );
             }}

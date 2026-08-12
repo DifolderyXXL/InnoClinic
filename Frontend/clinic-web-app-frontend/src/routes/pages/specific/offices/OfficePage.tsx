@@ -67,6 +67,7 @@ export function OfficesPage() {
                                 key={office.id}
                                 office={office}
                                 isClickable={true}
+                                isEditable={false}
                             />
                         ))}
                     </div>

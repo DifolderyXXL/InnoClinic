@@ -38,6 +38,11 @@ export interface PagedResponseOfAppointmentDto {
     totalCount: number;
 }
 
+export interface RescheduleCommand {
+    newDate: string; // YYYY-MM-DD
+    newStartSlotIndex: number;
+}
+
 export const AppointmentState = {
     Created: 0,
     PendingReservation: 1,
@@ -52,6 +57,14 @@ export type AppointmentState = typeof AppointmentState[keyof typeof AppointmentS
 export class AppointmentsApi extends BaseApiClient {
     protected override readonly middlewarePath = "/appointments";
 
+    public async rescheduleMyAppointment(id: string, command: RescheduleCommand): Promise<Result> {
+        return this.post(`api/v1/Appointments/${id}/reschedule/me`, command);
+    }
+
+    public async rescheduleAppointment(id: string, command: RescheduleCommand): Promise<Result> {
+        return this.post(`api/v1/Appointments/${id}/reschedule`, command);
+        
+    }
     public async bookAppointment(command: BookAppointmentCommand): Promise<Result> {
         return this.post("api/v1/Appointments", command);
     }

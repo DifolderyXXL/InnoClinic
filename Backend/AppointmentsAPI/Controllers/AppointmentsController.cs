@@ -182,6 +182,7 @@ public class AppointmentsController(
             DoctorAccountId = command.DoctorAccountId,
             Date = command.Date,
             StartSlotIndex = command.StartSlotIndex,
+            SlotAmount = service.SlotLength,
             ServiceId = command.ServiceId,
             OfficeId = command.OfficeId,
             SpecializationId = command.SpecializationId,
@@ -233,6 +234,34 @@ public class AppointmentsController(
         [FromBody] DeclineCommand command,
         CancellationToken ct)
     {
+        await publishEndpoint.Publish(new AppointmentDeclined(id, command.Reason), ct);
+        await context.SaveChangesAsync(ct);
+
+        return Accepted();
+    }
+    
+    [HttpPost("{id:guid}/decline/me")]
+    [HasPermission(Permissions.Appointments.ManageOwn)]
+    public async Task<IActionResult> DeclineMyAppointment(
+        [FromRoute] Guid id,
+        [FromBody] DeclineCommand command,
+        CancellationToken ct)
+    {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var patientId))
+        {
+            return Unauthorized();
+        }
+        
+        var appointment = await context.Appointments.AsNoTracking()
+            .Where(x => x.Id == id && x.PatientAccountId == patientId)
+            .FirstOrDefaultAsync(ct);
+
+        if (appointment == null)
+        {
+            return NotFound();
+        }
+        
         await publishEndpoint.Publish(new AppointmentDeclined(id, command.Reason), ct);
         await context.SaveChangesAsync(ct);
 

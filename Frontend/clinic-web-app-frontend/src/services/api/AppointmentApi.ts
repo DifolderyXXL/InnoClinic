@@ -26,6 +26,7 @@ export interface AppointmentDto {
     reservationId: number | null;
     date: string;
     startSlotIndex: number;
+    slotAmount: number;
     beginTime: string | null;
     endTime: string | null;
     state: string;
@@ -80,6 +81,11 @@ export class AppointmentsApi extends BaseApiClient {
     public async declineAppointment(id: string, command: DeclineCommand): Promise<Result> {
         return this.post(`api/v1/Appointments/${id}/decline`, command);
     }
+
+    public async declineMyAppointment(id: string, command: DeclineCommand): Promise<Result> {
+        return this.post(`api/v1/Appointments/${id}/decline/me`, command);
+    }
+
 
     public async getAppointments(
         state?: AppointmentState,

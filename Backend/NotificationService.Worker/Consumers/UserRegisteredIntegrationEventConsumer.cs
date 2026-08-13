@@ -103,10 +103,10 @@ public class MedicalResultUpdatedIntegrationEventConsumer(ISmtpClient mailClient
                               <hr style="border: none; border-top: 1px solid #ccc; margin: 15px 0;" />
 
                               <p>
-                                  <strong>Complaints:</strong> {context.Message.Complaints}<br/>
-                                  <strong>Diagnosis:</strong> {context.Message.Diagnosis}<br/>
-                                  <strong>Recommendations:</strong> {context.Message.Recommendations}<br/>
-                                  <strong>Conclusion:</strong> {context.Message.Conclusion}
+                                  <strong>Complaints:</strong> {{context.Message.Complaints}}<br/>
+                                  <strong>Diagnosis:</strong> {{context.Message.Diagnosis}}<br/>
+                                  <strong>Recommendations:</strong> {{context.Message.Recommendations}}<br/>
+                                  <strong>Conclusion:</strong> {{context.Message.Conclusion}}
                               </p>
                           </body>
                           </html>

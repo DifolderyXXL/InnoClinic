@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.5.11801.241
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthorizationAPI", "AuthorizationAPI\AuthorizationAPI.csproj", "{C8A8B361-5634-4358-B9A8-07E634B3DC68}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppHost", "AppHost\AppHost.csproj", "{05C6A8A4-CAAF-45CC-91F2-BC210AA1DBC5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceDefaults", "ServiceDefaults\ServiceDefaults.csproj", "{A5CEC213-9537-416E-90B1-3E5FED2AC1A4}"
@@ -57,18 +55,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Debug|x64.Build.0 = Debug|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Debug|x86.Build.0 = Debug|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Release|x64.ActiveCfg = Release|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Release|x64.Build.0 = Release|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Release|x86.ActiveCfg = Release|Any CPU
-		{C8A8B361-5634-4358-B9A8-07E634B3DC68}.Release|x86.Build.0 = Release|Any CPU
 		{05C6A8A4-CAAF-45CC-91F2-BC210AA1DBC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{05C6A8A4-CAAF-45CC-91F2-BC210AA1DBC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05C6A8A4-CAAF-45CC-91F2-BC210AA1DBC5}.Debug|x64.ActiveCfg = Debug|Any CPU

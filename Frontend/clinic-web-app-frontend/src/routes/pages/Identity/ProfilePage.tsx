@@ -69,7 +69,9 @@ export function ProfilePage() {
             )}
             
             <RequireRole roles={[Roles.Receptionist]}>
-                <ReceptionistProfilePage officeId={profile.onlyReceptionist?.officeId}/>
+                {profile && profile.onlyReceptionist && (
+                    <ReceptionistProfilePage officeId={profile.onlyReceptionist?.officeId}/>
+                )}
             </RequireRole>
         </div>
     );

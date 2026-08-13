@@ -10,7 +10,7 @@ interface LoginPageProps {
 }
 export function LoginPage({ role }: LoginPageProps) {
     useEffect(() => {
-        window.location.assign(getLoginUrl(role));
+        window.location.replace(getLoginUrl(role));
     }, [role]);
 
     return (

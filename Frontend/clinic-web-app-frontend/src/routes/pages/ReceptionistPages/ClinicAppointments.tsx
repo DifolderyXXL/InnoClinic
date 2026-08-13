@@ -5,10 +5,25 @@ import {
     AppointmentState
 } from "../../../services/api/AppointmentApi.ts";
 import { PaginatedListView, type PaginatedResult } from "../common/PaginatedListView.tsx";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
+import { CancelAppointmentModal } from "./CancelAppointmentModal.tsx";
 import "./ClinicAppointments.css";
 
-// Хелпер для корректного отображения названия статуса
+function getNumericState(stateValue: string | number): number {
+    if (typeof stateValue === "number") return stateValue;
+
+    const stateMap: Record<string, number> = {
+        Created: AppointmentState.Created,
+        PendingReservation: AppointmentState.PendingReservation,
+        PendingApproval: AppointmentState.PendingApproval,
+        Approved: AppointmentState.Approved,
+        Failed: AppointmentState.Failed,
+        Confirmed: AppointmentState.Confirmed,
+    };
+
+    return stateMap[stateValue] ?? Number(stateValue);
+}
+
 function formatAppointmentState(state: AppointmentState | string | number): string {
     if (typeof state === "string" && isNaN(Number(state))) {
         return state;
@@ -26,6 +41,7 @@ function formatAppointmentState(state: AppointmentState | string | number): stri
 }
 
 export function ClinicAppointments() {
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [date, setDate] = useState<string>(searchParams.get("date") || "");
@@ -107,7 +123,6 @@ export function ClinicAppointments() {
     const approveAppointment = async (id: string) => {
         const res = await appointmentsApi.approveAppointment(id);
         if (res.type === "ok") {
-            // Устанавливаем строковое значение "Approved" вместо enum-индекса
             setLocalItems(prev => prev.map(item => item.id === id ? { ...item, state: "Approved" } : item));
         }
     };
@@ -257,12 +272,13 @@ export function ClinicAppointments() {
                             {localItems.length > 0 ? (
                                 localItems.map((item) => {
                                     const formattedState = formatAppointmentState(item.state);
-                                    const isPendingApproval =
-                                        item.state === "PendingApproval" ||
-                                        Number(item.state) === AppointmentState.PendingApproval;
+                                    const stateNum = getNumericState(item.state);
+
+                                    const canCancel = stateNum <= AppointmentState.PendingApproval;
+                                    const isPendingApproval = stateNum === AppointmentState.PendingApproval;
 
                                     return (
-                                        <tr key={item.id}>
+                                        <tr key={item.id} onClick={() => navigate(`details?id=${item.id}`)}>
                                             <td>{item.date}</td>
                                             <td>{item.beginTime ?? `Slot #${item.startSlotIndex}`}</td>
                                             <td>{item.doctorFullName}</td>
@@ -272,12 +288,20 @@ export function ClinicAppointments() {
                                             <td>{formattedState}</td>
                                             <td>
                                                 <div className="action-buttons">
-                                                    <button className="btn btn-decline" onClick={() => openCancelModal(item.id)}>
-                                                        Cancel
-                                                    </button>
+                                                    {canCancel && (
+                                                        <button className="btn btn-decline" onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openCancelModal(item.id);
+                                                        }}>
+                                                            Cancel
+                                                        </button>
+                                                    )}
 
                                                     {isPendingApproval && (
-                                                        <button className="btn btn-approve" onClick={() => approveAppointment(item.id)}>
+                                                        <button className="btn btn-approve" onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            approveAppointment(item.id);
+                                                        }}>
                                                             Approve
                                                         </button>
                                                     )}
@@ -299,49 +323,18 @@ export function ClinicAppointments() {
                 )}
             />
 
-            {cancelTargetId && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <p className="modal-title">
-                            Do you really want to cancel the appointment? It will be permanently deleted.
-                        </p>
-
-                        <div className="modal-field">
-                            <label>Reason for cancellation:</label>
-                            <textarea
-                                placeholder="Enter reason (e.g. Client requested cancellation)..."
-                                value={declineReason}
-                                onChange={(e) => {
-                                    setDeclineReason(e.target.value);
-                                    if (reasonError) setReasonError(null);
-                                }}
-                            />
-                            {reasonError && (
-                                <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "2px" }}>
-                                    {reasonError}
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="modal-actions">
-                            <button
-                                className="btn btn-secondary"
-                                onClick={handleDismissCancel}
-                                disabled={isCancelling}
-                            >
-                                No
-                            </button>
-                            <button
-                                className="btn btn-decline"
-                                onClick={handleConfirmCancel}
-                                disabled={isCancelling}
-                            >
-                                {isCancelling ? "Cancelling..." : "Yes"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <CancelAppointmentModal
+                isOpen={!!cancelTargetId}
+                reason={declineReason}
+                reasonError={reasonError}
+                isCancelling={isCancelling}
+                onReasonChange={(val) => {
+                    setDeclineReason(val);
+                    if (reasonError) setReasonError(null);
+                }}
+                onConfirm={handleConfirmCancel}
+                onDismiss={handleDismissCancel}
+            />
         </div>
     );
 }

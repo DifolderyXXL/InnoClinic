@@ -45,8 +45,15 @@ namespace AppointmentsAPI.Migrations
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("interval");
 
+                    b.Property<bool>("IsCreatedByAdmin")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("PatientAccountId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("PatientEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<long>("ReservationId")
                         .HasColumnType("bigint");
@@ -70,6 +77,10 @@ namespace AppointmentsAPI.Migrations
 
                     b.Property<TimeSpan?>("BeginTime")
                         .HasColumnType("interval");
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
@@ -109,8 +120,15 @@ namespace AppointmentsAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("SlotAmount")
+                        .HasColumnType("integer");
+
                     b.Property<long>("SpecializationId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("SpecializationName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("StartSlotIndex")
                         .HasColumnType("integer");

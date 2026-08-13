@@ -19,6 +19,7 @@ public class AppointmentDto
     public long? ReservationId { get; init; }
     public DateOnly Date { get; init; }
     public int StartSlotIndex { get; init; }
+    public int SlotAmount { get; set; }
     
     public TimeSpan? BeginTime { get; init; }
     public TimeSpan? EndTime { get; init; }
@@ -46,6 +47,7 @@ public static class AppointmentDtoHelper
             ReservationId = a.ReservationId,
             Date = a.Date,
             StartSlotIndex = a.StartSlotIndex,
+            SlotAmount = a.SlotAmount,
             BeginTime = a.BeginTime,
             EndTime = a.EndTime,
             

@@ -7,6 +7,7 @@ using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions.Endpoints;
 using MicroserviceApiKernel.Extensions.Queryable;
+using MicroserviceApiKernel.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +30,63 @@ public class AppointmentsController(
     private async ValueTask<UserClaimParserResult?> GetUserClaim() => await UserClaimParser.Parse(HttpContext);
 
     [HttpPost]
-    [Route("book")]
+    [Route("{id:guid}/reschedule/me")]
+    [HasPermission(Permissions.Appointments.ManageOwn)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RescheduleMyAppointment(
+        [FromRoute] Guid id,
+        [FromBody] RescheduleCommand command,
+        CancellationToken ct)
+    {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var patientId))
+        {
+            return Unauthorized();
+        }
+        
+        var appointment = await context.Appointments.AsNoTracking()
+            .Where(x => x.Id == id && x.PatientAccountId == patientId)
+            .FirstOrDefaultAsync(ct);
+
+        if (appointment == null)
+        {
+            return NotFound();
+        }
+        
+        await publishEndpoint.Publish(
+            new AppointmentRescheduleRequested(id, command.NewDate, command.NewStartSlotIndex), 
+            ct);
+
+        await context.SaveChangesAsync(ct);
+
+        return Accepted(new { Message = "Reschedule request accepted for processing." });
+    }
+    
+    [HttpPost]
+    [Route("{id:guid}/reschedule")]
     [HasPermission(Permissions.Appointments.Manage)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    public async Task<IActionResult> RescheduleAppointment(
+        [FromRoute] Guid id,
+        [FromBody] RescheduleCommand command,
+        CancellationToken ct)
+    {
+        await publishEndpoint.Publish(
+            new AppointmentRescheduleRequested(id, command.NewDate, command.NewStartSlotIndex), 
+            ct);
+
+        await context.SaveChangesAsync(ct);
+
+        return Accepted(new { Message = "Reschedule request accepted for processing." });
+    }
+
+    public record RescheduleCommand(DateOnly NewDate, int NewStartSlotIndex);
+    
+    
+    [HttpPost]
+    [HasPermission(Permissions.Appointments.ManageOwn)]
     [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
     public async Task<IActionResult> BookAppointment(
         [FromBody] BookAppointmentCommand command,
@@ -44,32 +100,79 @@ public class AppointmentsController(
             return Unauthorized();
         }
 
-        var profilesResultTask =
-            profilesApiClient.ValidateAppointmentContextAsync(new(command.DoctorAccountId, patientId, command.OfficeId),
-                ct);
-        var serviceResultTask = servicesApiClient.GetService(command.ServiceId, ct);
+        var result = await ExecuteBookingAsync(
+            patientId,
+            command,
+            false,
+            profilesApiClient,
+            servicesApiClient,
+            ct);
 
-        await Task.WhenAll(profilesResultTask, serviceResultTask);
+        if (result.IsError)
+            return BadRequest(result.Error);
 
-        var profilesResult = await profilesResultTask;
-        var serviceResult = await serviceResultTask;
+        return Accepted(result.Value);
+    }
+    
+    [HttpPost]
+    [Route("users/{userId:guid}")]
+    [HasPermission(Permissions.Appointments.Manage)]
+    [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
+    public async Task<IActionResult> BookAppointment(
+        [FromRoute] Guid userId,
+        [FromBody] BookAppointmentCommand command,
+        [FromServices] IProfilesApiClient profilesApiClient,
+        [FromServices] IServicesApiClient servicesApiClient,
+        CancellationToken ct)
+    {
+        var result = await ExecuteBookingAsync(
+            userId,
+            command,
+            true,
+            profilesApiClient,
+            servicesApiClient,
+            ct);
 
-        if (profilesResult.IsError)
-            return BadRequest(profilesResult.Error);
-        if (serviceResult.IsError)
-            return BadRequest(serviceResult.Error);
+        if (result.IsError)
+            return BadRequest(result.Error);
+
+        return Accepted(result.Value);
+    }
+    
+    private async Task<Result<Guid>> ExecuteBookingAsync(
+        Guid patientId,
+        BookAppointmentCommand command,
+        bool isCreatedByAdmin,
+        IProfilesApiClient profilesApiClient,
+        IServicesApiClient servicesApiClient,
+        CancellationToken ct)
+    {
+        var profilesTask = profilesApiClient.ValidateAppointmentContextAsync(
+            new(command.DoctorAccountId, patientId, command.OfficeId), ct);
+        
+        var serviceTask = servicesApiClient.GetService(command.ServiceId, ct);
+
+        await Task.WhenAll(profilesTask, serviceTask);
+
+        var profilesResult = await profilesTask;
+        var serviceResult = await serviceTask;
+
+        if (profilesResult.IsError) return profilesResult.Error!;
+        if (serviceResult.IsError) return serviceResult.Error!;
 
         var profiles = profilesResult.Value!;
         var service = serviceResult.Value!;
 
         if (command.SpecializationId != service.SpecializationId)
         {
-            return BadRequest("Selected specialization does not match the requested service.");
+            return Error.Validation("Booking.SpecializationMismatch", 
+                "Selected specialization does not match the requested service.");
         }
 
         if (profiles.DoctorSpecializationId != service.SpecializationId)
         {
-            return BadRequest("Doctor's specialization does not match the requested service.");
+            return Error.Validation("Booking.DoctorSpecializationMismatch", 
+                "Doctor's specialization does not match the requested service.");
         }
 
         var appointment = new Appointment
@@ -79,6 +182,7 @@ public class AppointmentsController(
             DoctorAccountId = command.DoctorAccountId,
             Date = command.Date,
             StartSlotIndex = command.StartSlotIndex,
+            SlotAmount = service.SlotLength,
             ServiceId = command.ServiceId,
             OfficeId = command.OfficeId,
             SpecializationId = command.SpecializationId,
@@ -87,27 +191,32 @@ public class AppointmentsController(
             PatientFullName = profiles.PatientFullName,
             PatientEmail = profiles.Email,
             ServiceName = service.ServiceName,
+            CategoryName = service.CategoryName,
+            SpecializationName = service.SpecializationName,
         };
+
         var result = await appointmentService.AddAppointment(appointment, ct);
-        if (result.IsError)
-            return BadRequest(result.Error);
+        if (result.IsError) return result.Error!;
 
         await publishEndpoint.Publish(
             new AppointmentSubmitted(
                 result.Value,
                 patientId,
                 command.DoctorAccountId,
+                profiles.Email,
                 command.Date,
                 command.StartSlotIndex,
-                command.ServiceId), ct);
+                command.ServiceId,
+                isCreatedByAdmin), ct);
+
         await context.SaveChangesAsync(ct);
 
-        return Accepted(result.Value);
+        return result.Value;
     }
 
-    [HttpPost]
-    [Route("approve-book/{id:guid}")]
+    [HttpPost("{id:guid}/approve")]
     [HasPermission(Permissions.Appointments.Manage)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
     public async Task<IActionResult> ApproveAppointment(
         [FromRoute] Guid id,
         CancellationToken ct)
@@ -118,14 +227,41 @@ public class AppointmentsController(
         return Accepted();
     }
 
-    [HttpPost]
-    [Route("decline-book/{id:guid}")]
+    [HttpPost("{id:guid}/decline")]
     [HasPermission(Permissions.Appointments.Manage)]
     public async Task<IActionResult> DeclineAppointment(
         [FromRoute] Guid id,
         [FromBody] DeclineCommand command,
         CancellationToken ct)
     {
+        await publishEndpoint.Publish(new AppointmentDeclined(id, command.Reason), ct);
+        await context.SaveChangesAsync(ct);
+
+        return Accepted();
+    }
+    
+    [HttpPost("{id:guid}/decline/me")]
+    [HasPermission(Permissions.Appointments.ManageOwn)]
+    public async Task<IActionResult> DeclineMyAppointment(
+        [FromRoute] Guid id,
+        [FromBody] DeclineCommand command,
+        CancellationToken ct)
+    {
+        var user = await GetUserClaim();
+        if (user == null || !Guid.TryParse(user.Id, out var patientId))
+        {
+            return Unauthorized();
+        }
+        
+        var appointment = await context.Appointments.AsNoTracking()
+            .Where(x => x.Id == id && x.PatientAccountId == patientId)
+            .FirstOrDefaultAsync(ct);
+
+        if (appointment == null)
+        {
+            return NotFound();
+        }
+        
         await publishEndpoint.Publish(new AppointmentDeclined(id, command.Reason), ct);
         await context.SaveChangesAsync(ct);
 
@@ -199,6 +335,29 @@ public class AppointmentsController(
         return Ok(items);
     }
 
+    [HttpGet("{id:guid}")]
+    [HasPermission(Permissions.Appointments.Read)]
+    [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAppointment(
+        [FromRoute] Guid id,
+        CancellationToken ct = default)
+    {
+        var query = context.Appointments.AsNoTracking();
+
+        var item = await query
+            .Where(x => x.Id == id)
+            .Select(AppointmentDtoHelper.ProjectToDto)
+            .FirstOrDefaultAsync(ct);
+
+        if (item == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(item);
+    }
+    
     [HttpGet("{id:guid}/me/client")]
     [HasPermission(Permissions.Appointments.ReadOwn)]
     [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
@@ -257,7 +416,7 @@ public class AppointmentsController(
         return Ok(item);
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id:guid}/info")]
     [Authorize(RolePolicy.IdentityServer)]
     [ProducesResponseType(typeof(AppointmentInformationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -295,131 +454,4 @@ public class AppointmentsController(
         public TimeSpan? EndTime { get; init; }
     }
 
-}
-
-public record ClinicAppointmentsFilterParameters(
-    DateOnly? Date,
-    string? DoctorFullName,
-    string? ServiceName,
-    string? OfficeId,
-    AppointmentState? Status
-);
-
-public static class AppointmentExtensions
-{
-    /// <summary>
-    /// Сортировка согласно AC-12, AC-13, AC-14:
-    /// 1. По времени приема (StartSlotIndex / BeginTime)
-    /// 2. По Фамилии доктора (Ascending)
-    /// 3. По Имени доктора (Ascending)
-    /// 4. По Названию услуги (Ascending)
-    /// </summary>
-    public static IQueryable<Appointment> OrderClinicAppointments(this IQueryable<Appointment> query)
-    {
-        return query
-            // 1. Сортировка по времени приема
-            .OrderByDescending(a => a.Date)
-            
-            .ThenBy(a => a.StartSlotIndex) 
-            
-            // 2. AC-12: Фамилия доктора (первое слово в DoctorFullName)
-            .ThenBy(a => a.DoctorFullName.Substring(0, a.DoctorFullName.IndexOf(" ") == -1 
-                ? a.DoctorFullName.Length 
-                : a.DoctorFullName.IndexOf(" ")))
-                
-            // 3. AC-13: Имя доктора (второе слово в DoctorFullName)
-            .ThenBy(a => a.DoctorFullName.Contains(" ") 
-                ? a.DoctorFullName.Substring(a.DoctorFullName.IndexOf(" ") + 1).TrimStart() 
-                : string.Empty)
-                
-            // 4. AC-14: Название услуги
-            .ThenBy(a => a.ServiceName);
-    }
-
-    public static async Task<PagedResponse<AppointmentDto>> QueryClinicAppointmentsAsync(
-        this AppointmentDbContext context,
-        ClinicAppointmentsFilterParameters filter,
-        PaginationParameters pagination,
-        CancellationToken ct)
-    {
-        var query = context.Appointments.AsNoTracking();
-
-        // AC-7: Фильтрация по дате приёма
-        if (filter.Date.HasValue)
-        {
-            query = query.Where(x => x.Date == filter.Date.Value);
-        }
-
-        // AC-8: Фильтрация по ФИО доктора (регистронезависимый поиск)
-        if (!string.IsNullOrWhiteSpace(filter.DoctorFullName))
-        {
-            query = query.Where(x => EF.Functions.Like(x.DoctorFullName, $"%{filter.DoctorFullName}%"));
-        }
-
-        // AC-9: Фильтрация по названию услуги
-        if (!string.IsNullOrWhiteSpace(filter.ServiceName))
-        {
-            query = query.Where(x => EF.Functions.Like(x.ServiceName, $"%{filter.ServiceName}%"));
-        }
-
-        // AC-10: Фильтрация по статусу 
-        if (filter.Status.HasValue)
-        {
-            query = query.Where(x=> x.State == filter.Status.Value);
-        }
-
-        // AC-11: Фильтрация по офису
-        if (!string.IsNullOrWhiteSpace(filter.OfficeId))
-        {
-            query = query.Where(x => x.OfficeId == filter.OfficeId);
-        }
-
-        // Применяем кастомную сортировку (AC-12, AC-13, AC-14) и пагинацию
-        return await query
-            .OrderClinicAppointments()
-            .ToPagedResponseAsync(
-                pagination,
-                AppointmentDtoHelper.ProjectToDto,
-                ct);
-    }
-    
-    
-    public static IQueryable<Appointment> OrderAppointments(this IQueryable<Appointment> query)
-    {
-        return query.OrderByDescending(x => x.Date)
-            .ThenBy(x => x.BeginTime);
-    }
-
-    public static async Task<PagedResponse<AppointmentDto>> QueryAppointmentsAsync(
-        this AppointmentDbContext context,
-        PaginationParameters pagination,
-        CancellationToken ct,
-        AppointmentState? state = null, Guid? doctorId= null, Guid? patientId= null)
-    {
-        
-        var query = context.Appointments.AsNoTracking();
-
-        if (state != null)
-        {
-            query = query.Where(x => x.State == state);
-        }
-
-        if (doctorId != null)
-        {
-            query = query.Where(x => x.DoctorAccountId == doctorId);
-        }
-        
-        if (patientId != null)
-        {
-            query = query.Where(x => x.PatientAccountId == patientId);
-        }
-
-        var items = await query
-            .OrderAppointments()
-            .ToPagedResponseAsync(
-                pagination,
-                AppointmentDtoHelper.ProjectToDto,
-                ct);
-        return items;
-    }
 }

@@ -99,9 +99,10 @@ interface OfficeFullCardProps extends BaseOfficeProps {
     onClick?: () => void;
     isClickable?: boolean;
     onUpdateSuccess?: () => void;
+    isEditable?: boolean;
 }
 
-export function OfficeFullCard({ office, officeId, onClick, isClickable = false, onUpdateSuccess }: OfficeFullCardProps) {
+export function OfficeFullCard({ office, officeId, onClick, isClickable = false, onUpdateSuccess, isEditable = true }: OfficeFullCardProps) {
     const { data, setData, loading } = useOfficeData(office, officeId);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -162,19 +163,22 @@ export function OfficeFullCard({ office, officeId, onClick, isClickable = false,
                             <span className={`office-status ${data.isActive ? "active" : "inactive"}`}>
                                 {data.isActive ? "Active" : "Inactive"}
                             </span>
-                            <RequireRole roles={[Roles.Receptionist]}>
-                                <button
-                                    type="button"
-                                    className="edit-btn"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setIsEditing(true);
-                                    }}
-                                >
-                                    Edit
-                                </button>
-                            </RequireRole>
+                            {isEditable && (
+                                <RequireRole roles={[Roles.Receptionist]}>
+                                    <button
+                                        type="button"
+                                        className="edit-btn"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setIsEditing(true);
+                                        }}
+                                    >
+                                        Edit
+                                    </button>
+                                </RequireRole>
+                            )}
+
                         </div>
                     </div>
                     <p className="office-full-card-address">

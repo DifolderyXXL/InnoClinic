@@ -87,6 +87,7 @@ public class ProcessReservationConsumer(
 
         var entity = await reservationService.TryReserve(
             context.Message.DoctorId,
+            context.Message.PatientId,
             context.Message.AppointmentId,
             new(context.Message.Date, context.Message.StartSlotIndex, (int)slotCount),
             context.CancellationToken);

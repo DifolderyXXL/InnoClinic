@@ -2,17 +2,18 @@ using AppointmentsAPI.Controllers;
 using Contracts.AppointmentContracts;
 using Contracts.Notifications;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentsAPI.Data;
 
 public class AppointmentState : SagaStateMachineInstance
 {
     public Guid CorrelationId { get; set; }
-    public string CurrentState { get; set; }
+    public string CurrentState { get; set; } = null!;
     
     public Guid PatientAccountId { get; set; }
     public Guid DoctorAccountId { get; set; }
+    
+    public string PatientEmail { get; set; } = null!;
 
     public long ReservationId { get; set; }
     public DateOnly Date { get; set; }
@@ -23,6 +24,8 @@ public class AppointmentState : SagaStateMachineInstance
     public TimeSpan EndTime { get; set; }
 
     public Guid AppointmentId => CorrelationId;
+    
+    public bool IsCreatedByAdmin { get; set; }
 }
 
 public class AppointmentSagaStateChanged
@@ -40,7 +43,7 @@ public static class AppointmentStateMachineExtension
         where TData : class
     {
         return source.PublishAsync(context => context.Init<AppointmentSagaStateChanged>(
-            new AppointmentSagaStateChanged{AppointmentId = context.Saga.CorrelationId, State = state}));
+            new AppointmentSagaStateChanged { AppointmentId = context.Saga.CorrelationId, State = state }));
     }
     
     public static EventActivityBinder<TInstance> PublishStateChanged<TInstance>(
@@ -49,7 +52,20 @@ public static class AppointmentStateMachineExtension
         where TInstance : class, SagaStateMachineInstance
     {
         return source.PublishAsync(context => context.Init<AppointmentSagaStateChanged>(
-            new AppointmentSagaStateChanged{AppointmentId = context.Saga.CorrelationId, State = state}));
+            new AppointmentSagaStateChanged { AppointmentId = context.Saga.CorrelationId, State = state }));
+    }
+    
+    public static EventActivityBinder<TInstance, TData> ApproveAppointment<TInstance, TData>(
+        this EventActivityBinder<TInstance, TData> source,
+        State waitingForConfirmationState)
+        where TInstance : AppointmentState
+        where TData : class
+    {
+        return source
+            .PublishAsync(context => context.Init<ProcessReservationConfirmation>(
+                new ProcessReservationConfirmation(context.Saga.AppointmentId, context.Saga.ReservationId)))
+            .PublishStateChanged(Models.AppointmentState.Approved)
+            .TransitionTo(waitingForConfirmationState);
     }
 }
 
@@ -64,6 +80,10 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
     public Event<ReservationConfirmed> ReservationConfirmed { get; private set; } = null!;
     
     
+    public Event<AppointmentRescheduleRequested> RescheduleRequested { get; private set; } = null!;
+    public Event<AppointmentRescheduled> RescheduleCompleted { get; private set; } = null!;
+    public Event<AppointmentRescheduleFailed> RescheduleFailed { get; private set; } = null!;
+    
     public AppointmentStateMachine()
     {
         Event(() => AppointmentSubmitted, x => x.CorrelateById(e => e.Message.AppointmentId));
@@ -72,6 +92,10 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
         Event(() => ReservationFailed, x => x.CorrelateById(e => e.Message.AppointmentId));
         Event(() => TimeWindowReserved, x => x.CorrelateById(e => e.Message.AppointmentId));
 
+        Event(() => RescheduleRequested, x => x.CorrelateById(e => e.Message.AppointmentId));
+        Event(() => RescheduleCompleted, x => x.CorrelateById(e => e.Message.AppointmentId));
+        Event(() => RescheduleFailed, x => x.CorrelateById(e => e.Message.AppointmentId));
+        
         Event(() => ReservationExpired, x => x.CorrelateBy(
             (state, context) => state.ReservationId == context.Message.ReservationId 
         ));
@@ -80,18 +104,19 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
             (state, context) => state.ReservationId == context.Message.ReservationId 
         ));
         
-        
         InstanceState(x => x.CurrentState);
         
-        During(WaitingForApproval, WaitingForReservationConfirmation,
+        During(WaitingForApproval,  ProcessingRescheduling, WaitingForReservationConfirmation,
             When(AppointmentDeclined)
                 .PublishAsync(context => context.Init<CancelReservation>(new CancelReservation(context.Saga.ReservationId)))
                 .TransitionTo(Failed) 
         );
+
         DuringAny(
             When(ReservationFailed)
                 .TransitionTo(Failed) 
         );
+
         During(WaitingForApproval, WaitingForReservationConfirmation,
             When(ReservationExpired)
                 .TransitionTo(Failed) 
@@ -104,9 +129,11 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context.Saga.CorrelationId = context.Message.AppointmentId;
                     context.Saga.PatientAccountId = context.Message.PatientAccountId;
                     context.Saga.DoctorAccountId = context.Message.DoctorAccountId;
+                    context.Saga.PatientEmail = context.Message.PatientEmail;
                     context.Saga.Date = context.Message.Date;
                     context.Saga.StartSlotIndex = context.Message.StartSlotIndex;
                     context.Saga.ServiceId = context.Message.ServiceId;
+                    context.Saga.IsCreatedByAdmin = context.Message.IsCreatedByAdmin;
                 })
                 .PublishStateChanged(Models.AppointmentState.PendingReservation)
                 .PublishAsync(context => context.Init<ProcessReservation>(new ProcessReservation
@@ -115,7 +142,8 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context.Saga.DoctorAccountId,
                     context.Saga.Date,
                     context.Saga.StartSlotIndex,
-                    context.Saga.ServiceId
+                    context.Saga.ServiceId,
+                    context.Saga.PatientAccountId
                 )))
                 .TransitionTo(ProcessingReservation)   
         );
@@ -128,39 +156,56 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
                     context.Saga.BeginTime = context.Message.BeginTime;
                     context.Saga.EndTime = context.Message.EndTime;
                 })
-                .PublishStateChanged(Models.AppointmentState.PendingApproval)
-                .TransitionTo(WaitingForApproval)   
-            );
+                .IfElse(
+                    context => context.Saga.IsCreatedByAdmin,
+                    thenBinder => thenBinder.ApproveAppointment(WaitingForReservationConfirmation),
+                    elseBinder => elseBinder
+                        .PublishStateChanged(Models.AppointmentState.PendingApproval)
+                        .TransitionTo(WaitingForApproval)
+                )
+        );
         
         During(WaitingForApproval,
             When(AppointmentApproved)
-                .PublishAsync(
-                    context => context.Init<ProcessReservationConfirmation>(
-                        new ProcessReservationConfirmation(context.Saga.AppointmentId, context.Saga.ReservationId))
-                )
-                .PublishStateChanged(Models.AppointmentState.Approved)
-                .TransitionTo(WaitingForReservationConfirmation)
+                .ApproveAppointment(WaitingForReservationConfirmation),
+            When(RescheduleRequested)
+                .PublishAsync(context => context.Init<ProcessRescheduleReservation>(new ProcessRescheduleReservation
+                (
+                    context.Saga.AppointmentId,
+                    context.Saga.ReservationId,
+                    context.Saga.DoctorAccountId,
+                    context.Saga.PatientAccountId,
+                    context.Message.NewDate,
+                    context.Message.NewStartSlotIndex,
+                    context.Saga.ServiceId
+                )))
+                .TransitionTo(ProcessingRescheduling)
+        );
+        
+        During(ProcessingRescheduling,
+            When(RescheduleCompleted)
+                .Then(context =>
+                {
+                    context.Saga.Date = context.Message.NewDate;
+                    context.Saga.StartSlotIndex = context.Message.NewStartSlotIndex;
+                    context.Saga.BeginTime = context.Message.NewBeginTime;
+                    context.Saga.EndTime = context.Message.NewEndTime;
+                })
+                .PublishStateChanged(Models.AppointmentState.PendingApproval)
+                .TransitionTo(WaitingForApproval),
+
+            When(RescheduleFailed)
+                .TransitionTo(WaitingForApproval)
         );
         
         During(WaitingForReservationConfirmation,
             When(ReservationConfirmed)
                 .PublishStateChanged(Models.AppointmentState.Confirmed)   
-                .PublishAsync(async context =>
-                {
-                    var dbContext = context.GetPayload<IServiceProvider>()
-                        .GetRequiredService<AppointmentDbContext>();
-
-                    var appointment = await dbContext.Appointments.Where(x => x.Id == context.Saga.AppointmentId).AsNoTracking().FirstAsync();
-
-                    return new UserAppointmentConfirmedIntegrationEvent
+                .PublishAsync(context => context.Init<AppointmentConfirmedIntegrationEvent>(
+                    new AppointmentConfirmedIntegrationEvent
                     {
                         AppointmentId = context.Saga.AppointmentId,
-                        Date = context.Saga.Date,
-                        BeginTime = context.Saga.BeginTime,
-                        EndTime = context.Saga.EndTime,
-                        Email = appointment.PatientEmail
-                    };
-                })
+                    }))
                 .TransitionTo(Completed)
                 .Finalize()
         );
@@ -174,8 +219,9 @@ public class AppointmentStateMachine : MassTransitStateMachine<AppointmentState>
     }
 
     public State ProcessingReservation { get; private set; } = null!;
-    public State WaitingForApproval { get; private set; }= null!;
-    public State WaitingForReservationConfirmation { get; private set; }= null!;
-    public State Completed { get; private set; }= null!;
-    public State Failed { get; private set; }= null!;
+    public State WaitingForApproval { get; private set; } = null!;
+    public State ProcessingRescheduling { get; private set; } = null!;
+    public State WaitingForReservationConfirmation { get; private set; } = null!;
+    public State Completed { get; private set; } = null!;
+    public State Failed { get; private set; } = null!;
 }

@@ -164,10 +164,10 @@ export class ServicesApi extends BaseApiClient {
 
 
 
-    public async getAvailableDoctorSlots(doctorId: string, date: Date): Promise<Result> {
+    public async getAvailableDoctorSlots(doctorId: string, date: Date, patientId: string | null = null): Promise<Result> {
 
         const dateStr = dateToDateOnly(date);
-        return this.get(`api/v1/schedules/doctor/${doctorId}`, { dateOnly: dateStr });
+        return this.get(`api/v1/schedules/doctor/${doctorId}`, { dateOnly: dateStr, patientId: patientId });
     }
 }
 

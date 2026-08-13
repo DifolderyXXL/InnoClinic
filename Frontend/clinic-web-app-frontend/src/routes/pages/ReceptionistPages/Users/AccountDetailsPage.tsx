@@ -9,6 +9,7 @@ import {DoctorCard, DoctorProfileForm} from "./components/DoctorProfile.tsx";
 import {PatientCard} from "../../Identity/PatientCard.tsx";
 
 import "./AccountDetailsPage.css"
+import {Link} from "react-router-dom";
 
 export function AccountDetailsPage() {
     const [searchParams] = useSearchParams();
@@ -35,10 +36,16 @@ export function AccountDetailsPage() {
                 {/* PATIENT */}
                 {roles.includes("client") && (
                     profiles?.onlyPatient ? (
-                        <PatientCard
-                            dateOfBirth={profiles.onlyPatient.dateOfBirth}
-                            onUpdateSuccess={fetchProfiles}
-                        />
+                        <div>
+                            <PatientCard
+                                dateOfBirth={profiles.onlyPatient.dateOfBirth}
+                                onUpdateSuccess={fetchProfiles}
+                            />
+                            <Link to={`/make-appointment?userId=${account.id}`} className="btn-appointment">
+                                Make appointment
+                            </Link>
+                        </div>
+
                     ) : (
                         <PatientProfileForm accountId={account.id} onSuccess={fetchProfiles} />
                     )

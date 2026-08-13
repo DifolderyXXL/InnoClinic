@@ -8,11 +8,15 @@ public record UserRegisteredIntegrationEvent(
 
 public class UserAppointmentConfirmedIntegrationEvent
 {
-    public Guid AppointmentId { get; set; }
-    public DateOnly Date { get; set; }
-    public TimeSpan BeginTime { get; set; }
-    public TimeSpan EndTime { get; set; }
-    public string Email { get; set; }
+    public required string PatientEmail { get; init; }
+    public required string PatientName { get; init; }
+    public required string DoctorName { get; init; }
+    public required string ServiceName { get; init; }
+    public required string SpecializationName { get; init; }
+    public required string CategoryName { get; init; }
+    public required DateOnly Date { get; init; }
+    public required TimeSpan BeginTime { get; init; }
+    public required TimeSpan EndTime { get; init; }
 }
 
 public record MedicalResultUpdatedIntegrationEvent(

@@ -214,6 +214,9 @@ namespace ServicesAPI.Migrations
                     b.Property<bool>("IsConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("SlotCount")
                         .HasColumnType("integer");
 
@@ -223,6 +226,8 @@ namespace ServicesAPI.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DoctorId", "Date");
+
+                    b.HasIndex("PatientId", "Date");
 
                     b.ToTable("ReservedTimeWindows");
                 });

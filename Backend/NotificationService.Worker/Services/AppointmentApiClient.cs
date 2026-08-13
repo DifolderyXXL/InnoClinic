@@ -8,7 +8,7 @@ public class AppointmentApiClient(HttpClient client)
 {
     public async Task<Result<AppointmentInformationDto>> GetAppointmentInfoAsync(Guid id, CancellationToken ct = default)
     {
-        var response = await client.GetAsync($"Appointments/{id}", ct);
+        var response = await client.GetAsync($"Appointments/{id}/info", ct);
         
         if (!response.IsSuccessStatusCode)
         {

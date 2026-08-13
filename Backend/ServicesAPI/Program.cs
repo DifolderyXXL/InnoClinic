@@ -1,3 +1,4 @@
+using Contracts.AppointmentContracts;
 using MassTransit;
 using MicroserviceApiKernel;
 using MicroserviceApiKernel.Extensions;
@@ -17,6 +18,7 @@ builder.Services.AddDbContext<ServicesDbContext>(options =>
 
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReservedTimeWindowStore, ReservedTimeWindowStore>();
+builder.Services.AddScoped<IReservationLifecycleManager, ReservedTimeWindowStore>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
 builder.Services.Configure<ReservationOptions>(
@@ -40,6 +42,9 @@ builder.Services.AddMassTransit(x =>
     
     x.AddConsumer<CancelReservationConsumer>();
     x.AddConsumer<ReservationExpiredConsumer>();
+    
+    x.AddConsumer<ProcessRescheduleReservationConsumer>();
+    x.AddConsumer<ProcessRescheduleReservationFaultConsumer>();
     
     x.UsingRabbitMq((context, cfg) =>
     {

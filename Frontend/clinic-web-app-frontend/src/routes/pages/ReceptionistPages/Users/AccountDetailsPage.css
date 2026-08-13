@@ -281,3 +281,29 @@
     font-size: 13px;
     font-style: italic;
 }
+
+.btn-appointment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+}
+
+.btn-appointment:hover {
+    background-color: #0056b3;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.btn-appointment:active {
+    transform: translateY(1px);
+}

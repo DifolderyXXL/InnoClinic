@@ -117,7 +117,8 @@ public static class AuthorizationExtension
 
             .AddPolicy(Permissions.Appointments.ReadOwn, p => p.RequireRole(Roles.Client, Roles.Doctor))
             .AddPolicy(Permissions.Appointments.Read, p => p.RequireRole(Roles.Doctor, Roles.Receptionist))
-            .AddPolicy(Permissions.Appointments.Manage, p => p.RequireRole(Roles.Client, Roles.Receptionist))
+            .AddPolicy(Permissions.Appointments.Manage, p => p.RequireRole(Roles.Receptionist))
+            .AddPolicy(Permissions.Appointments.ManageOwn, p => p.RequireRole(Roles.Client))
 
             .AddPolicy(Permissions.MedicalResults.ReadOwn, p => p.RequireRole(Roles.Client))
             .AddPolicy(Permissions.MedicalResults.Manage, p => p.RequireRole(Roles.Doctor))
@@ -187,6 +188,7 @@ public static class Permissions
         public const string ReadOwn = "appointments.read_own";
         public const string Read = "appointments.read";
         public const string Manage = "appointments.manage";
+        public const string ManageOwn = "appointments.manage_own";
     }
 
     public static class MedicalResults

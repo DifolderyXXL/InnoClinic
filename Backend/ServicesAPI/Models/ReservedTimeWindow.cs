@@ -4,6 +4,7 @@ public class ReservedTimeWindow
 {
     public long Id { get; set; }
     public Guid DoctorId { get; set; }
+    public Guid PatientId { get; set; }
     public Guid AppointmentId { get; set; }
     
     public DateOnly Date { get; set; }

@@ -26,6 +26,7 @@ export interface AppointmentDto {
     reservationId: number | null;
     date: string;
     startSlotIndex: number;
+    slotAmount: number;
     beginTime: string | null;
     endTime: string | null;
     state: string;
@@ -36,6 +37,11 @@ export interface PagedResponseOfAppointmentDto {
     page: number;
     pageSize: number;
     totalCount: number;
+}
+
+export interface RescheduleCommand {
+    newDate: string; // YYYY-MM-DD
+    newStartSlotIndex: number;
 }
 
 export const AppointmentState = {
@@ -52,17 +58,34 @@ export type AppointmentState = typeof AppointmentState[keyof typeof AppointmentS
 export class AppointmentsApi extends BaseApiClient {
     protected override readonly middlewarePath = "/appointments";
 
+    public async rescheduleMyAppointment(id: string, command: RescheduleCommand): Promise<Result> {
+        return this.post(`api/v1/Appointments/${id}/reschedule/me`, command);
+    }
+
+    public async rescheduleAppointment(id: string, command: RescheduleCommand): Promise<Result> {
+        return this.post(`api/v1/Appointments/${id}/reschedule`, command);
+        
+    }
     public async bookAppointment(command: BookAppointmentCommand): Promise<Result> {
-        return this.post("api/v1/Appointments/book", command);
+        return this.post("api/v1/Appointments", command);
+    }
+
+    public async bookAppointmentForUser(userId: string, command: BookAppointmentCommand): Promise<Result> {
+        return this.post(`api/v1/Appointments/users/${userId}`, command);
     }
 
     public async approveAppointment(id: string): Promise<Result> {
-        return this.post(`api/v1/Appointments/approve-book/${id}`);
+        return this.post(`api/v1/Appointments/${id}/approve`);
     }
 
     public async declineAppointment(id: string, command: DeclineCommand): Promise<Result> {
-        return this.post(`api/v1/Appointments/decline-book/${id}`, command);
+        return this.post(`api/v1/Appointments/${id}/decline`, command);
     }
+
+    public async declineMyAppointment(id: string, command: DeclineCommand): Promise<Result> {
+        return this.post(`api/v1/Appointments/${id}/decline/me`, command);
+    }
+
 
     public async getAppointments(
         state?: AppointmentState,
@@ -70,7 +93,7 @@ export class AppointmentsApi extends BaseApiClient {
         page?: number,
         pageSize?: number
     ): Promise<Result> {
-        return this.get("api/v1/Appointments", 
+        return this.get("api/v1/Appointments",
             { state, Page: page, PageSize: pageSize, patientId },
         );
     }
@@ -81,7 +104,7 @@ export class AppointmentsApi extends BaseApiClient {
         pageSize?: number,
         skip?: number
     ): Promise<Result> {
-        return this.get("api/v1/Appointments/me/doctor", 
+        return this.get("api/v1/Appointments/me/doctor",
             { state, Page: page, PageSize: pageSize, Skip: skip },
         );
     }
@@ -95,6 +118,10 @@ export class AppointmentsApi extends BaseApiClient {
         return this.get("api/v1/Appointments/me/client",
             { state, Page: page, PageSize: pageSize, Skip: skip },
         );
+    }
+
+    public async getAppointmentById(id: string): Promise<Result> {
+        return this.get(`api/v1/Appointments/${id}`);
     }
 
     public async getMyClientAppointmentById(id: string): Promise<Result> {

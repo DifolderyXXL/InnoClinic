@@ -5,15 +5,17 @@ import {
     minutesToTimeSpan,
     timeSpanToMinutes
 } from "../../../services/api/ServicesApi.ts";
+import "./TimeSlotPicker.css"
 
 interface TimeSlotPickerProps {
     positions: AvailablePositionsOnDay;
     selected: number;
     slotAmount: number;
+    whitelistSlots?: number[];
     onChange: (value: number) => void;
 }
 
-export function TimeSlotPicker({ positions, selected, slotAmount, onChange }: TimeSlotPickerProps) {
+export function TimeSlotPicker({ positions, selected, slotAmount, onChange, whitelistSlots = [] }: TimeSlotPickerProps) {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
     const slotsInHour = getSlotsInHour(positions.timeSlotLength);
@@ -33,7 +35,11 @@ export function TimeSlotPicker({ positions, selected, slotAmount, onChange }: Ti
         );
     }, [hours, dayBeginMinutes]);
 
-    const isSlotAvailable = (slotStartMinutes: number): boolean => {
+    const isSlotAvailable = (slotIndex: number, slotStartMinutes: number): boolean => {
+        if (whitelistSlots.includes(slotIndex)) {
+            return true;
+        }
+
         return positions.availableTimeWindows.some(w => {
             const windowStart = dayBeginMinutes + w.timeSlotStart * slotMinute;
             const windowEnd = windowStart + w.timeSlotSize * slotMinute;
@@ -42,20 +48,22 @@ export function TimeSlotPicker({ positions, selected, slotAmount, onChange }: Ti
     };
 
     const allSlots = useMemo(() => {
-        const slots: { index: number; startMinutes: number; isAvailable: boolean }[] = [];
+        const slots: { index: number; startMinutes: number; isAvailable: boolean; isWhitelisted: boolean }[] = [];
         for (let i = 0; i < positions.slotAmount; i++) {
             const startMinutes = dayBeginMinutes + i * slotMinute;
+            const isWhitelisted = whitelistSlots.includes(i);
             slots.push({
                 index: i,
                 startMinutes,
-                isAvailable: isSlotAvailable(startMinutes),
+                isWhitelisted,
+                isAvailable: isSlotAvailable(i, startMinutes),
             });
         }
         return slots;
-    }, [positions.slotAmount, positions.availableTimeWindows, dayBeginMinutes, slotMinute]);
+    }, [positions.slotAmount, positions.availableTimeWindows, dayBeginMinutes, slotMinute, whitelistSlots]);
 
     const slotsByHour = useMemo(() => {
-        const result: Record<number, { index: number; startMinutes: number; isAvailable: boolean }[]> = {};
+        const result: Record<number, { index: number; startMinutes: number; isAvailable: boolean; isWhitelisted: boolean }[]> = {};
         hourLabels.forEach((_, idx) => { result[idx] = []; });
 
         allSlots.forEach(slot => {
@@ -100,7 +108,7 @@ export function TimeSlotPicker({ positions, selected, slotAmount, onChange }: Ti
                     const slots = slotsByHour[idx] || [];
                     const paddedSlots = [...slots];
                     while (paddedSlots.length < slotsInHour) {
-                        paddedSlots.push({ index: -1, startMinutes: 0, isAvailable: false });
+                        paddedSlots.push({ index: -1, startMinutes: 0, isAvailable: false, isWhitelisted: false });
                     }
 
                     return (
@@ -111,11 +119,12 @@ export function TimeSlotPicker({ positions, selected, slotAmount, onChange }: Ti
                             {paddedSlots.map((slot, slotIdx) => {
                                 const isSelected = isInSelectedRange(slot.index);
                                 const isPreview = isInPreviewRange(slot.index);
+                                const isWhitelisted = slot.isWhitelisted;
 
                                 return (
                                     <td
                                         key={`${hour}-${slotIdx}`}
-                                        className={`slot-item ${slot.isAvailable ? 'available' : 'unavailable'} ${isSelected ? 'selected' : ''} ${isPreview ? 'preview' : ''}`}
+                                        className={`slot-item ${slot.isAvailable ? 'available' : 'unavailable'} ${isWhitelisted ? 'whitelisted' : ''} ${isSelected ? 'selected' : ''} ${isPreview ? 'preview' : ''}`}
                                         onMouseEnter={() => slot.index !== -1 && setHoverIndex(slot.index)}
                                         onMouseLeave={() => setHoverIndex(null)}
                                         onClick={() => {
@@ -134,7 +143,15 @@ export function TimeSlotPicker({ positions, selected, slotAmount, onChange }: Ti
                                                 setHoverIndex(null);
                                             }
                                         }}
-                                        title={slot.isAvailable ? `Slot ${slot.index + 1}` : 'Occupied'}
+                                        title={
+                                            slot.index === -1
+                                                ? ''
+                                                : isWhitelisted
+                                                    ? `Current Reservation Slot ${slot.index + 1}`
+                                                    : slot.isAvailable
+                                                        ? `Slot ${slot.index + 1}`
+                                                        : 'Occupied'
+                                        }
                                     />
                                 );
                             })}

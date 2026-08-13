@@ -4,11 +4,11 @@ using ServicesAPI.Application.Scheduling;
 
 namespace ServicesAPI.Consumers;
 
-public class ProcessReservationConfirmationConsumer(IReservationService reservationService, ILogger<ProcessReservationConfirmationConsumer> logger) : IConsumer<ProcessReservationConfirmation>
+public class ProcessReservationConfirmationConsumer(IReservationLifecycleManager reservationLifecycleManager, ILogger<ProcessReservationConfirmationConsumer> logger) : IConsumer<ProcessReservationConfirmation>
 {
     public async Task Consume(ConsumeContext<ProcessReservationConfirmation> context)
     {
-        var result = await reservationService.TryConfirmReservation(context.Message.ReservationId, context.CancellationToken);
+        var result = await reservationLifecycleManager.ConfirmAsync(context.Message.ReservationId, context.CancellationToken);
 
         if (result)
         {

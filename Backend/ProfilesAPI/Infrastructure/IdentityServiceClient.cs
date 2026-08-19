@@ -26,4 +26,24 @@ public class IdentityServiceClient(HttpClient client, IFrontendUrlGenerator fron
 
         return Result.Success(service);
     }
+
+    public async Task<Result<GetUserByEmailResponse>> GetIdentityUserAsync(string email, CancellationToken ct)
+    {
+        var response = await client.GetAsync($"users/by-email/{email}", ct);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.ReadErrorAsync(ct);
+            return error;
+        }
+
+        var service = await response.Content.ReadFromJsonAsync<GetUserByEmailResponse>(cancellationToken: ct);
+
+        if (service is null)
+        {
+            return new Error("NullResponse", "Received null response from Identity API.",  ErrorType.Problem);
+        }
+
+        return Result.Success(service);
+    }
 }

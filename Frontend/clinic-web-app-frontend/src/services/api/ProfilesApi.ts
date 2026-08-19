@@ -101,6 +101,10 @@ export class ProfilesApi extends BaseApiClient {
         return this.get(`api/v1/patients/${id}`);
     }
 
+    public async deleteAccount(id: string): Promise<Result> {
+        return this.delete(`api/v1/users/${id}`);
+    }
+
     public async getDoctors(params?: {
         status?: string;
         officeIds?: string[];

@@ -8,10 +8,8 @@ using ProfilesAPI.Data;
 using ServiceDefaults;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Contracts.Notifications;
 using ProfilesAPI.Application;
 using ProfilesAPI.Infrastructure;
-using IGatewayUrlProvider = ServiceDefaults.IGatewayUrlProvider;
 
 
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
@@ -25,11 +23,14 @@ builder.Services.AddDbContext<ProfilesDbContext>(options =>
 
 builder.AddCredentialsClient("identityclient");
 builder.AddCredentialsClient<IIdentityServiceClient, IdentityServiceClient>("identityclient");
+builder.AddCredentialsClient<IDocumentsApiServiceClient, DocumentsApiServiceClient>("documentsClient");
+builder.AddCredentialsClient<IAppointmentsApiServiceClient, AppointmentsApiServiceClient>("appointmentsClient");
 
 builder.Services.AddGatewayUrlProvider();
 
 builder.Services.AddSingleton<IPhotoUrlFactory, DocumentsPhotoUrlFactory>();
 builder.Services.AddSingleton<IFrontendUrlGenerator, FrontendUrlGenerator>();
+builder.Services.AddScoped<IUserAccountCleaner, UserAccountCleaner>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -60,8 +61,6 @@ builder.Services.AddMassTransit(x =>
         cfg.ConfigureEndpoints(context);
     });
 });
-
-
 
 var app = builder.Build();
 app.UseForwardedHeaders(new ForwardedHeadersOptions

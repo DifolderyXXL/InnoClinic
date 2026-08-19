@@ -12,8 +12,8 @@ using ProfilesAPI.Data;
 namespace ProfilesAPI.Migrations
 {
     [DbContext(typeof(ProfilesDbContext))]
-    [Migration("20260805123553_MiddleNameIsNullable")]
-    partial class MiddleNameIsNullable
+    [Migration("20260819102010_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -229,10 +229,10 @@ namespace ProfilesAPI.Migrations
 
                     b.HasKey("Id");
 
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
                     b.HasIndex("Email")
                         .IsUnique();
-
-                    b.HasIndex("Id");
 
                     b.ToTable("Accounts");
                 });

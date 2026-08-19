@@ -21,14 +21,15 @@ namespace ProfilesAPI.Migrations
                     IsEmailVerified = table.Column<bool>(type: "bit", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MiddleName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MiddleName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhotoId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Accounts", x => x.Id);
+                    table.PrimaryKey("PK_Accounts", x => x.Id)
+                        .Annotation("SqlServer:Clustered", false);
                 });
 
             migrationBuilder.CreateTable(
@@ -110,7 +111,7 @@ namespace ProfilesAPI.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OfficeId = table.Column<long>(type: "bigint", nullable: false)
+                    OfficeId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -174,7 +175,7 @@ namespace ProfilesAPI.Migrations
                     AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DateOfBirth = table.Column<DateOnly>(type: "date", nullable: false),
                     SpecializationId = table.Column<long>(type: "bigint", nullable: false),
-                    OfficeId = table.Column<long>(type: "bigint", nullable: false),
+                    OfficeId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CareerStartYear = table.Column<long>(type: "bigint", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
@@ -200,11 +201,6 @@ namespace ProfilesAPI.Migrations
                 table: "Accounts",
                 column: "Email",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Accounts_Id",
-                table: "Accounts",
-                column: "Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Doctors_AccountId",

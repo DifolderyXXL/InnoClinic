@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.HttpLogging;
 using Yarp.ReverseProxy.Forwarder;
 using Microsoft.AspNetCore.Authentication;
 using System.Text.Json.Nodes;
+using BFF.FrontendProxy.Consumers;
+using BFF.FrontendProxy.Middlewares;
+using BFF.FrontendProxy.Services;
+using MassTransit;
 using MicroserviceApiKernel.Extensions;
 
 
@@ -29,6 +33,20 @@ builder.Services.AddBff()
     .AddRemoteApis();
 builder.Services.AddOpenApi();
 
+builder.AddRedisClient(connectionName: "cache");
+
+builder.Services.AddScoped<IRevokedUserRepository, RedisRevokedUserRepository>();
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<UserDeletedBlockingConsumer>();
+    
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration.GetConnectionString("ServicesApiBus"));
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 Configuration config = new();
 builder.Configuration.Bind("BFF", config);
@@ -96,6 +114,8 @@ app.UseHttpLogging();
 app.UseAuthentication();
 app.UseBff();
 app.UseAuthorization();
+
+app.UseMiddleware<DeletedUserBarrierMiddleware>();
 
 
 app.MapGet("/login", async (HttpContext context) =>

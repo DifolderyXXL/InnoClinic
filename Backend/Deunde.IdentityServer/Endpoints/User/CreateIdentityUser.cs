@@ -56,8 +56,7 @@ public class CreateIdentityUserCommandHandler(
             
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken));
             
-            
-            
+
             var setPasswordLink = linkGenerator.GetUriByPage(
                 httpContext: context,
                 page: "/Account/SetPassword/Index",

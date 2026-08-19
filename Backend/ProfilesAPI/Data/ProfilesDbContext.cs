@@ -42,7 +42,8 @@ public class AccountEntityTypeConfiguration : IEntityTypeConfiguration<Account>
 {
     public void Configure(EntityTypeBuilder<Account> builder)
     {
-        builder.HasIndex(x => x.Id);
+        builder.HasKey(x => x.Id)
+            .IsClustered(false);
         builder.Property(e => e.Id)
             .ValueGeneratedNever();
 
@@ -56,9 +57,9 @@ public class AccountEntityTypeConfiguration : IEntityTypeConfiguration<Account>
         builder.Property(x => x.FirstName).IsRequired();
         builder.Property(x => x.LastName).IsRequired();
 
-        builder.HasOne(x => x.Patient).WithOne(x => x.Account).HasForeignKey<Patient>(p => p.AccountId);
-        builder.HasOne(x => x.Doctor).WithOne(x => x.Account).HasForeignKey<Doctor>(p => p.AccountId);
-        builder.HasOne(x => x.Receptionist).WithOne(x => x.Account).HasForeignKey<Receptionist>(p => p.AccountId);
+        builder.HasOne(x => x.Patient).WithOne(x => x.Account).HasForeignKey<Patient>(p => p.AccountId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Doctor).WithOne(x => x.Account).HasForeignKey<Doctor>(p => p.AccountId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Receptionist).WithOne(x => x.Account).HasForeignKey<Receptionist>(p => p.AccountId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 

@@ -6,9 +6,17 @@ export const AlertMessage = ({ message, type }: { message: string; type: "succes
     <div className={`status-message ${type}`}>{message}</div>
 );
 
-export function AccountProfileCard({ account, onUpdate }: { account: AccountDto; onUpdate: (data: Partial<AccountDto>) => Promise<{ success: boolean; message: string }> }) {
+interface AccountProfileCardProps {
+    account: AccountDto;
+    onUpdate: (data: Partial<AccountDto>) => Promise<{ success: boolean; message: string }>;
+    onDelete: () => Promise<{ success: boolean; message: string }>;
+}
+
+export function AccountProfileCard({ account, onUpdate, onDelete }: AccountProfileCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     const [form, setForm] = useState({
@@ -38,6 +46,19 @@ export function AccountProfileCard({ account, onUpdate }: { account: AccountDto;
         setIsSubmitting(false);
     };
 
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        setActionMessage(null);
+
+        const result = await onDelete();
+
+        if (!result.success) {
+            setActionMessage({ type: "error", text: result.message });
+            setShowDeleteModal(false);
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className="account-details-card">
             {actionMessage && <AlertMessage message={actionMessage.text} type={actionMessage.type} />}
@@ -50,9 +71,14 @@ export function AccountProfileCard({ account, onUpdate }: { account: AccountDto;
                         <span className="user-email">{account.email}</span>
                     </div>
                 </div>
-                {!isEditing && (
-                    <button className="edit-btn" onClick={() => setIsEditing(true)}>Edit Profile</button>
-                )}
+                <div className="header-actions">
+                    {!isEditing && (
+                        <button className="edit-btn" onClick={() => setIsEditing(true)}>Edit Profile</button>
+                    )}
+                    <button className="btn btn-decline" onClick={() => setShowDeleteModal(true)}>
+                        Delete User
+                    </button>
+                </div>
             </header>
 
             {isEditing ? (
@@ -96,6 +122,36 @@ export function AccountProfileCard({ account, onUpdate }: { account: AccountDto;
                             </span>
                         </div>
                         <div className="info-item"><span className="label">Created At</span><span className="value">{new Date(account.createdAt).toLocaleString()}</span></div>
+                    </div>
+                </div>
+            )}
+
+            {showDeleteModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <p className="modal-title">
+                            Are you sure you want to permanently delete this user profile?
+                        </p>
+                        <p style={{ fontSize: "14px", color: "#a0a0b0", marginTop: "8px" }}>
+                            This action cannot be undone. All associated data will be removed.
+                        </p>
+
+                        <div className="modal-actions" style={{ marginTop: "20px" }}>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={isDeleting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-decline"
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? "Deleting..." : "Delete Permanently"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

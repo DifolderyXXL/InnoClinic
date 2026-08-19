@@ -69,4 +69,18 @@ public class MedicalResultsDbContext(IMongoDatabase database)
             ? Result.Success(result) 
             : MedicalResultErrors.NotFound();
     }
+    
+    public async Task<Result<long>> DeleteAllByUserIdAsync(Guid userId, CancellationToken ct)
+    {
+        var filter = Builders<MedicalResult>.Filter.Eq(m => m.UserId, userId);
+    
+        var deleteResult = await _collection.DeleteManyAsync(filter, cancellationToken: ct);
+
+        if (deleteResult.DeletedCount == 0)
+        {
+            return MedicalResultErrors.NotFound();
+        }
+
+        return Result.Success(deleteResult.DeletedCount);
+    }
 }

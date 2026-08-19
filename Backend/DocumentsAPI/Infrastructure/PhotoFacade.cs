@@ -1,11 +1,12 @@
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using DocumentsAPI.Application;
 using DocumentsAPI.Infrastructure.Photos;
 
 namespace DocumentsAPI.Infrastructure;
 
-public class PhotoFacade(IUserPhotoStorage userStorage, IPublicPhotoStorage publicStorage) : IPhotoFacade
+public class PhotoFacade(IUserPhotoStorage userStorage, IPublicPhotoStorage publicStorage, IUserPhotoCleaner cleaner) : IPhotoFacade
 {
     public async Task<bool> ConfirmOfficePhotoAsync(
         string officeId,
@@ -64,6 +65,13 @@ public class PhotoFacade(IUserPhotoStorage userStorage, IPublicPhotoStorage publ
         if (!await client.ExistsAsync(ct)) return null;
 
         return GenerateSensitiveSasUri(client).ToString();
+    }
+    
+    public async Task DeleteAllUserPhotos(
+        Guid userId,
+        CancellationToken ct)
+    {
+        await cleaner.DeleteAllUserPhotos(userId.ToString(), ct);
     }
     
     private Uri GenerateSensitiveSasUri(BlobClient client)

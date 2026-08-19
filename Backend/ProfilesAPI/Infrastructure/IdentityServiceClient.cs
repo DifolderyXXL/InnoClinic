@@ -26,4 +26,44 @@ public class IdentityServiceClient(HttpClient client, IFrontendUrlGenerator fron
 
         return Result.Success(service);
     }
+
+    public async Task<Result<GetUserByEmailResponse>> GetIdentityUserAsync(string email, CancellationToken ct)
+    {
+        var response = await client.GetAsync($"users/by-email/{email}", ct);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.ReadErrorAsync(ct);
+            return error;
+        }
+
+        var service = await response.Content.ReadFromJsonAsync<GetUserByEmailResponse>(cancellationToken: ct);
+
+        if (service is null)
+        {
+            return new Error("NullResponse", "Received null response from Identity API.",  ErrorType.Problem);
+        }
+
+        return Result.Success(service);
+    }
+    
+    public async Task<Result> DeleteIdentityUserAsync(Guid userId, CancellationToken ct)
+    {
+        try
+        {
+            var response = await client.DeleteAsync($"users/{userId}", ct);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Result.Success();
+            }
+
+            var error = await response.ReadErrorAsync(ct);
+            return error;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure("IdentityService.DeleteFailed", ex.Message);
+        }
+    }
 }

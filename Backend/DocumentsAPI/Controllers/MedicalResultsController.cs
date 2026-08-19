@@ -177,6 +177,20 @@ public class MedicalResultsController(ILogger<MedicalResultsController> logger) 
         
         return Ok();
     }
+    
+    [HttpDelete("users/{userId:guid}")]
+    [Authorize(RolePolicy.IdentityServer)]
+    public async Task<IActionResult> DeleteUserPhotos(
+        [FromRoute] Guid userId,
+        [FromServices] MedicalResultsDbContext context,
+        [FromServices] IMedicalResultCleaner cleaner,
+        CancellationToken ct)
+    {
+        await context.DeleteAllByUserIdAsync(userId, ct);
+        await cleaner.DeleteMedicalResultsDocumentsByUserId(userId, ct);
+        
+        return Ok();
+    }
 }
 
 public static class MedicalResultsHelper

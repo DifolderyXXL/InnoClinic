@@ -45,6 +45,8 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<SpecializationCreatedEventConsumer>();
     x.AddConsumer<SpecializationDeletedEventConsumer>();
     
+    x.AddConsumer<UserDeletionRequestedConsumer>();
+    
     x.AddDelayedMessageScheduler();
 
     x.UseOutbox<ProfilesDbContext>(o =>

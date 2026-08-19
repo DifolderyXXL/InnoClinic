@@ -14,4 +14,7 @@ public interface IIdentityServiceClient
     Task<Result<GetUserByEmailResponse>> GetIdentityUserAsync(
         string email, 
         CancellationToken ct);
+
+
+    public Task<Result> DeleteIdentityUserAsync(Guid userId, CancellationToken ct);
 }

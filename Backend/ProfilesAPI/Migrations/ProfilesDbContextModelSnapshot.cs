@@ -226,10 +226,10 @@ namespace ProfilesAPI.Migrations
 
                     b.HasKey("Id");
 
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
                     b.HasIndex("Email")
                         .IsUnique();
-
-                    b.HasIndex("Id");
 
                     b.ToTable("Accounts");
                 });

@@ -36,4 +36,4 @@ jobs:
           --chunkStep 32 \
           --shingleSize 16 \
           --top 5
-          --ignore "./hsim.ignore
+          --ignore './hsim.ignore"

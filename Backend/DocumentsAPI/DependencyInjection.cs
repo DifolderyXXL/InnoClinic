@@ -17,6 +17,7 @@ public static class DependencyInjection
         public IServiceCollection AddServices()
         {
             services.AddScoped<ProfilePhotoRepository>();
+            services.AddScoped<IUserPhotoCleaner, ProfilePhotoRepository>();
             services.AddScoped<PublicPhotoRepository>();
 
             services.AddScoped<IUserPhotoStorage, UserPhotoStorage>();

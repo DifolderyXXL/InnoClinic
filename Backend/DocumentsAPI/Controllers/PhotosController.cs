@@ -128,7 +128,7 @@ public class PhotosController(IPhotoFacade photoFacade) : BaseApiController
     
     [HttpPost("offices/{officeId}/avatar/confirm")]
     [Authorize(Policy = RolePolicy.IdentityServer)]
-    public async Task<IActionResult> ConfirmProfilePhoto(
+    public async Task<IActionResult> ConfirmOfficePhoto(
         [FromRoute] string officeId,
         [FromQuery] Guid photoId,
         [FromQuery] Guid? oldPhotoId,
@@ -143,5 +143,16 @@ public class PhotosController(IPhotoFacade photoFacade) : BaseApiController
         }
         
         return Ok(new { photoId });
+    }
+    
+    [HttpDelete("users/{userId:guid}")]
+    [Authorize(RolePolicy.IdentityServer)]
+    public async Task<IActionResult> DeleteUserPhotos(
+        [FromRoute] Guid userId,
+        CancellationToken ct)
+    {
+        await photoFacade.DeleteAllUserPhotos(userId, ct);
+        
+        return Ok();
     }
 }

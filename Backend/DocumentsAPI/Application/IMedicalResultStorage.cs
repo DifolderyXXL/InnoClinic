@@ -7,3 +7,8 @@ public interface IMedicalResultStorage
     Task UploadPdfAsync(AppointmentKey appointment, byte[] pdfBytes, DateTimeOffset timestamp, CancellationToken ct);
     Task DeletePdfIfExistsAsync(AppointmentKey appointment, CancellationToken ct);
 }
+
+public interface IMedicalResultCleaner
+{
+    Task DeleteMedicalResultsDocumentsByUserId(Guid userId, CancellationToken ct);
+}

@@ -43,4 +43,8 @@ public interface IPhotoFacade
         Guid doctorId,
         Guid photoId,
         CancellationToken ct);
+
+    public Task DeleteAllUserPhotos(
+        Guid userId,
+        CancellationToken ct);
 }

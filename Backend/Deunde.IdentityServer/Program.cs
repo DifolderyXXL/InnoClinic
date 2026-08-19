@@ -4,9 +4,10 @@ using Duende.IdentityServer.Licensing;
 using Deunde.IdentityServer;
 using Deunde.IdentityServer.Extensions;
 using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
+    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture, theme: ConsoleTheme.None)
     .CreateBootstrapLogger();
 
 Log.Information("Starting up");

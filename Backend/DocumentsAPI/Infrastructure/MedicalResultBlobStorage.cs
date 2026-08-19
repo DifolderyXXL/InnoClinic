@@ -2,10 +2,11 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using DocumentsAPI.Application;
+using DocumentsAPI.Infrastructure.Photos;
 
 namespace DocumentsAPI.Infrastructure;
 
-public class MedicalResultBlobStorage(BlobDbContext blobDbContext) : IMedicalResultStorage
+public class MedicalResultBlobStorage(BlobDbContext blobDbContext) : IMedicalResultStorage, IMedicalResultCleaner
 {
     private BlobClient GetClient(AppointmentKey key) => blobDbContext.MedicalResultsContainerClient.GetBlobClient($"{key.PatientId}/{key.AppointmentId}.pdf");
     public async Task<(bool Exists, DateTimeOffset? Timestamp)> GetMedicalResultInfoAsync(AppointmentKey appointment, CancellationToken ct)
@@ -68,5 +69,13 @@ public class MedicalResultBlobStorage(BlobDbContext blobDbContext) : IMedicalRes
         var client = GetClient(appointment);
 
         await client.DeleteIfExistsAsync(cancellationToken: ct);
+    }
+
+    public async Task DeleteMedicalResultsDocumentsByUserId(Guid userId, CancellationToken ct)
+    {
+        var containerClient = blobDbContext.MedicalResultsContainerClient;
+        var prefix = $"{userId}/";
+
+        await BlobContainerHelper.DeleteBlobsByPrefixAsync(containerClient, prefix, ct);
     }
 }

@@ -10,6 +10,7 @@ import {PatientCard} from "../../Identity/PatientCard.tsx";
 
 import "./AccountDetailsPage.css"
 import {Link} from "react-router-dom";
+import {profilesApi} from "../../../../services/api/ProfilesApi.ts";
 
 export function AccountDetailsPage() {
     const [searchParams] = useSearchParams();
@@ -29,7 +30,21 @@ export function AccountDetailsPage() {
                 &larr; Back to Accounts
             </button>
 
-            <AccountProfileCard account={account} onUpdate={updateAccount} />
+            <AccountProfileCard
+                account={account}
+                onUpdate={updateAccount}
+                onDelete={async () => {
+                    const res = await profilesApi.deleteAccount(account.id);
+                    if (res.type === "ok") {
+                        navigate("/accounts");
+                        return { success: true, message: "Account deleted successfully" };
+                    }
+                    return {
+                        success: false,
+                        message: res.error?.title || "Failed to delete account"
+                    };
+                }}
+            />
             <RoleManagementCard accountId={account.id} />
 
             <div className="profiles-container">

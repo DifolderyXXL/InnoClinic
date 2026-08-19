@@ -85,6 +85,8 @@ var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("Appointments
        .WithExternalHttpEndpoints()
        .WaitFor(postgresdb);
 
+profilesAPI.WithReference(appointmentsAPI);
+
 var notificationServiceDb = postgres.AddDatabase("notificationDb");
 var notificationService = builder.AddProject<Projects.NotificationService_Worker>("NotificationService")
        .WithReference(notificationServiceDb)
@@ -111,7 +113,11 @@ var bff = builder.AddProject<Projects.BFF_FrontendProxy>("BffProxy")
        .WithReference(servicesAPI)
        .WithReference(appointmentsAPI)
        .WithReference(documentsApi)
-       .WithExternalHttpEndpoints();
+       .WithReference(cache)
+       .WithReference(rabbitmqServicesApi)
+       .WithExternalHttpEndpoints()
+       .WaitFor(cache)
+       .WaitFor(rabbitmqServicesApi);
 
 var frontend = builder.AddViteApp("vite-frontend", "../Frontend/clinic-web-app-frontend")
        .WithHttpEndpoint(port: 5173, isProxied: true)

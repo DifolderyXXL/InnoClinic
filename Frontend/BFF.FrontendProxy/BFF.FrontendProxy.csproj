@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+
+    <PackageReference Include="MassTransit" Version="8.5.10" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.10" />
+    <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" Version="13.5.0" />
     <PackageReference Include="Duende.BFF" Version="4.0.0" />
     <PackageReference Include="Duende.BFF.Yarp" Version="4.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
@@ -17,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Backend\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\..\Backend\MicroserviceApiKernel\MicroserviceApiKernel.csproj" />
     <ProjectReference Include="..\..\ServiceDefaults\ServiceDefaults.csproj" />
   </ItemGroup>

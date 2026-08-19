@@ -454,4 +454,18 @@ public class AppointmentsController(
         public TimeSpan? EndTime { get; init; }
     }
 
+    
+    [HttpDelete("users/{userId:guid}")]
+    [Authorize(RolePolicy.IdentityServer)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> DeleteUserAppointments(
+        [FromRoute] Guid userId,
+        CancellationToken ct = default)
+    {
+        var deletedCount = await context.Appointments
+            .Where(a => a.PatientAccountId == userId || a.DoctorAccountId == userId)
+            .ExecuteDeleteAsync(ct);
+
+        return Ok(new { DeletedCount = deletedCount });
+    }
 }

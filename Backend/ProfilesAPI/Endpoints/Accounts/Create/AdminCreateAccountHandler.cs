@@ -22,27 +22,20 @@ public record AdminCreateAccountCommand(
 public class AdminCreateAccountCommandHandler(
     ProfilesDbContext context,
     IIdentityServiceClient identityServiceClient,
-    IPublishEndpoint publishEndpoint) : ICommandHandler<AdminCreateAccountCommand>
+    IPublishEndpoint publishEndpoint,
+    ILogger<AdminCreateAccountCommandHandler> logger) : ICommandHandler<AdminCreateAccountCommand>
 {
     public async Task<Result> Handle(AdminCreateAccountCommand command, CancellationToken ct)
     {
         var emailExists = await context.Accounts.AnyAsync(x => x.Email == command.Email, cancellationToken: ct);
         if (emailExists) return AccountErrors.AlreadyExists();
-
-        var identityResult = await identityServiceClient.CreateIdentityUserAsync(
+        
+        var userResult = await identityServiceClient.GetIdentityUserAsync(
             command.Email,
-            command.Roles,
             ct);
         
-        if (identityResult.IsError)
-        {
-            return identityResult.Error!;
-        }
-        
-        var (userId, setPasswordLink) = identityResult.Value!;
         var account = new Account
         {
-            Id = Guid.Parse(userId),
             FirstName = command.FirstName,
             LastName = command.LastName,
             MiddleName = command.MiddleName,
@@ -52,6 +45,50 @@ public class AdminCreateAccountCommandHandler(
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
+        
+        if (userResult.IsSuccess)
+        {
+            account.Id = userResult.Value!.UserId;
+        
+            await context.Accounts.AddAsync(account, ct);
+            
+            await context.SaveChangesAsync(ct);
+            
+            logger.LogInformation(
+                "Successfully bound existing Identity user {UserId} with email {Email} to a new Profile account", 
+                account.Id, 
+                command.Email);
+            
+            return Result.Success();
+        }
+        
+        if (userResult.Error?.ErrorType != ErrorType.NotFound)
+        {
+            logger.LogWarning(
+                "Failed to query IdentityService for email {Email}. ErrorType: {ErrorType}", 
+                command.Email, 
+                userResult.Error?.ErrorType);
+            
+            return userResult.Error!;
+        }
+
+        var identityResult = await identityServiceClient.CreateIdentityUserAsync(
+            command.Email,
+            command.Roles,
+            ct);
+        
+        if (identityResult.IsError)
+        {
+            logger.LogWarning(
+                "IdentityService failed to create user for email {Email}. ErrorType: {ErrorType}", 
+                command.Email, 
+                identityResult.Error?.ErrorType);
+            
+            return identityResult.Error!;
+        }
+        
+        var (userId, setPasswordLink) = identityResult.Value!;
+        account.Id = Guid.Parse(userId);
         
         await context.Accounts.AddAsync(account, ct);
         
@@ -64,6 +101,11 @@ public class AdminCreateAccountCommandHandler(
         await publishEndpoint.Publish(integrationEvent, ct);
 
         await context.SaveChangesAsync(ct);
+        
+        logger.LogInformation(
+            "Successfully created new Identity user and Profile account {AccountId} for email {Email}.", 
+            account.Id, 
+            command.Email);
 
         return Result.Success();
     }
@@ -73,7 +115,7 @@ public class AdminCreateAccountCommandValidator : AbstractValidator<AdminCreateA
 {
     public AdminCreateAccountCommandValidator()
     {
-        RuleFor(x => x.Email).ValidPersonName();
+        RuleFor(x => x.Email).EmailAddress();
         RuleFor(x => x.FirstName).ValidPersonName();
         RuleFor(x => x.LastName).ValidPersonName();
     }

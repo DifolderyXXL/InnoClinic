@@ -17,6 +17,7 @@ public static class DependencyInjection
         public IServiceCollection AddServices()
         {
             services.AddScoped<ProfilePhotoRepository>();
+            services.AddScoped<IUserPhotoCleaner, ProfilePhotoRepository>();
             services.AddScoped<PublicPhotoRepository>();
 
             services.AddScoped<IUserPhotoStorage, UserPhotoStorage>();
@@ -24,6 +25,7 @@ public static class DependencyInjection
             
             services.AddSingleton<IDistributedLockService, DistributedLockService>();
             services.AddScoped<IMedicalResultStorage, MedicalResultBlobStorage>();
+            services.AddScoped<IMedicalResultCleaner, MedicalResultBlobStorage>();
             services.AddScoped<MedicalResultService>();
             services.AddScoped<IPdfMedicalResultGenerator, QuestPdfMedicalResultGenerator>();
 

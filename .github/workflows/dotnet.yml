@@ -7,10 +7,11 @@ on:
   pull_request:
     branches: ["main"]
 
+  
 jobs:
   build:
     runs-on: ubuntu-latest
-
+      
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
@@ -26,14 +27,3 @@ jobs:
 
       - name: Test
         run: dotnet test AuthorizationAPI.sln --no-build --verbosity normal
-
-      - name: Install hsim CLI Tool
-        run: dotnet tool install --global DiNet.HashSimilarityTK.Cli --version 0.0.2
-      
-      - name: Run hsim to Gather Metrics
-        run: hsim ./ \
-          --numHashes 128 \
-          --chunkStep 32 \
-          --shingleSize 16 \
-          --top 5
-          --ignore './hsim.ignore"

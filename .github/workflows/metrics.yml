@@ -1,0 +1,63 @@
+name: Metrics Analysis
+
+on:
+  issue_comment:
+    types: [ created ]
+
+jobs:
+  metrics:
+    if: |
+      github.event.issue.pull_request != '' &&
+      contains(github.event.comment.body, '/metrics')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install hsim CLI Tool
+        run: dotnet tool install --global DiNet.HashSimilarityTK.Cli --version 0.0.2
+
+      - name: Run hsim
+        id: hsim
+        run: |
+          hsim ./ \
+            --numHashes 128 \
+            --chunkStep 32 \
+            --shingleSize 16 \
+            --top 5 \
+            --ignore "./hsim.ignore" > hsim_output.txt 2>&1 || true
+          # || true — чтобы workflow не падал при ошибке, но мы обработаем вывод
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let output = '';
+            try {
+              output = fs.readFileSync('hsim_output.txt', 'utf8').trim();
+            } catch (e) {
+              output = 'Failed to run analysis or no output.';
+            }
+
+            const body = output
+              ? `## 📊 Similarity Metrics\n\`\`\`\n${output}\n\`\`\``
+              : `## 📊 Similarity Metrics\nNo results or an error occurred.`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

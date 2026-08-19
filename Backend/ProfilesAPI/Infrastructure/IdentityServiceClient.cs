@@ -46,4 +46,24 @@ public class IdentityServiceClient(HttpClient client, IFrontendUrlGenerator fron
 
         return Result.Success(service);
     }
+    
+    public async Task<Result> DeleteIdentityUserAsync(Guid userId, CancellationToken ct)
+    {
+        try
+        {
+            var response = await client.DeleteAsync($"users/{userId}", ct);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Result.Success();
+            }
+
+            var error = await response.ReadErrorAsync(ct);
+            return error;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure("IdentityService.DeleteFailed", ex.Message);
+        }
+    }
 }

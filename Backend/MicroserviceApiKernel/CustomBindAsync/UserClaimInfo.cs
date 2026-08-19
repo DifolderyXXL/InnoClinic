@@ -12,6 +12,12 @@ public class UserClaimInfo
     public bool EmailVerified { get; init; } = false;
     public ClaimsPrincipal ClaimsPrincipal { get; init; } = null!;
 
+    public static string? GetUserId(ClaimsPrincipal user)
+    {
+        return user.FindFirst("sub")?.Value
+                     ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+    
     public static ValueTask<UserClaimInfo?> BindAsync(HttpContext context,
                                                    ParameterInfo parameter)
     {

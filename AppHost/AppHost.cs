@@ -85,6 +85,8 @@ var appointmentsAPI = builder.AddProject<Projects.AppointmentsAPI>("Appointments
        .WithExternalHttpEndpoints()
        .WaitFor(postgresdb);
 
+profilesAPI.WithReference(appointmentsAPI);
+
 var notificationServiceDb = postgres.AddDatabase("notificationDb");
 var notificationService = builder.AddProject<Projects.NotificationService_Worker>("NotificationService")
        .WithReference(notificationServiceDb)

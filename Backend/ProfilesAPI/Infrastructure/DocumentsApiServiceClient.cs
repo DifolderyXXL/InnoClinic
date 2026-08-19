@@ -10,7 +10,7 @@ public class DocumentsApiServiceClient(HttpClient client) : IDocumentsApiService
     {
         try
         {
-            var response = await client.DeleteAsync($"/Photos/users/{userId}", ct);
+            var response = await client.DeleteAsync($"Photos/users/{userId}", ct);
 
             if (response.IsSuccessStatusCode)
             {

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using MicroserviceApiKernel.Results;
 using Microsoft.AspNetCore.Http;
@@ -53,6 +54,14 @@ public static class HttpClientErrorExtensions
 {
     public static async Task<Error> ReadErrorAsync(this HttpResponseMessage response, CancellationToken ct)
     {
+        var errorType = response.StatusCode switch
+        {
+            System.Net.HttpStatusCode.BadRequest => ErrorType.Validation,
+            System.Net.HttpStatusCode.NotFound => ErrorType.NotFound,
+            System.Net.HttpStatusCode.Conflict => ErrorType.Conflict,
+            _ => ErrorType.Problem
+        };
+        
         try
         {
             var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(cancellationToken: ct);
@@ -66,14 +75,7 @@ public static class HttpClientErrorExtensions
                 var validationResults = problem.Errors?.ToDictionary(
                     k => k.Key, 
                     v => v.Value);
-
-                var errorType = response.StatusCode switch
-                {
-                    System.Net.HttpStatusCode.BadRequest => ErrorType.Validation,
-                    System.Net.HttpStatusCode.NotFound => ErrorType.NotFound,
-                    System.Net.HttpStatusCode.Conflict => ErrorType.Conflict,
-                    _ => ErrorType.Problem
-                };
+                
 
                 return new Error(
                     errorName: $"Http.{(int)response.StatusCode}",
@@ -91,7 +93,7 @@ public static class HttpClientErrorExtensions
         return new Error(
             errorName: $"Http.{(int)response.StatusCode}",
             errorDescription: !string.IsNullOrWhiteSpace(rawText) ? rawText : response.ReasonPhrase ?? "HTTP Error",
-            errorType: ErrorType.Problem
+            errorType: errorType
         );
     }
 }

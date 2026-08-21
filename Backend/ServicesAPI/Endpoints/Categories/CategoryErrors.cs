@@ -1,6 +1,6 @@
 using MicroserviceApiKernel.Results;
 
-namespace ServicesAPI.Endpoints.Categories.DeleteCategory;
+namespace ServicesAPI.Endpoints.Categories;
 
 public static class CategoryErrors
 {

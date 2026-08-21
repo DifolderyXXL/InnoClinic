@@ -3,6 +3,7 @@ using MassTransit;
 using MicroserviceApiKernel.CQRS;
 using MicroserviceApiKernel.Results;
 using ServicesAPI.Data;
+using ServicesAPI.Endpoints.Categories;
 using ServicesAPI.Endpoints.Specializations;
 using ServicesAPI.Models;
 

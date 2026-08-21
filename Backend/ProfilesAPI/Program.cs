@@ -81,8 +81,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors(PolicyConstants.FRONTEND_BFF_CORS_POLICY);
 
-app.UseHttpsRedirection();
-
 app.UseAuthorizationDefaultsWithAspire();
 
 app.MapEndpoints();

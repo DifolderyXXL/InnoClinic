@@ -10,8 +10,6 @@ using BFF.FrontendProxy.Consumers;
 using BFF.FrontendProxy.Middlewares;
 using BFF.FrontendProxy.Services;
 using MassTransit;
-using MicroserviceApiKernel.Extensions;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,7 +107,11 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 app.MapDefaultEndpoints();
-app.UseHttpLogging();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpLogging();
+}
 
 app.UseAuthentication();
 app.UseBff();

@@ -45,7 +45,7 @@ public class AppointmentsController(
         {
             return Unauthorized();
         }
-        
+
         var appointment = await context.Appointments.AsNoTracking()
             .Where(x => x.Id == id && x.PatientAccountId == patientId)
             .FirstOrDefaultAsync(ct);
@@ -54,16 +54,16 @@ public class AppointmentsController(
         {
             return NotFound();
         }
-        
+
         await publishEndpoint.Publish(
-            new AppointmentRescheduleRequested(id, command.NewDate, command.NewStartSlotIndex), 
+            new AppointmentRescheduleRequested(id, command.NewDate, command.NewStartSlotIndex),
             ct);
 
         await context.SaveChangesAsync(ct);
 
         return Accepted(new { Message = "Reschedule request accepted for processing." });
     }
-    
+
     [HttpPost]
     [Route("{id:guid}/reschedule")]
     [HasPermission(Permissions.Appointments.Manage)]
@@ -74,7 +74,7 @@ public class AppointmentsController(
         CancellationToken ct)
     {
         await publishEndpoint.Publish(
-            new AppointmentRescheduleRequested(id, command.NewDate, command.NewStartSlotIndex), 
+            new AppointmentRescheduleRequested(id, command.NewDate, command.NewStartSlotIndex),
             ct);
 
         await context.SaveChangesAsync(ct);
@@ -83,8 +83,8 @@ public class AppointmentsController(
     }
 
     public record RescheduleCommand(DateOnly NewDate, int NewStartSlotIndex);
-    
-    
+
+
     [HttpPost]
     [HasPermission(Permissions.Appointments.ManageOwn)]
     [ProducesResponseType(typeof(PagedResponse<Guid>), StatusCodes.Status202Accepted)]
@@ -113,7 +113,7 @@ public class AppointmentsController(
 
         return Accepted(result.Value);
     }
-    
+
     [HttpPost]
     [Route("users/{userId:guid}")]
     [HasPermission(Permissions.Appointments.Manage)]
@@ -138,7 +138,7 @@ public class AppointmentsController(
 
         return Accepted(result.Value);
     }
-    
+
     private async Task<Result<Guid>> ExecuteBookingAsync(
         Guid patientId,
         BookAppointmentCommand command,
@@ -149,7 +149,7 @@ public class AppointmentsController(
     {
         var profilesTask = profilesApiClient.ValidateAppointmentContextAsync(
             new(command.DoctorAccountId, patientId, command.OfficeId), ct);
-        
+
         var serviceTask = servicesApiClient.GetService(command.ServiceId, ct);
 
         await Task.WhenAll(profilesTask, serviceTask);
@@ -165,13 +165,13 @@ public class AppointmentsController(
 
         if (command.SpecializationId != service.SpecializationId)
         {
-            return Error.Validation("Booking.SpecializationMismatch", 
+            return Error.Validation("Booking.SpecializationMismatch",
                 "Selected specialization does not match the requested service.");
         }
 
         if (profiles.DoctorSpecializationId != service.SpecializationId)
         {
-            return Error.Validation("Booking.DoctorSpecializationMismatch", 
+            return Error.Validation("Booking.DoctorSpecializationMismatch",
                 "Doctor's specialization does not match the requested service.");
         }
 
@@ -239,7 +239,7 @@ public class AppointmentsController(
 
         return Accepted();
     }
-    
+
     [HttpPost("{id:guid}/decline/me")]
     [HasPermission(Permissions.Appointments.ManageOwn)]
     public async Task<IActionResult> DeclineMyAppointment(
@@ -252,7 +252,7 @@ public class AppointmentsController(
         {
             return Unauthorized();
         }
-        
+
         var appointment = await context.Appointments.AsNoTracking()
             .Where(x => x.Id == id && x.PatientAccountId == patientId)
             .FirstOrDefaultAsync(ct);
@@ -261,7 +261,7 @@ public class AppointmentsController(
         {
             return NotFound();
         }
-        
+
         await publishEndpoint.Publish(new AppointmentDeclined(id, command.Reason), ct);
         await context.SaveChangesAsync(ct);
 
@@ -357,7 +357,7 @@ public class AppointmentsController(
 
         return Ok(item);
     }
-    
+
     [HttpGet("{id:guid}/me/client")]
     [HasPermission(Permissions.Appointments.ReadOwn)]
     [ProducesResponseType(typeof(AppointmentDto), StatusCodes.Status200OK)]
@@ -436,7 +436,7 @@ public class AppointmentsController(
                 EndTime = a.EndTime,
             })
             .FirstOrDefaultAsync(ct);
-        
+
         if (item == null)
         {
             return NotFound();
@@ -454,7 +454,7 @@ public class AppointmentsController(
         public TimeSpan? EndTime { get; init; }
     }
 
-    
+
     [HttpDelete("users/{userId:guid}")]
     [Authorize(RolePolicy.IdentityServer)]
     [ProducesResponseType(StatusCodes.Status200OK)]

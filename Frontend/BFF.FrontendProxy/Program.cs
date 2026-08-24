@@ -128,29 +128,14 @@ app.MapGet("/login", async (HttpContext context) =>
     });
 });
 
-var defenitions = app.Configuration.GetSection("BFF:Microservices").Get<List<MicroserviceDefenition>>() ?? [];
+var definitions = app.Configuration.GetSection("BFF:Microservices").Get<List<MicroserviceDefenition>>() ?? [];
 
-app.MapSwaggerUI(setupAction: options =>
+if (app.Environment.IsDevelopment())
 {
-    foreach (var definition in defenitions)
-    {
-        var host = app.Configuration.DiscoverAny(definition.Name);
-        foreach (var version in definition.SupportedVersions)
-        {
-            options.SwaggerEndpoint(
-                $"{host}/openapi/{version}.json", 
-                $"{definition.Name} {version}"
-            );
-        }
-    }
+    app.UseBffGlobalSwagger(definitions);
+}
 
-    options.ConfigObject.AdditionalItems["withCredentials"] = true;
-    options.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1';return request;}");
-})
-.AllowAnonymous();
-
-
-foreach (var definition in defenitions)
+foreach (var definition in definitions)
 {
     app.MapAspireBffService(builder.Configuration, definition.Name, definition.Path)
         .WithAccessToken(RequiredTokenType.User)

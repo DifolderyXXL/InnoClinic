@@ -65,7 +65,7 @@ if (app.Environment.IsDevelopment())
     app.MapSwaggerDefaults();
 }
 
-app.UseCors(PolicyConstants.FRONTEND_BFF_CORS_POLICY);
+//app.UseCors(PolicyConstants.FRONTEND_BFF_CORS_POLICY);
 
 app.UseAuthorizationDefaultsWithAspire();
 

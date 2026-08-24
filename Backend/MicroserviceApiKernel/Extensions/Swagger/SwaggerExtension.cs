@@ -17,7 +17,7 @@ namespace MicroserviceApiKernel.Extensions;
 
 public static class SwaggerExtension
 {
-    public static void AddOpenApiReversedThroughProxy(this IHostApplicationBuilder builder, string routeOnProxy, Action<Microsoft.AspNetCore.OpenApi.OpenApiOptions>? configureOptions = default)
+    public static void AddOpenApiReversedThroughProxy(this IHostApplicationBuilder builder, string routeOnProxy, Action<OpenApiOptions>? configureOptions = default)
     {
         builder.Services.AddOpenApi(options =>
         {
@@ -27,7 +27,7 @@ public static class SwaggerExtension
                 document.Servers.Clear();
                 document.Servers.Add(new()
                 {
-                    Url = "https://localhost:5001" + routeOnProxy
+                    Url = routeOnProxy
                 });
                 return Task.CompletedTask;
             });

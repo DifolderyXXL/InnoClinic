@@ -213,3 +213,7 @@ nunit-*.xml
 *.db
 *.db-wal
 *.db-shm
+
+**/keys/
+**/is-signing-key-*.json
+

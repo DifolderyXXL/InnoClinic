@@ -18,13 +18,7 @@ public class BlobPhotoStorage(IPhotoRepository context) : IPhotoStorage
     public async Task<bool> DeletePhotoAsync(string userId, Guid photoId, CancellationToken ct)
     {
         var activeBlobClient = context.GetPhotoClient(userId, photoId);
-        if (await activeBlobClient.ExistsAsync(ct)) 
-        {
-            await activeBlobClient.DeleteIfExistsAsync(cancellationToken: ct);
-            return true; 
-        }
-
-        return false;
+        return await activeBlobClient.DeleteIfExistsAsync(cancellationToken: ct);
     }
 
     public async Task<bool> ConfirmPhotoAsync(string userId, Guid photoId, CancellationToken ct)
